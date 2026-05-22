@@ -17,7 +17,7 @@ are crossed off as commits close them.
 | 14 | Property tests for collocations + temporal          | ✅ done (`c0cb437`) |
 | 12 | Real SBERT integration test on a slow CI tier       | ✅ done       |
 | 10 | DuckDB out-of-core reader                           | ✅ done       |
-| 13 | LaTeX-compile CI job                                | ⏳ next       |
+| 13 | LaTeX-compile CI job                                | ✅ done       |
 | 11 | `benchmarks/` with `asv` regression suite           | ⏳ next       |
 | 9  | polars backend                                      | 🔲 future    |
 | 4  | Real benchmark corpora                              | 🔲 future    |

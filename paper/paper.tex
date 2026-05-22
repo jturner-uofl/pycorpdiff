@@ -278,6 +278,12 @@ license.
 
 [TODO]
 
+% While the manuscript is still a skeleton (\TODO placeholders in every
+% section), no \cite{} calls exist yet — bibtex would warn "no citations".
+% \nocite{*} forces every entry in references.bib to appear in the
+% rendered bibliography for now; remove it once the prose pass cites
+% references explicitly via \cite{}.
+\nocite{*}
 \bibliography{references}
 
 \end{document}

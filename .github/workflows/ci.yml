@@ -101,6 +101,52 @@ jobs:
             paper/figures/
             paper/replication/paper_outputs.json
 
+  paper-pdf:
+    name: compile paper.tex (LaTeX smoke check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install TeX Live (only what jss.cls needs)
+        run: |
+          sudo apt-get update -q
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-fonts-recommended \
+            texlive-bibtex-extra \
+            texlive-science
+      - name: Compile paper (pdflatex + bibtex + pdflatex × 2)
+        working-directory: paper
+        run: |
+          pdflatex -interaction=nonstopmode -halt-on-error paper.tex
+          bibtex paper
+          pdflatex -interaction=nonstopmode -halt-on-error paper.tex
+          pdflatex -interaction=nonstopmode -halt-on-error paper.tex
+      - name: Confirm paper.pdf was produced and is non-empty
+        working-directory: paper
+        run: |
+          test -s paper.pdf
+          echo "paper.pdf: $(stat -c%s paper.pdf) bytes"
+      - name: Surface undefined references / citations as errors
+        # Skeleton-tolerant: we don't enforce warning-free builds yet
+        # because every section is a [TODO] placeholder. The Phase-9
+        # writing pass will tighten this to pysofra-style warnings-
+        # as-errors. For now we only fail on UNDEFINED references —
+        # those mean a \cite or \ref pointing at something we forgot to
+        # define, which is a real bug even in a skeleton.
+        working-directory: paper
+        run: |
+          if grep -E "(LaTeX Warning: Citation|LaTeX Warning: Reference).*undefined" paper.log; then
+            echo "::error::undefined references or citations in paper.log"
+            exit 1
+          fi
+      - name: Upload paper.pdf
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-pdf
+          path: paper/paper.pdf
+
   sbert-slow:
     name: SBERT integration (slow tier)
     # Only on push to main + manual dispatch; PRs use the fast default
