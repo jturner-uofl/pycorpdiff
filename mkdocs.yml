@@ -1,0 +1,58 @@
+site_name: pycorpdiff
+site_description: Comparative corpus analysis for modern Python workflows.
+site_author: Jason Turner
+repo_url: https://github.com/jasonsturner/pycorpdiff
+repo_name: jasonsturner/pycorpdiff
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: false
+            show_root_heading: true
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - API reference:
+      - Corpus: api/corpus.md
+      - Compare: api/compare.md
+      - Results: api/results.md
+  - Roadmap: roadmap.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - toc:
+      permalink: true

@@ -1,0 +1,36 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.env
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+.DS_Store
+.idea/
+.vscode/
+.claude/
+
+site/
+docs/_build/
+
+# Hypothesis example database (auto-managed)
+.hypothesis/
+
+# uv lockfile — present in git for reproducibility, but ignore stray copies
+# created outside the repo root by transient `uv` invocations.
+**/uv.lock.tmp
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Notebook outputs that aren't reviewed-as-source; the canonical tutorial
+# is executed in CI, not hand-edited with stale outputs.
+examples/*_executed.ipynb

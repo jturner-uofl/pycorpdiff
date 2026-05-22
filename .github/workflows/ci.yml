@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: tests (Python ${{ matrix.python-version }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - name: Set up Python
+        run: uv python install ${{ matrix.python-version }}
+      - name: Install dependencies (dev only — extras land per phase)
+        # Phase 0 only exercises the lexical-comparative core's base deps.
+        # When semantic / temporal / viz extras are wired up in later
+        # phases, swap this to `-e ".[dev,all]"` so coverage exercises
+        # every optional-dep path.
+        run: uv pip install --system -e ".[dev]"
+      - name: Run ruff
+        run: ruff check src tests
+      - name: Run mypy
+        run: mypy src/pycorpdiff
+      - name: Run pytest
+        run: pytest --cov=pycorpdiff --cov-report=term-missing
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: false
+
+  docs:
+    name: build mkdocs site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv pip install --system -e ".[docs]"
+      - run: mkdocs build --strict
