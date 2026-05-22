@@ -21,7 +21,9 @@ if TYPE_CHECKING:
     from .semantic.embed import Embedder
 
 
-KeynessMethod = Literal["log_likelihood", "log_ratio", "bayes_factor", "percent_diff"]
+KeynessMethod = Literal[
+    "log_likelihood", "log_ratio", "bayes_factor", "percent_diff", "chi_squared",
+]
 CollocationMeasure = Literal["logDice", "PMI", "t_score", "MI3"]
 EmbeddingAlignment = Literal["none", "procrustes"]
 MultipleComparisons = Literal["bh", "bonferroni", "none"]
@@ -48,14 +50,18 @@ class Comparison:
         dispersion: bool = False,
         min_count: int = 5,
         multiple_comparisons: MultipleComparisons = "bh",
+        stop_words: set[str] | list[str] | None = None,
     ) -> KeynessResult:
         """Compute keyness for every shared-vocabulary item.
 
         Parameters
         ----------
         method
-            Which column to sort the result by. The underlying statistics
-            are always computed; this only controls presentation order.
+            Which statistic to sort the result by. ``"log_likelihood"``
+            (default) sorts by signed Dunning G²; ``"chi_squared"``
+            sorts by signed Pearson χ². The other modes
+            (``"log_ratio"``, ``"bayes_factor"``, ``"percent_diff"``)
+            require ``effect_size=True`` and sort by that column.
         effect_size
             If True (default), also compute LogRatio (Hardie),
             %DIFF (Gabrielatos), and the BIC-Bayes factor (Wilson).
@@ -71,10 +77,16 @@ class Comparison:
         multiple_comparisons
             ``"bh"`` (default, Benjamini–Hochberg), ``"bonferroni"``,
             or ``"none"``. The corrected column is named ``p_adjusted``.
+        stop_words
+            Iterable of terms to exclude before scoring. Useful for
+            filtering function-word noise without modifying the source
+            corpus. Tokens drop *after* vocabulary union, so the corpus
+            totals (used as normalisation denominators) are unaffected.
         """
         # Imports kept local to break circulars and to keep this module
         # importable without the keyness machinery on hand.
         from .keyness.bayes import bayes_factor as _bayes_factor
+        from .keyness.chi_squared import chi_squared as _chi_squared
         from .keyness.correction import benjamini_hochberg, bonferroni
         from .keyness.dispersion import juilland_d
         from .keyness.effect_sizes import log_ratio as _log_ratio
@@ -98,10 +110,19 @@ class Comparison:
         a_aligned = vocab_a.reindex(all_terms, fill_value=0).astype("int64")
         b_aligned = vocab_b.reindex(all_terms, fill_value=0).astype("int64")
         keep = (a_aligned + b_aligned) >= min_count
+        if stop_words is not None:
+            stop_set = set(stop_words)
+            keep &= ~a_aligned.index.isin(stop_set)
         a_kept = a_aligned[keep]
         b_kept = b_aligned[keep]
 
+        # G² is always computed (cheap, the default sort column). χ² is
+        # computed only when requested — same shape, asymptotically
+        # equivalent, no need to pay for both by default.
         table = log_likelihood(a_kept, b_kept, n_a, n_b)
+        if method == "chi_squared":
+            chi_table = _chi_squared(a_kept, b_kept, n_a, n_b)
+            table["chi_squared"] = chi_table["chi_squared"]
 
         if effect_size:
             table["log_ratio"] = _log_ratio(a_kept, b_kept, n_a, n_b)
@@ -126,6 +147,7 @@ class Comparison:
             "log_ratio": "log_ratio",
             "bayes_factor": "bayes_factor",
             "percent_diff": "percent_diff",
+            "chi_squared": "chi_squared",
         }[method]
         if sort_col not in table.columns:
             # User asked to sort by an effect-size column they disabled.
@@ -151,6 +173,7 @@ class Comparison:
                 "dispersion": dispersion,
                 "min_count": min_count,
                 "multiple_comparisons": multiple_comparisons,
+                "stop_words": tuple(stop_words) if stop_words else None,
             },
             corpus_a=self.a,
             corpus_b=self.b,
