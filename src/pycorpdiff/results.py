@@ -16,6 +16,7 @@ constructed from a plain DataFrame without inheritance gymnastics.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pandas as pd
@@ -24,6 +25,45 @@ if TYPE_CHECKING:
     import altair as alt
 
     from .corpus import Corpus, CorpusSlice
+
+
+def _table_to_html(table: pd.DataFrame, path: str | Path | None, **kw: Any) -> str:
+    """Render ``table`` as HTML; optionally write to ``path``."""
+    html: str = str(table.to_html(**kw))
+    if path is not None:
+        Path(path).write_text(html, encoding="utf-8")
+    return html
+
+
+def _table_to_json(
+    table: pd.DataFrame, path: str | Path | None, **kw: Any
+) -> str:
+    """Render ``table`` as JSON (records orientation by default); optionally
+    write to ``path``.
+
+    Coerces any object-dtype columns containing ``pd.Period`` values to
+    strings before serialisation — pandas's JSON writer doesn't know
+    how to represent Period and would raise OverflowError. The string
+    form (``"2020"``, ``"2020Q1"``, …) round-trips back to Period
+    cleanly via :func:`pandas.Period`.
+    """
+    serialisable = table.copy()
+    for col in serialisable.columns:
+        col_dtype = serialisable[col].dtype
+        if isinstance(col_dtype, pd.PeriodDtype):
+            serialisable[col] = serialisable[col].astype(str)
+        elif col_dtype == object:  # noqa: E721
+            sample = next(
+                (v for v in serialisable[col] if v is not None and not pd.isna(v)),
+                None,
+            )
+            if isinstance(sample, pd.Period):
+                serialisable[col] = serialisable[col].astype(str)
+    kw.setdefault("orient", "records")
+    json_str: str = str(serialisable.to_json(**kw))
+    if path is not None:
+        Path(path).write_text(json_str, encoding="utf-8")
+    return json_str
 
 
 @dataclass(frozen=True)
@@ -48,6 +88,17 @@ class KeynessResult:
 
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()
+
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.table, path, **kw)
 
     def plot(self, kind: str = "volcano", **kw: Any) -> alt.Chart:
         """Return an altair chart of the keyness result.
@@ -114,6 +165,17 @@ class CollocationShiftResult:
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()
 
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.table, path, **kw)
+
     def plot(self, **kw: Any) -> alt.Chart:
         """Return a diverging horizontal bar chart of the top collocate shifts."""
         from .viz.collocation import collocation_diverging_bar
@@ -168,6 +230,17 @@ class SemanticShiftResult:
 
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()
+
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.table, path, **kw)
 
     def plot(self, **kw: Any) -> alt.Chart:
         raise NotImplementedError("SemanticShiftResult.plot() lands in Phase 6")
@@ -248,6 +321,17 @@ class TemporalTrajectory:
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()
 
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.table, path, **kw)
+
     def plot(self, **kw: Any) -> alt.Chart:
         """Return a line plot with Wilson CI bands per term."""
         from .viz.trajectory import trajectory_with_ci
@@ -323,6 +407,17 @@ class ConcordanceResult:
 
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()
+
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.table, path, **kw)
 
     def summary(self) -> str:
         return f"ConcordanceResult(target={self.target!r}, lines={len(self.table):,})"

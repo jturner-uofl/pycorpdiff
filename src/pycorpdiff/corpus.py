@@ -84,7 +84,7 @@ def _coerce_to_pandas(docs: Any) -> pd.DataFrame:
     )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class Corpus:
     """A corpus of documents with optional metadata columns.
 
@@ -106,6 +106,16 @@ class Corpus:
     tokenizer
         A callable conforming to :class:`pycorpdiff.tokenize.Tokenizer`.
         Defaults to the package's :class:`RegexTokenizer`.
+
+    Hashability
+    -----------
+
+    :class:`Corpus` is hashable with a content-derived hash — two
+    corpora with the same documents, schema, and tokenizer hash the
+    same. The hash uses :func:`pandas.util.hash_pandas_object` so it's
+    fast (O(N) over rows, vectorised) but deterministic. Use a Corpus
+    as a dict key when memoising analyses or building reproducibility
+    caches.
     """
 
     docs: pd.DataFrame
@@ -131,6 +141,26 @@ class Corpus:
 
     def __len__(self) -> int:
         return len(self.docs)
+
+    def __hash__(self) -> int:
+        """Content-derived hash for cache keys / reproducibility checks.
+
+        Combines a fast vectorised hash of every document row with the
+        corpus configuration (text/id/meta columns + tokenizer repr).
+        Two corpora with identical docs, schema, and tokenizer hash the
+        same; mutating any of those (in a copy — Corpus is frozen)
+        produces a different hash.
+        """
+        row_hash = int(pd.util.hash_pandas_object(self.docs, index=False).sum()) & 0xFFFFFFFFFFFFFFFF
+        return hash(
+            (row_hash, self.text_col, self.id_col, self.meta_cols, repr(self.tokenizer))
+        )
+
+    def __eq__(self, other: object) -> bool:
+        """Two Corpora are equal iff their hashes agree on content + config."""
+        if not isinstance(other, Corpus):
+            return NotImplemented
+        return hash(self) == hash(other)
 
     @property
     def metadata_columns(self) -> tuple[str, ...]:
