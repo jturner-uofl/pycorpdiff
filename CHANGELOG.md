@@ -6,6 +6,17 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Tutorial extension (covers Phases 6 + 7)
+- Tutorial corpus redesigned: 19 years (2005–2023) with a 4× publication-
+  volume swap at the engineered 2016 event, giving PELT and ITS real
+  signal to find rather than a degenerate same-template-every-year
+  pattern.
+- New sections added: `### 6a Changepoint detection`,
+  `### 6b Interrupted time series`, `## 8 Semantic shift via embeddings`,
+  `### 8a Neighbourhood drift`. Uses `HashEmbedder` for reproducibility;
+  documented escape hatch to swap in `SBERTEmbedder` for real semantics.
+- 34 cells, executed end-to-end via nbconvert in CI on every push.
+
 ### Added — Phase 7: changepoint detection + interrupted time series
 - `pycorpdiff.temporal.detect_changepoints(series, method, penalty, model)` —
   wraps `ruptures` (PELT / BinSeg / Window). Returns a tidy DataFrame
