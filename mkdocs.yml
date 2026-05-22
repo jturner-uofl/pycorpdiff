@@ -52,6 +52,7 @@ nav:
       - Semantic: api/semantic.md
       - Visualisation: api/viz.md
   - Roadmap: roadmap.md
+  - Audit follow-ups: audit.md
 
 markdown_extensions:
   - admonition

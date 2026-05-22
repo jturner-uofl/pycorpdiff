@@ -130,8 +130,15 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "-ra --strict-markers --strict-config"
+# `-m "not slow"` keeps the default run fast: slow tests (real SBERT
+# model download, future cross-validation against R / Scattertext)
+# are opted into with `pytest -m slow`. The dedicated CI job(s) that
+# exercise them install the heavy extras separately.
+addopts = "-ra --strict-markers --strict-config -m 'not slow'"
 filterwarnings = ["error"]
+markers = [
+    "slow: tests that download models or large fixtures; opt in via `-m slow`",
+]
 
 [tool.coverage.run]
 branch = false

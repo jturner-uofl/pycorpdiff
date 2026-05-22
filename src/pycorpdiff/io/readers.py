@@ -81,9 +81,13 @@ def read_txt(
     tokenizer
         Optional :class:`Tokenizer`. Defaults to :class:`RegexTokenizer`.
 
-    The returned corpus has columns ``text``, ``source`` (the path), and
-    when ``one_doc_per="line"`` an integer ``line`` column with the 1-based
-    line number so KWIC results can point back at the original file.
+    Returns
+    -------
+    Corpus
+        Has columns ``text``, ``source`` (the path), and — when
+        ``one_doc_per="line"`` — an integer ``line`` column with the
+        1-based line number so KWIC results can point back at the
+        original file.
     """
     if one_doc_per not in ("file", "line"):
         raise ValueError(
