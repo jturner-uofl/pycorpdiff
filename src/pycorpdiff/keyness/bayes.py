@@ -1,15 +1,21 @@
-"""Bayes factor keyness.
+"""Bayes factor keyness, BIC-based approximation.
 
-Reference
----------
+References
+----------
 Wilson, A. (2013). Embracing Bayes factors for key item analysis in
 corpus linguistics. In *New Approaches to the Study of Linguistic
 Variability* (pp. 3-11).
+
+Kass, R. E., & Raftery, A. E. (1995). Bayes factors. *Journal of the
+American Statistical Association*, 90(430), 773-795.
 """
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
+
+from .loglikelihood import log_likelihood
 
 
 def bayes_factor(
@@ -18,10 +24,27 @@ def bayes_factor(
     total_a: int,
     total_b: int,
 ) -> pd.Series:
-    """Compute the Bayes factor for each term's frequency difference.
+    """BIC-approximated Bayes factor for each term's frequency difference.
 
-    Returned values are in raw BF units (not log-BF); interpret with
-    Kass & Raftery's (1995) thresholds: BF > 10 = "strong",
-    BF > 100 = "decisive".
+    Uses Wilson's BIC approximation: ``BIC = |G²| - ln(N)`` where ``N``
+    is the total tokens across both corpora and ``G²`` is the unsigned
+    log-likelihood. The Bayes factor is then ``exp(BIC / 2)``.
+
+    Interpret with Kass & Raftery (1995):
+
+    - ``BF > 2``  : positive evidence
+    - ``BF > 6``  : strong evidence
+    - ``BF > 10`` : very strong evidence
+    - ``BF > 100``: decisive evidence
+
+    Very large BF values overflow float64 and surface as ``inf``; that is
+    semantically correct ("evidence is essentially conclusive") and pandas
+    plots / sorts handle it.
     """
-    raise NotImplementedError("bayes_factor() lands in Phase 1")
+    terms = counts_a.index.union(counts_b.index)
+    ll_table = log_likelihood(counts_a, counts_b, total_a, total_b)
+    g2_abs = ll_table["g2"].abs()
+    bic = g2_abs - np.log(total_a + total_b)
+    with np.errstate(over="ignore"):
+        bf = np.exp(bic / 2.0)
+    return pd.Series(bf, index=terms, name="bayes_factor")

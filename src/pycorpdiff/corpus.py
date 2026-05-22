@@ -9,9 +9,11 @@ dataclasses; mutations produce new objects.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any, Literal
 
+import numpy as np
 import pandas as pd
 
 from .tokenize import RegexTokenizer, Tokenizer
@@ -21,6 +23,34 @@ if TYPE_CHECKING:
 
 
 Backend = Literal["pandas", "polars"]
+
+
+def _doc_term_counts(
+    docs: pd.DataFrame,
+    text_col: str,
+    tokenizer: Tokenizer,
+    min_count: int = 1,
+) -> pd.DataFrame:
+    """Build a docs × term integer count matrix.
+
+    The result is dense (``int64``) and indexed by the parent frame's index.
+    Sparse representations are deferred to a later phase — for the corpus
+    sizes pycorpdiff targets in MVP scope (medium millions of tokens) dense
+    is fast enough and downstream operations stay vectorisable.
+    """
+    counts_per_doc: list[Counter[str]] = [Counter(tokenizer(t)) for t in docs[text_col]]
+    all_terms: list[str] = sorted({term for c in counts_per_doc for term in c})
+    term_to_idx: dict[str, int] = {t: i for i, t in enumerate(all_terms)}
+
+    data = np.zeros((len(counts_per_doc), len(all_terms)), dtype=np.int64)
+    for i, doc_counts in enumerate(counts_per_doc):
+        for term, n in doc_counts.items():
+            data[i, term_to_idx[term]] = n
+
+    df = pd.DataFrame(data, columns=all_terms, index=docs.index)
+    if min_count > 1:
+        df = df.loc[:, df.sum(axis=0) >= min_count]
+    return df
 
 
 @dataclass(frozen=True)
@@ -115,6 +145,23 @@ class Corpus:
         """Return a copy of the corpus with a different tokenizer."""
         return replace(self, tokenizer=tokenizer)
 
+    def tokens(self) -> list[list[str]]:
+        """Tokenize every document; return one list of tokens per doc."""
+        return [self.tokenizer(t) for t in self.docs[self.text_col]]
+
+    def doc_term_counts(self, min_count: int = 1) -> pd.DataFrame:
+        """Return a docs × term integer count DataFrame."""
+        return _doc_term_counts(self.docs, self.text_col, self.tokenizer, min_count)
+
+    def vocab(self, min_count: int = 1) -> pd.Series:
+        """Return a term → total-count Series sorted descending."""
+        counts = self.doc_term_counts(min_count=min_count).sum(axis=0)
+        return counts.rename("count").sort_values(ascending=False)
+
+    def total_tokens(self) -> int:
+        """Total tokens across all documents (before any min_count filter)."""
+        return int(self.doc_term_counts(min_count=1).values.sum())
+
 
 @dataclass(frozen=True)
 class CorpusSlice:
@@ -156,3 +203,17 @@ class CorpusSlice:
         if not self.filters:
             return "slice"
         return ", ".join(f"{k}={v!r}" for k, v in self.filters.items())
+
+    def tokens(self) -> list[list[str]]:
+        """Tokenize every document in the slice."""
+        return [self.tokenizer(t) for t in self.docs[self.text_col]]
+
+    def doc_term_counts(self, min_count: int = 1) -> pd.DataFrame:
+        return _doc_term_counts(self.docs, self.text_col, self.tokenizer, min_count)
+
+    def vocab(self, min_count: int = 1) -> pd.Series:
+        counts = self.doc_term_counts(min_count=min_count).sum(axis=0)
+        return counts.rename("count").sort_values(ascending=False)
+
+    def total_tokens(self) -> int:
+        return int(self.doc_term_counts(min_count=1).values.sum())

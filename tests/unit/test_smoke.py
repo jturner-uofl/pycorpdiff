@@ -112,11 +112,13 @@ def test_compare_before_after_splits_on_date() -> None:
     assert len(cmp.b) == 1
 
 
-def test_keyness_method_is_not_yet_implemented(toy_corpus: pcd.Corpus) -> None:
+def test_keyness_method_returns_result(toy_corpus: pcd.Corpus) -> None:
+    # The toy corpus is too small for min_count=5 to leave anything; drop
+    # the threshold to verify keyness completes end-to-end on the plumbing.
     a = toy_corpus.slice(outlet="A")
     b = toy_corpus.slice(outlet="B")
-    with pytest.raises(NotImplementedError, match="Phase 1"):
-        pcd.compare(a, b).keyness()
+    result = pcd.compare(a, b).keyness(min_count=1)
+    assert isinstance(result, pcd.KeynessResult)
 
 
 def test_read_csv_round_trip(tmp_path: Path, toy_df: pd.DataFrame) -> None:

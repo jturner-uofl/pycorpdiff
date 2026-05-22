@@ -1,9 +1,7 @@
 """Public ``compare()`` facade and the :class:`Comparison` class.
 
-This module defines the public API surface. The analytical methods on
-:class:`Comparison` delegate to the keyness / collocation / semantic
-subpackages; in this scaffolding release they raise
-:class:`NotImplementedError` until Phase 1 lands.
+This module defines the public API surface. Analytical methods delegate
+to the keyness / collocation / semantic subpackages.
 """
 
 from __future__ import annotations
@@ -23,9 +21,10 @@ if TYPE_CHECKING:
     from .semantic.embed import Embedder
 
 
-KeynessMethod = Literal["log_likelihood", "log_ratio", "bayes_factor", "chi_squared"]
+KeynessMethod = Literal["log_likelihood", "log_ratio", "bayes_factor", "percent_diff"]
 CollocationMeasure = Literal["logDice", "PMI", "t_score", "MI", "MI3"]
 EmbeddingAlignment = Literal["procrustes", "anchor", "none"]
+MultipleComparisons = Literal["bh", "bonferroni", "none"]
 CorpusLike = Corpus | CorpusSlice
 
 
@@ -46,16 +45,114 @@ class Comparison:
         self,
         method: KeynessMethod = "log_likelihood",
         effect_size: bool = True,
+        dispersion: bool = False,
         min_count: int = 5,
+        multiple_comparisons: MultipleComparisons = "bh",
     ) -> KeynessResult:
-        """Compute keyness for every shared vocabulary item.
+        """Compute keyness for every shared-vocabulary item.
 
-        Phase 1 will implement Dunning log-likelihood with LogRatio
-        effect sizes (Hardie 2014) and Bayes factor (Wilson, Gabrielatos)
-        as alternatives. Dispersion-poor terms are flagged but not
-        filtered.
+        Parameters
+        ----------
+        method
+            Which column to sort the result by. The underlying statistics
+            are always computed; this only controls presentation order.
+        effect_size
+            If True (default), also compute LogRatio (Hardie),
+            %DIFF (Gabrielatos), and the BIC-Bayes factor (Wilson).
+        dispersion
+            If True, compute Juilland's D for both corpora and flag
+            terms where ``D < 0.5`` in either — the canonical "this is
+            driven by one document" heuristic. Off by default because
+            it requires constructing the full doc-term matrices.
+        min_count
+            Drop terms whose ``count_a + count_b`` is below this
+            threshold. Dunning's small-cell unreliability makes the
+            default of 5 the standard recommendation.
+        multiple_comparisons
+            ``"bh"`` (default, Benjamini–Hochberg), ``"bonferroni"``,
+            or ``"none"``. The corrected column is named ``p_adjusted``.
         """
-        raise NotImplementedError("keyness() lands in Phase 1")
+        # Imports kept local to break circulars and to keep this module
+        # importable without the keyness machinery on hand.
+        from .keyness.bayes import bayes_factor as _bayes_factor
+        from .keyness.correction import benjamini_hochberg, bonferroni
+        from .keyness.dispersion import juilland_d
+        from .keyness.effect_sizes import log_ratio as _log_ratio
+        from .keyness.effect_sizes import percent_diff as _percent_diff
+        from .keyness.loglikelihood import log_likelihood
+        from .results import KeynessResult
+
+        dtm_a = self.a.doc_term_counts(min_count=1)
+        dtm_b = self.b.doc_term_counts(min_count=1)
+        vocab_a = dtm_a.sum(axis=0)
+        vocab_b = dtm_b.sum(axis=0)
+        n_a = int(vocab_a.sum())
+        n_b = int(vocab_b.sum())
+
+        if n_a == 0 or n_b == 0:
+            raise ValueError(
+                f"both corpora must contain at least one token; got |a|={n_a}, |b|={n_b}"
+            )
+
+        all_terms = vocab_a.index.union(vocab_b.index)
+        a_aligned = vocab_a.reindex(all_terms, fill_value=0).astype("int64")
+        b_aligned = vocab_b.reindex(all_terms, fill_value=0).astype("int64")
+        keep = (a_aligned + b_aligned) >= min_count
+        a_kept = a_aligned[keep]
+        b_kept = b_aligned[keep]
+
+        table = log_likelihood(a_kept, b_kept, n_a, n_b)
+
+        if effect_size:
+            table["log_ratio"] = _log_ratio(a_kept, b_kept, n_a, n_b)
+            table["percent_diff"] = _percent_diff(a_kept, b_kept, n_a, n_b)
+            table["bayes_factor"] = _bayes_factor(a_kept, b_kept, n_a, n_b)
+
+        if dispersion:
+            kept_terms = table.index
+            disp_a = juilland_d(dtm_a.reindex(columns=kept_terms, fill_value=0))
+            disp_b = juilland_d(dtm_b.reindex(columns=kept_terms, fill_value=0))
+            table["dispersion_a"] = disp_a
+            table["dispersion_b"] = disp_b
+            table["dispersion_flag"] = (disp_a < 0.5) | (disp_b < 0.5)
+
+        if multiple_comparisons == "bh":
+            table["p_adjusted"] = benjamini_hochberg(table["p_value"].to_numpy())
+        elif multiple_comparisons == "bonferroni":
+            table["p_adjusted"] = bonferroni(table["p_value"].to_numpy())
+
+        sort_col = {
+            "log_likelihood": "g2",
+            "log_ratio": "log_ratio",
+            "bayes_factor": "bayes_factor",
+            "percent_diff": "percent_diff",
+        }[method]
+        if sort_col not in table.columns:
+            # User asked to sort by an effect-size column they disabled.
+            raise ValueError(
+                f"method={method!r} requires effect_size=True so the column exists"
+            )
+        # Sort by |signed score| so direction doesn't bury overuse-in-B terms.
+        sort_key = table[sort_col].abs()
+        table = table.assign(_sort_key=sort_key).sort_values(
+            "_sort_key", ascending=False
+        ).drop(columns="_sort_key")
+
+        out = table.reset_index().rename(columns={"index": "term"})
+        return KeynessResult(
+            table=out,
+            method=method,
+            n_a=n_a,
+            n_b=n_b,
+            label_a=_corpus_label(self.a),
+            label_b=_corpus_label(self.b),
+            params={
+                "effect_size": effect_size,
+                "dispersion": dispersion,
+                "min_count": min_count,
+                "multiple_comparisons": multiple_comparisons,
+            },
+        )
 
     def collocation_shift(
         self,
@@ -94,6 +191,10 @@ class Comparison:
 def compare(a: CorpusLike, b: CorpusLike) -> Comparison:
     """Construct a pairwise :class:`Comparison` of two corpora or slices."""
     return Comparison(a=a, b=b)
+
+
+def _corpus_label(c: CorpusLike) -> str:
+    return c.label if isinstance(c, CorpusSlice) else "corpus"
 
 
 def _before_after(
