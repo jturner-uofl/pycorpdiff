@@ -23,6 +23,10 @@ import pandas as pd
 if TYPE_CHECKING:
     import altair as alt
 
+    from .corpus import Corpus, CorpusSlice
+
+    CorpusLike = Corpus | CorpusSlice
+
 
 @dataclass(frozen=True)
 class KeynessResult:
@@ -41,6 +45,8 @@ class KeynessResult:
     label_a: str = "a"
     label_b: str = "b"
     params: dict[str, Any] = field(default_factory=dict)
+    corpus_a: CorpusLike | None = None
+    corpus_b: CorpusLike | None = None
 
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()
@@ -48,8 +54,30 @@ class KeynessResult:
     def plot(self, **kw: Any) -> alt.Chart:
         raise NotImplementedError("KeynessResult.plot() lands in Phase 4")
 
-    def explain(self, term: str, n: int = 5) -> ConcordanceResult:
-        raise NotImplementedError("KeynessResult.explain() lands in Phase 3")
+    def explain(self, term: str, n: int = 5, window: int = 5) -> ConcordanceResult:
+        """Show KWIC examples of ``term`` from both source corpora.
+
+        Returns up to ``n`` lines per corpus. Requires that the result
+        was built via :meth:`pycorpdiff.Comparison.keyness` (which
+        populates the corpus references); building a ``KeynessResult``
+        from a bare DataFrame will raise.
+        """
+        if self.corpus_a is None or self.corpus_b is None:
+            raise ValueError(
+                "explain() requires source corpora; this KeynessResult was "
+                "constructed without them"
+            )
+        from .explain import kwic_compare
+
+        return kwic_compare(
+            self.corpus_a,
+            self.corpus_b,
+            target=term,
+            window=window,
+            n_per_side=n,
+            label_a=self.label_a,
+            label_b=self.label_b,
+        )
 
     def summary(self) -> str:
         return (
@@ -68,6 +96,8 @@ class CollocationShiftResult:
     window: int
     label_a: str = "a"
     label_b: str = "b"
+    corpus_a: CorpusLike | None = None
+    corpus_b: CorpusLike | None = None
 
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()
@@ -75,8 +105,30 @@ class CollocationShiftResult:
     def plot(self, **kw: Any) -> alt.Chart:
         raise NotImplementedError("CollocationShiftResult.plot() lands in Phase 4")
 
-    def explain(self, term: str, n: int = 5) -> ConcordanceResult:
-        raise NotImplementedError("CollocationShiftResult.explain() lands in Phase 3")
+    def explain(self, collocate: str, n: int = 5) -> ConcordanceResult:
+        """Show KWIC windows where ``target`` co-occurs with ``collocate``.
+
+        Returns up to ``n`` lines per corpus, restricted to contexts in
+        which both the target and ``collocate`` appear within the same
+        window. This is the per-row evidence behind a shift score.
+        """
+        if self.corpus_a is None or self.corpus_b is None:
+            raise ValueError(
+                "explain() requires source corpora; this CollocationShiftResult "
+                "was constructed without them"
+            )
+        from .explain import kwic_compare
+
+        return kwic_compare(
+            self.corpus_a,
+            self.corpus_b,
+            target=self.target,
+            window=self.window,
+            n_per_side=n,
+            collocate=collocate,
+            label_a=self.label_a,
+            label_b=self.label_b,
+        )
 
     def summary(self) -> str:
         return (

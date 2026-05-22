@@ -6,6 +6,27 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Phase 3: KWIC concordances and `explain()`
+- `pycorpdiff.kwic(corpus, target, window, n, label)` — per-document
+  windowed KWIC extraction; never crosses document boundaries.
+- `pycorpdiff.representative_docs(corpus, target, n)` — top-n documents
+  by target frequency, with stable doc-id tie-breaking.
+- Internal `kwic_compare` — side-by-side KWIC tables from two corpora,
+  with optional collocate filter (the engine behind
+  `CollocationShiftResult.explain`).
+- `KeynessResult.explain(term, n, window)` — pulls KWIC evidence from
+  both source corpora (up to *n* lines per side).
+- `CollocationShiftResult.explain(collocate, n)` — restricted to windows
+  in which both the result's target and the collocate appear.
+- `KeynessResult.corpus_a / corpus_b` and `CollocationShiftResult.corpus_a / corpus_b`
+  — optional references populated by `Comparison.keyness/collocation_shift`
+  so explain has evidence to work with. Constructing a Result without
+  them raises a clear error if `.explain()` is called.
+- 16 new tests (124 total): KWIC schema and window correctness,
+  document-boundary isolation, n-cap behaviour, collocate-filtered
+  windows, both-sides representation, and the explain-without-corpora
+  error path.
+
 ### Added — Phase 2: collocations and collocation shift
 - `pycorpdiff.collocation.collocate_counts` — window-based co-occurrence
   extractor, per-document isolation, configurable window size.

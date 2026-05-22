@@ -152,6 +152,8 @@ class Comparison:
                 "min_count": min_count,
                 "multiple_comparisons": multiple_comparisons,
             },
+            corpus_a=self.a,
+            corpus_b=self.b,
         )
 
     def collocation_shift(
@@ -187,6 +189,8 @@ class Comparison:
             window=window,
             label_a=_corpus_label(self.a),
             label_b=_corpus_label(self.b),
+            corpus_a=self.a,
+            corpus_b=self.b,
         )
 
     def semantic_shift(
