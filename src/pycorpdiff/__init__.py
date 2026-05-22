@@ -37,6 +37,7 @@ from .results import (
 )
 from .semantic.embed import Embedder, HashEmbedder, SBERTEmbedder
 from .semantic.shift import neighborhood_drift
+from .semantic.trajectory import semantic_trajectory
 from .temporal.slicing import TemporalCorpus, track
 from .tokenize import RegexTokenizer, Tokenizer
 
@@ -66,5 +67,6 @@ __all__ = [
     "read_parquet",
     "read_txt",
     "representative_docs",
+    "semantic_trajectory",
     "track",
 ]

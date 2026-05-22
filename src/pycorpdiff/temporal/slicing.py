@@ -126,6 +126,40 @@ class Tracker:
         """Alias for :meth:`over_time`."""
         return self.over_time(freq=freq, time_col=time_col, confidence=confidence)
 
+    def semantic_over_time(
+        self,
+        freq: str = "Y",
+        time_col: str = "date",
+        embedder: object | None = None,
+        window: int = 5,
+        baseline_period: str | None = None,
+    ) -> pd.DataFrame:
+        """Track each target's *contextual centroid* across time periods.
+
+        Where :meth:`over_time` returns relative frequencies, this
+        returns a semantic trajectory: per-period averaged contextual
+        embeddings with cosine distance to a baseline period. With
+        SBERT this surfaces meaning shifts that pure frequency
+        analysis misses.
+
+        See :func:`pycorpdiff.semantic.semantic_trajectory` for the
+        full parameter docs.
+        """
+        from ..semantic.shift import (  # noqa: F401 — keeps the import side-effect close to the use
+            semantic_shift,
+        )
+        from ..semantic.trajectory import semantic_trajectory
+
+        return semantic_trajectory(
+            self.corpus,
+            target=self.targets if len(self.targets) > 1 else self.targets[0],
+            time_col=time_col,
+            freq=freq,
+            embedder=embedder,  # type: ignore[arg-type]
+            window=window,
+            baseline_period=baseline_period,
+        )
+
 
 def track(
     corpus: Corpus | CorpusSlice, target: str | list[str]
