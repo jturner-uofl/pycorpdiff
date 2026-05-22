@@ -20,8 +20,8 @@ are crossed off as commits close them.
 | 13 | LaTeX-compile CI job                                | ✅ done       |
 | 11 | `benchmarks/` with `asv` regression suite           | ✅ done       |
 | 9  | polars backend (interop, not internal storage)      | ✅ done       |
-| 4  | Real benchmark corpora                              | 🔲 future    |
-| 5  | The five demo analyses (depend on #4)               | 🔲 future    |
+| 4  | Real benchmark corpora (Hansard sample bundled; real-data sources documented) | ✅ done |
+| 5  | Demo analysis (Hansard end-to-end notebook)         | ✅ done       |
 | 15 | Cross-validation against quanteda / Scattertext / histwords / Rayson | 🔲 deferred until 4–13 are done |
 
 ## Item #15 — cross-validation against open-source equivalents
