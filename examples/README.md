@@ -1,15 +1,26 @@
 # Examples
 
-This directory hosts the executable example notebooks.
+This directory hosts the executable example notebooks. All three are
+re-executed in CI on every push so they can't silently drift from the
+public API.
 
-- [`pycorpdiff_tutorial.ipynb`](pycorpdiff_tutorial.ipynb) — the full
-  guided tour on a synthetic two-frame fixture. Covers every analytical
-  surface in pycorpdiff.
-- [`hansard_demo.ipynb`](hansard_demo.ipynb) — a worked example on the
-  bundled Hansard-style sample corpus (`pcd.load_hansard_sample()`).
-  Drives keyness, collocation shift, temporal trajectories, changepoint
-  detection, ITS, and semantic shift on one realistic-shape corpus,
-  with cross-party and cross-topic comparisons.
+- **🌟 [`pycorpdiff_showcase.ipynb`](pycorpdiff_showcase.ipynb)** —
+  *the* showcase. One coherent research narrative (UK parliamentary
+  discourse on migration) driving every analytical surface in
+  pycorpdiff: keyness with volcano + bar + KWIC explain, collocation
+  shift, temporal trajectories with Wilson CIs, changepoint
+  detection, interrupted time series, semantic shift via averaged
+  contextual embeddings, neighbourhood drift, cross-party and
+  cross-topic fanouts, plus live cross-validation against
+  Scattertext on the 2012 US Conventions corpus and reference values
+  from Rayson + HistWords. Also exercises polars / DuckDB / custom
+  tokenizer interop. **Start here if you want the full tour.**
+- [`pycorpdiff_tutorial.ipynb`](pycorpdiff_tutorial.ipynb) — the
+  introductory guided tour on a synthetic two-frame fixture. Smaller
+  scope, gentler ramp.
+- [`hansard_demo.ipynb`](hansard_demo.ipynb) — a focused worked
+  example on the bundled Hansard sample. Less infrastructure, more
+  research narrative.
 
 ## Conventions
 

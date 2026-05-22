@@ -203,7 +203,10 @@ jobs:
       # to run the notebook. Failing this job means the public API has
       # drifted from the canonical tutorial — fix one or the other in the
       # same PR.
-      - run: uv pip install --system -e ".[viz,docs]"
+      # The showcase exercises the polars + duckdb plumbing cells and
+      # the Scattertext cross-validation block, so we pull those extras
+      # in alongside [viz,docs].
+      - run: uv pip install --system -e ".[viz,docs,polars,duckdb]" scattertext
       - name: Re-execute the tutorial in a temp file
         run: |
           jupyter nbconvert --to notebook --execute \
@@ -214,3 +217,8 @@ jobs:
           jupyter nbconvert --to notebook --execute \
             examples/hansard_demo.ipynb \
             --output /tmp/hansard_demo_executed.ipynb
+      - name: Re-execute the showcase notebook in a temp file
+        run: |
+          jupyter nbconvert --to notebook --execute \
+            examples/pycorpdiff_showcase.ipynb \
+            --output /tmp/pycorpdiff_showcase_executed.ipynb
