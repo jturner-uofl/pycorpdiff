@@ -16,7 +16,7 @@ are crossed off as commits close them.
 | 8  | `read_txt(one_doc_per="line")`                      | ✅ done (`c0cb437`) |
 | 14 | Property tests for collocations + temporal          | ✅ done (`c0cb437`) |
 | 12 | Real SBERT integration test on a slow CI tier       | ✅ done       |
-| 10 | DuckDB out-of-core reader                           | ⏳ next       |
+| 10 | DuckDB out-of-core reader                           | ✅ done       |
 | 13 | LaTeX-compile CI job                                | ⏳ next       |
 | 11 | `benchmarks/` with `asv` regression suite           | ⏳ next       |
 | 9  | polars backend                                      | 🔲 future    |

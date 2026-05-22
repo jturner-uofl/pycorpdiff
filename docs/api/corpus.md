@@ -15,3 +15,5 @@
 ::: pycorpdiff.read_parquet
 
 ::: pycorpdiff.read_txt
+
+::: pycorpdiff.read_duckdb

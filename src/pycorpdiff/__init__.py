@@ -25,6 +25,7 @@ __version__ = "0.1.0a0"
 from .compare import Comparison, compare
 from .corpus import Corpus, CorpusSlice
 from .explain import kwic, representative_docs
+from .io.duckdb import read_duckdb
 from .io.readers import from_dataframe, read_csv, read_parquet, read_txt
 from .results import (
     CollocationShiftResult,
@@ -59,6 +60,7 @@ __all__ = [
     "kwic",
     "neighborhood_drift",
     "read_csv",
+    "read_duckdb",
     "read_parquet",
     "read_txt",
     "representative_docs",

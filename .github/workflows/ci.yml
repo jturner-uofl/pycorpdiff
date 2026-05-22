@@ -29,13 +29,14 @@ jobs:
           enable-cache: true
       - name: Set up Python
         run: uv python install ${{ matrix.python-version }}
-      - name: Install dependencies (dev + viz + temporal extras)
+      - name: Install dependencies (dev + viz + temporal + duckdb extras)
         # Viz extras (altair) drive the chart-spec tests; temporal extras
-        # (ruptures + statsmodels) drive the changepoint + ITS tests.
-        # Semantic tests use the deterministic HashEmbedder, so we don't
-        # need to pay the sentence-transformers / torch download cost on
-        # every CI run — that'd land in a separate slow-tier job.
-        run: uv pip install --system -e ".[dev,viz,temporal]"
+        # (ruptures + statsmodels) drive the changepoint + ITS tests;
+        # duckdb drives the read_duckdb tests. Semantic tests use the
+        # deterministic HashEmbedder so we don't pay the sentence-
+        # transformers / torch download cost on every CI run — the
+        # SBERT-backed tests live in the `sbert-slow` job.
+        run: uv pip install --system -e ".[dev,viz,temporal,duckdb]"
       - name: Run ruff
         run: ruff check src tests
       - name: Run mypy
