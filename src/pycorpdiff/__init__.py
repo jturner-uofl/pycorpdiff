@@ -32,6 +32,7 @@ from .datasets import (
 )
 from .explain import kwic, representative_docs
 from .io.duckdb import read_duckdb
+from .io.huggingface import from_huggingface
 from .io.readers import from_dataframe, read_csv, read_parquet, read_txt
 from .results import (
     CollocationShiftResult,
@@ -66,6 +67,7 @@ __all__ = [
     "fetch_hansard",
     "fetch_histwords_decade",
     "from_dataframe",
+    "from_huggingface",
     "histwords_cosine_shift",
     "kwic",
     "load_hansard_sample",
