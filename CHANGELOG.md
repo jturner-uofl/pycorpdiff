@@ -6,6 +6,27 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Phase 4a: temporal slicing and trajectories
+- `pycorpdiff.stats.wilson_ci` — vectorised Wilson score interval for
+  binomial proportions, the default CI for every relative-frequency
+  surface in the package. Handles `n = 0` (returns NaN), clips
+  roundoff at the unit-interval edges, and configurable confidence
+  level via scipy's normal-quantile inverse.
+- `TemporalCorpus.periods()` — sorted list of populated periods.
+- `TemporalCorpus.slice(period)` — `CorpusSlice` for one period;
+  accepts `pd.Period` or any string pandas can parse.
+- `TemporalCorpus.iter_slices()` — chronological `(period, CorpusSlice)`
+  iterator.
+- `Tracker.over_time(freq, time_col, confidence)` — populated
+  `TemporalTrajectory` with one row per (period, term), columns
+  `period / term / count / total / relfreq / ci_lower / ci_upper`.
+  Multi-term tracking supported. `Tracker.trajectory()` is the alias.
+- 20 new tests (144 total): Wilson CI known-answer (Newcombe Table 1
+  for x=10, n=100 → [0.0553, 0.1747]), CI bracketing of point
+  estimates, multi-target sorting, quarter / month aliasing, period
+  serialisation, and the alias parity between `over_time` and
+  `trajectory`.
+
 ### Added — Phase 3: KWIC concordances and `explain()`
 - `pycorpdiff.kwic(corpus, target, window, n, label)` — per-document
   windowed KWIC extraction; never crosses document boundaries.

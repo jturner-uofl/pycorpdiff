@@ -6,7 +6,8 @@
 | 1     | Corpus ingestion + frequency-based keyness (LL, LogRatio, BF, effect sizes) | ✅ Done |
 | 2     | Collocation measures + collocation shift | ✅ Done |
 | 3     | KWIC concordances + `explain()` plumbing | ✅ Done |
-| 4     | Temporal slicing, rolling frequencies, basic viz | ⏳ Next |
+| 4a    | Temporal slicing + trajectories + Wilson CIs | ✅ Done |
+| 4b    | altair plots on every Result | ⏳ Next |
 | 5     | **v0.1.0a1** — PyPI alpha release | — |
 | 6     | Semantic shift via Procrustes-aligned embeddings | — |
 | 7     | Changepoint detection + interrupted time series | — |

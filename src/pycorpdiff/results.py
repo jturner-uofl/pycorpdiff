@@ -25,8 +25,6 @@ if TYPE_CHECKING:
 
     from .corpus import Corpus, CorpusSlice
 
-    CorpusLike = Corpus | CorpusSlice
-
 
 @dataclass(frozen=True)
 class KeynessResult:
@@ -45,8 +43,8 @@ class KeynessResult:
     label_a: str = "a"
     label_b: str = "b"
     params: dict[str, Any] = field(default_factory=dict)
-    corpus_a: CorpusLike | None = None
-    corpus_b: CorpusLike | None = None
+    corpus_a: Corpus | CorpusSlice | None = None
+    corpus_b: Corpus | CorpusSlice | None = None
 
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()
@@ -96,8 +94,8 @@ class CollocationShiftResult:
     window: int
     label_a: str = "a"
     label_b: str = "b"
-    corpus_a: CorpusLike | None = None
-    corpus_b: CorpusLike | None = None
+    corpus_a: Corpus | CorpusSlice | None = None
+    corpus_b: Corpus | CorpusSlice | None = None
 
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()

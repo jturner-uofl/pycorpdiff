@@ -138,5 +138,7 @@ def test_read_parquet_round_trip(tmp_path: Path, toy_df: pd.DataFrame) -> None:
 def test_track_returns_tracker(toy_corpus: pcd.Corpus) -> None:
     tr = pcd.track(toy_corpus, "cat")
     assert tr.targets == ["cat"]
-    with pytest.raises(NotImplementedError, match="Phase 4"):
-        tr.over_time()
+    # over_time() needs a time column; the toy corpus has 'year' instead of
+    # the default 'date'. Passing it explicitly should work end-to-end.
+    trajectory = tr.over_time(freq="Y", time_col="year")
+    assert isinstance(trajectory, pcd.TemporalTrajectory)
