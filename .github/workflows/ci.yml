@@ -61,6 +61,25 @@ jobs:
       - run: uv pip install --system -e ".[docs,viz]"
       - run: mkdocs build --strict
 
+  benchmarks:
+    name: benchmarks smoke check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv pip install --system -e ".[dev]" asv
+      - name: Verify the benchmark suite parses (asv check)
+        run: asv check --python=same
+      - name: Run one method per benchmark class as a wall-clock smoke check
+        # Persistent regression tracking via `asv run` is a future
+        # iteration that needs a baseline + history. For now we just
+        # make sure the benchmark code itself stays runnable across
+        # API changes.
+        run: python -m benchmarks.smoke
+
   paper:
     name: regenerate paper replication outputs
     runs-on: ubuntu-latest

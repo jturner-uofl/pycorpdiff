@@ -18,7 +18,7 @@ are crossed off as commits close them.
 | 12 | Real SBERT integration test on a slow CI tier       | ✅ done       |
 | 10 | DuckDB out-of-core reader                           | ✅ done       |
 | 13 | LaTeX-compile CI job                                | ✅ done       |
-| 11 | `benchmarks/` with `asv` regression suite           | ⏳ next       |
+| 11 | `benchmarks/` with `asv` regression suite           | ✅ done       |
 | 9  | polars backend                                      | 🔲 future    |
 | 4  | Real benchmark corpora                              | 🔲 future    |
 | 5  | The five demo analyses (depend on #4)               | 🔲 future    |

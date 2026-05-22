@@ -21,6 +21,9 @@ htmlcov/
 site/
 docs/_build/
 
+# asv results / generated HTML — regenerate locally with `asv run`
+.asv/
+
 # Hypothesis example database (auto-managed)
 .hypothesis/
 
