@@ -29,12 +29,13 @@ jobs:
           enable-cache: true
       - name: Set up Python
         run: uv python install ${{ matrix.python-version }}
-      - name: Install dependencies (dev + viz extras)
-        # Viz extras (altair) are exercised by tests/integration/test_viz.py
-        # which assert on chart.to_dict() spec shapes. Other optional extras
-        # (semantic, temporal, polars, duckdb) land in their respective
-        # phases and the install line widens with them.
-        run: uv pip install --system -e ".[dev,viz]"
+      - name: Install dependencies (dev + viz + temporal extras)
+        # Viz extras (altair) drive the chart-spec tests; temporal extras
+        # (ruptures + statsmodels) drive the changepoint + ITS tests.
+        # Semantic tests use the deterministic HashEmbedder, so we don't
+        # need to pay the sentence-transformers / torch download cost on
+        # every CI run — that'd land in a separate slow-tier job.
+        run: uv pip install --system -e ".[dev,viz,temporal]"
       - name: Run ruff
         run: ruff check src tests
       - name: Run mypy

@@ -222,8 +222,57 @@ class TemporalTrajectory:
 
         return trajectory_with_ci(self.table, **kw)
 
-    def changepoints(self, **kw: Any) -> pd.DataFrame:
-        raise NotImplementedError("TemporalTrajectory.changepoints() lands in Phase 7")
+    def changepoints(
+        self,
+        target: str | None = None,
+        method: str = "pelt",
+        penalty: float | None = None,
+    ) -> pd.DataFrame:
+        """Run changepoint detection on a target's relative-frequency series.
+
+        Requires the ``[temporal]`` extra (ruptures). When the
+        trajectory holds multiple targets, supply ``target`` to pick one;
+        a single-target trajectory uses it automatically.
+        """
+        from .temporal.changepoint import detect_changepoints
+
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"trajectory carries {len(self.targets)} targets; "
+                    "pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(f"target={target!r} not in trajectory targets {self.targets!r}")
+
+        sub = self.table[self.table["term"] == target].set_index("period")["relfreq"]
+        return detect_changepoints(sub, method=method, penalty=penalty)  # type: ignore[arg-type]
+
+    def interrupted_time_series(
+        self,
+        event_date: str,
+        target: str | None = None,
+    ) -> pd.DataFrame:
+        """Fit a segmented-regression ITS model around ``event_date``.
+
+        Requires the ``[temporal]`` extra (statsmodels). Returns level
+        and slope-change estimates with confidence intervals.
+        """
+        from .temporal.its import interrupted_time_series
+
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"trajectory carries {len(self.targets)} targets; "
+                    "pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(f"target={target!r} not in trajectory targets {self.targets!r}")
+
+        sub = self.table[self.table["term"] == target].set_index("period")["relfreq"]
+        return interrupted_time_series(sub, event_date=event_date)
 
     def summary(self) -> str:
         return (

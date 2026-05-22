@@ -6,6 +6,32 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Phase 7: changepoint detection + interrupted time series
+- `pycorpdiff.temporal.detect_changepoints(series, method, penalty, model)` —
+  wraps `ruptures` (PELT / BinSeg / Window). Returns a tidy DataFrame
+  of `(period, index, method)` triples; the index of the input series
+  propagates so changepoints are reported in their original time
+  vocabulary (`pd.Period` and friends). Default penalty is `log(n)`
+  for BIC-style automatic selection.
+- `pycorpdiff.temporal.interrupted_time_series(series, event_date)` —
+  segmented-regression specification (`y_t = β₀ + β₁·t + β₂·post +
+  β₃·time_after_event`) via `statsmodels.OLS`. Returns one row per
+  coefficient with standard errors, *t*-stats, *p*-values, and 95%
+  CIs; level_change (β₂) and slope_change (β₃) are the headline
+  estimates.
+- `TemporalTrajectory.changepoints(target=None, method, penalty)` and
+  `TemporalTrajectory.interrupted_time_series(event_date, target=None)`
+  — wired through the trajectory object; multi-target trajectories
+  require explicit `target=`, single-target ones use it automatically.
+- Both wrappers raise friendly `ImportError` pointing at the
+  `[temporal]` extra when ruptures or statsmodels isn't installed.
+- 17 new tests (193 total): changepoint detection on a synthetic step
+  series lands within ±2 indices of the engineered breakpoint; ITS
+  recovers a +5 level jump with p < 0.01 and a +0.5 slope change with
+  p < 0.01; trajectory-level end-to-end test detects the engineered
+  2010 discourse shift in a 40-year synthetic corpus.
+- CI install line widens to `[dev,viz,temporal]`.
+
 ### Added — Phase 6: semantic shift via embeddings
 - `pycorpdiff.semantic.semantic_shift(a, b, target, embedder, window, align)`
   — averaged contextual embeddings. For every occurrence of the target

@@ -10,6 +10,6 @@
 | 4b    | altair plots on every Result | ✅ Done |
 | 5     | **v0.1.0a1** — PyPI alpha release | ⏸ Deferred |
 | 6     | Semantic shift via Procrustes-aligned embeddings | ✅ Done |
-| 7     | Changepoint detection + interrupted time series | ⏳ Next |
-| 8     | Documentation site + JSS paper draft | — |
+| 7     | Changepoint detection + interrupted time series | ✅ Done |
+| 8     | Documentation site + JSS paper draft | ⏳ Next |
 | 9     | **v0.2.0** — JSS submission | — |
