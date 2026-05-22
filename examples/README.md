@@ -1,9 +1,15 @@
 # Examples
 
-This directory hosts the canonical end-to-end tutorial notebook.
+This directory hosts the executable example notebooks.
 
-- [`pycorpdiff_tutorial.ipynb`](pycorpdiff_tutorial.ipynb) — the full guided
-  tour. Currently a Phase-0 stub; sections are filled in as each phase lands.
+- [`pycorpdiff_tutorial.ipynb`](pycorpdiff_tutorial.ipynb) — the full
+  guided tour on a synthetic two-frame fixture. Covers every analytical
+  surface in pycorpdiff.
+- [`hansard_demo.ipynb`](hansard_demo.ipynb) — a worked example on the
+  bundled Hansard-style sample corpus (`pcd.load_hansard_sample()`).
+  Drives keyness, collocation shift, temporal trajectories, changepoint
+  detection, ITS, and semantic shift on one realistic-shape corpus,
+  with cross-party and cross-topic comparisons.
 
 ## Conventions
 

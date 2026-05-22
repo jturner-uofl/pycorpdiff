@@ -68,7 +68,7 @@ class TemporalCorpus:
 class Tracker:
     """A diachronic tracker over one or more target terms."""
 
-    corpus: Corpus
+    corpus: Corpus | CorpusSlice
     targets: list[str]
 
     def over_time(
@@ -127,7 +127,14 @@ class Tracker:
         return self.over_time(freq=freq, time_col=time_col, confidence=confidence)
 
 
-def track(corpus: Corpus, target: str | list[str]) -> Tracker:
-    """Construct a :class:`Tracker` for diachronic analysis of target term(s)."""
+def track(
+    corpus: Corpus | CorpusSlice, target: str | list[str]
+) -> Tracker:
+    """Construct a :class:`Tracker` for diachronic analysis of target term(s).
+
+    Accepts either a :class:`Corpus` or a :class:`CorpusSlice`, so
+    ``pcd.track(corpus.slice(topic="immigration"), "criminal")`` works
+    out of the box.
+    """
     targets = [target] if isinstance(target, str) else list(target)
     return Tracker(corpus=corpus, targets=targets)

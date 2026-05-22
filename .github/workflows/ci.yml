@@ -209,3 +209,8 @@ jobs:
           jupyter nbconvert --to notebook --execute \
             examples/pycorpdiff_tutorial.ipynb \
             --output /tmp/pycorpdiff_tutorial_executed.ipynb
+      - name: Re-execute the Hansard demo in a temp file
+        run: |
+          jupyter nbconvert --to notebook --execute \
+            examples/hansard_demo.ipynb \
+            --output /tmp/hansard_demo_executed.ipynb

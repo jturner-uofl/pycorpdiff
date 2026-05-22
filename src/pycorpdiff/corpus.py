@@ -258,6 +258,42 @@ class CorpusSlice:
     def total_tokens(self) -> int:
         return int(self.doc_term_counts(min_count=1).values.sum())
 
+    def slice(self, **filters: Any) -> CorpusSlice:
+        """Further filter this slice — produces a new CorpusSlice on the
+        same parent with the masks AND-ed and the filters merged.
+
+        Lets you chain: ``corpus.slice(topic="x").slice(party="y")``.
+        """
+        new_mask = self.mask.copy()
+        merged_filters = dict(self.filters)
+        for col, value in filters.items():
+            if col not in self.parent.docs.columns:
+                raise KeyError(f"slice() got unknown column {col!r}")
+            if isinstance(value, (list, tuple, set, pd.Series)):
+                new_mask &= self.parent.docs[col].isin(list(value))
+            else:
+                new_mask &= self.parent.docs[col] == value
+            merged_filters[col] = value
+        return CorpusSlice(parent=self.parent, mask=new_mask, filters=merged_filters)
+
+    def by_time(self, col: str, freq: str = "Y") -> TemporalCorpus:
+        """Return a TemporalCorpus over the slice's documents only.
+
+        Materialises the slice's masked rows into a fresh Corpus, then
+        delegates to :meth:`Corpus.by_time`. Lets you chain
+        ``corpus.slice(topic="x").by_time("date")``.
+        """
+        from .temporal.slicing import TemporalCorpus  # local import to break cycle
+
+        fresh = Corpus(
+            docs=self.docs.reset_index(drop=True),
+            text_col=self.text_col,
+            id_col=self.id_col,
+            meta_cols=self.parent.meta_cols,
+            tokenizer=self.tokenizer,
+        )
+        return TemporalCorpus(parent=fresh, time_col=col, freq=freq)
+
     def to_polars(self) -> pl.DataFrame:
         """Return the slice's documents as a polars DataFrame."""
         try:
