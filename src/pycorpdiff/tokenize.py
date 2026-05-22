@@ -44,3 +44,67 @@ class RegexTokenizer:
         if self.lowercase:
             text = text.lower()
         return self._compiled.findall(text)
+
+
+@dataclass(frozen=True)
+class NgramTokenizer:
+    """A tokenizer wrapper that emits joined n-grams from a base tokenizer.
+
+    Wraps any :class:`Tokenizer` and yields ``n``-token sequences joined
+    by ``sep``. The output is a flat ``list[str]`` of joined n-grams,
+    which means every downstream analytical surface — keyness,
+    dispersion, collocation, semantic shift — treats them as ordinary
+    terms with no special-casing needed.
+
+    Parameters
+    ----------
+    base
+        The underlying tokenizer producing unigrams. Defaults to
+        :class:`RegexTokenizer`.
+    n
+        N-gram order. ``2`` = bigrams, ``3`` = trigrams. Must be ``>=1``.
+    sep
+        Joiner string. Default ``"_"`` matches gensim's convention and
+        sidesteps the usual ambiguity of whitespace-joined n-grams when
+        the base tokenizer itself strips whitespace.
+    include_lower
+        If ``True``, the output also includes every ``k``-gram for
+        ``k < n`` (so ``n=3`` emits unigrams + bigrams + trigrams).
+        Useful when you want a single Comparison to keyness-rank
+        single words *and* their multi-word collocations side-by-side.
+
+    Examples
+    --------
+    >>> from pycorpdiff.tokenize import NgramTokenizer
+    >>> tok = NgramTokenizer(n=2)
+    >>> tok("the cat sat on the mat")
+    ['the_cat', 'cat_sat', 'sat_on', 'on_the', 'the_mat']
+    >>> NgramTokenizer(n=2, include_lower=True)("a b c")
+    ['a', 'b', 'c', 'a_b', 'b_c']
+    """
+
+    base: Tokenizer = field(default_factory=RegexTokenizer)
+    n: int = 2
+    sep: str = "_"
+    include_lower: bool = False
+
+    def __post_init__(self) -> None:
+        if self.n < 1:
+            raise ValueError(f"n must be >= 1; got {self.n}")
+
+    def __call__(self, text: str) -> list[str]:
+        unigrams = self.base(text)
+        if self.n == 1:
+            return unigrams
+        out: list[str] = []
+        start = 1 if self.include_lower else self.n
+        for k in range(start, self.n + 1):
+            if k == 1:
+                out.extend(unigrams)
+                continue
+            sep = self.sep
+            out.extend(
+                sep.join(unigrams[i : i + k])
+                for i in range(len(unigrams) - k + 1)
+            )
+        return out

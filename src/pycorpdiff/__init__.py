@@ -45,7 +45,7 @@ from .semantic.embed import Embedder, HashEmbedder, SBERTEmbedder
 from .semantic.shift import neighborhood_drift
 from .semantic.trajectory import semantic_trajectory
 from .temporal.slicing import TemporalCorpus, track
-from .tokenize import RegexTokenizer, Tokenizer
+from .tokenize import NgramTokenizer, RegexTokenizer, Tokenizer
 
 __all__ = [
     "CollocationShiftResult",
@@ -56,6 +56,7 @@ __all__ = [
     "Embedder",
     "HashEmbedder",
     "KeynessResult",
+    "NgramTokenizer",
     "RegexTokenizer",
     "SBERTEmbedder",
     "SemanticShiftResult",
