@@ -4,8 +4,8 @@
 |-------|-----------|--------|
 | 0     | Scaffolding | ✅ Done |
 | 1     | Corpus ingestion + frequency-based keyness (LL, LogRatio, BF, effect sizes) | ✅ Done |
-| 2     | Collocation measures + collocation shift | ⏳ Next |
-| 3     | KWIC concordances + `explain()` plumbing | — |
+| 2     | Collocation measures + collocation shift | ✅ Done |
+| 3     | KWIC concordances + `explain()` plumbing | ⏳ Next |
 | 4     | Temporal slicing, rolling frequencies, basic viz | — |
 | 5     | **v0.1.0a1** — PyPI alpha release | — |
 | 6     | Semantic shift via Procrustes-aligned embeddings | — |

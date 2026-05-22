@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 KeynessMethod = Literal["log_likelihood", "log_ratio", "bayes_factor", "percent_diff"]
-CollocationMeasure = Literal["logDice", "PMI", "t_score", "MI", "MI3"]
+CollocationMeasure = Literal["logDice", "PMI", "t_score", "MI3"]
 EmbeddingAlignment = Literal["procrustes", "anchor", "none"]
 MultipleComparisons = Literal["bh", "bonferroni", "none"]
 CorpusLike = Corpus | CorpusSlice
@@ -160,14 +160,34 @@ class Comparison:
         window: int = 5,
         measure: CollocationMeasure = "logDice",
         min_count: int = 5,
+        smoothing: float = 0.5,
     ) -> CollocationShiftResult:
-        """Compute the change in target-word collocates between a and b.
+        """Compute the change in collocates of ``target`` between a and b.
 
-        Phase 2 will implement window-based co-occurrence with logDice
-        (Rychlý 2008) as the default measure and PMI / t-score / MI / MI³
-        as alternatives.
+        Window-based co-occurrence with Rychlý logDice (default) or PMI /
+        t-score / MI³ as alternatives. Laplace smoothing keeps shifts
+        finite for collocates absent on one side.
         """
-        raise NotImplementedError("collocation_shift() lands in Phase 2")
+        from .collocation.shift import collocation_shift as _shift
+        from .results import CollocationShiftResult
+
+        table = _shift(
+            self.a,
+            self.b,
+            target=target,
+            window=window,
+            measure=measure,
+            min_count=min_count,
+            smoothing=smoothing,
+        )
+        return CollocationShiftResult(
+            target=target,
+            table=table.reset_index(),
+            measure=measure,
+            window=window,
+            label_a=_corpus_label(self.a),
+            label_b=_corpus_label(self.b),
+        )
 
     def semantic_shift(
         self,

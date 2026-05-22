@@ -6,6 +6,27 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Phase 2: collocations and collocation shift
+- `pycorpdiff.collocation.collocate_counts` — window-based co-occurrence
+  extractor, per-document isolation, configurable window size.
+- `pycorpdiff.collocation.logdice` — Rychlý's logDice (14 + log2 form).
+- `pycorpdiff.collocation.pmi` — Church-Hanks association ratio.
+- `pycorpdiff.collocation.t_score` — Welch-style t for collocations.
+- `pycorpdiff.collocation.mi_three` — Daille's MI³, downweighting rare pairs.
+- `pycorpdiff.collocation.collocation_shift` — orchestrator that aligns
+  collocate vocabularies, applies Laplace smoothing, computes the chosen
+  measure on each side, and returns a tidy `shift = score_a - score_b`
+  table sorted by `|shift|`.
+- `Comparison.collocation_shift()` wired end-to-end, returning a populated
+  `CollocationShiftResult`.
+- 34 new tests (108 total): known-answer tests for each measure
+  (sketchengine-style worked example), per-doc window-isolation tests,
+  swap-symmetry tests, all-measures-agree-on-strong-signal integration
+  test.
+- Public `CollocationMeasure` literal: ``"logDice" | "PMI" | "t_score" | "MI3"``
+  (`MI` dropped — it was an alias for PMI in CL practice and the duplicate
+  was a misnomer).
+
 ### Added — Phase 1: lexical-comparative core
 - `Corpus.doc_term_counts()`, `.vocab()`, `.tokens()`, `.total_tokens()`
   (and the same on `CorpusSlice`).
