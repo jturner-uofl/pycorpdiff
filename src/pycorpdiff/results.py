@@ -105,17 +105,25 @@ class KeynessResult:
 
         ``kind="volcano"`` (default) returns a volcano-style scatter of
         effect size against −log₁₀(*p*); ``kind="bar"`` returns a top-N
-        horizontal bar chart. Extra keyword arguments are forwarded to
-        the underlying viz function (``n_labels``, ``n``, ``width``,
-        ``height``).
+        horizontal bar chart; ``kind="scattertext"`` returns the
+        Scattertext-style interactive rank-percentile scatter (Kessler
+        2017). Extra keyword arguments are forwarded to the underlying
+        viz function (``n_labels``, ``n``, ``width``, ``height``).
         """
         from .viz.keyness import keyness_top_n_bar, keyness_volcano
+        from .viz.scattertext import scattertext_plot
 
         if kind == "volcano":
             return keyness_volcano(self.table, **kw)
         if kind == "bar":
             return keyness_top_n_bar(self.table, **kw)
-        raise ValueError(f"unknown kind={kind!r}; expected 'volcano' or 'bar'")
+        if kind == "scattertext":
+            return scattertext_plot(
+                self.table, label_a=self.label_a, label_b=self.label_b, **kw
+            )
+        raise ValueError(
+            f"unknown kind={kind!r}; expected 'volcano', 'bar', or 'scattertext'"
+        )
 
     def explain(self, term: str, n: int = 5, window: int = 5) -> ConcordanceResult:
         """Show KWIC examples of ``term`` from both source corpora.

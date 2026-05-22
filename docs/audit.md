@@ -41,6 +41,7 @@ project matured. Listed here for traceability:
 | `pcd.viz.dispersion_plot(corpus, target)` (Mosteller-style)     | ✅ done |
 | `NgramTokenizer` — bigrams/trigrams as first-class terms        | ✅ done |
 | `Corpus.doc_term_counts_sparse()` — scipy.sparse for big corpora | ✅ done |
+| `pcd.viz.scattertext_plot()` — Kessler-2017 rank-percentile scatter | ✅ done |
 
 ## Item #15 — cross-validation against open-source equivalents
 
