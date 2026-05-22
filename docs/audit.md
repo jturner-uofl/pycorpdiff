@@ -79,8 +79,15 @@ agrees with the standard tool".
   `PYCORPDIFF_HISTWORDS_CACHE` environment variable.
 
 **Item #15 is now fully done.** The remaining cross-validation
-opportunities (NLTK collocations, more BNC examples, etc.) are
-follow-ups, not gaps.
+opportunities (more BNC examples, etc.) are follow-ups, not gaps.
+
+✅ **NLTK collocations cross-check** added in a follow-up commit. We
+assert PMI and t-score agree with NLTK's ``BigramAssocMeasures`` to
+floating-point precision (≤ 1e-12) on every adjacent bigram surviving
+the frequency filter, and that MI³ matches NLTK's ``mi_like(power=3)``
+up to the expected log-scale identity. Lives in
+``tests/integration/test_crossval_nltk.py``; slow-tier, gated on NLTK
+being installed.
 
 ### Tier 1 — open source, exact number match possible
 
