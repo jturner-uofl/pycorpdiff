@@ -33,6 +33,8 @@ from .results import (
     SemanticShiftResult,
     TemporalTrajectory,
 )
+from .semantic.embed import Embedder, HashEmbedder, SBERTEmbedder
+from .semantic.shift import neighborhood_drift
 from .temporal.slicing import TemporalCorpus, track
 from .tokenize import RegexTokenizer, Tokenizer
 
@@ -42,8 +44,11 @@ __all__ = [
     "ConcordanceResult",
     "Corpus",
     "CorpusSlice",
+    "Embedder",
+    "HashEmbedder",
     "KeynessResult",
     "RegexTokenizer",
+    "SBERTEmbedder",
     "SemanticShiftResult",
     "TemporalCorpus",
     "TemporalTrajectory",
@@ -52,6 +57,7 @@ __all__ = [
     "compare",
     "from_dataframe",
     "kwic",
+    "neighborhood_drift",
     "read_csv",
     "read_parquet",
     "read_txt",

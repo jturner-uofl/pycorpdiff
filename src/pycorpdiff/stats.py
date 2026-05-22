@@ -19,6 +19,22 @@ import numpy.typing as npt
 from scipy.special import ndtri
 
 
+def cosine_similarity(
+    a: npt.NDArray[np.float64], b: npt.NDArray[np.float64]
+) -> float:
+    """Cosine similarity between two 1-D vectors.
+
+    Returns 0 when either vector is the zero vector — the geometric
+    definition is undefined there, and zero is the conservative
+    "no relationship" default rather than NaN.
+    """
+    na = float(np.linalg.norm(a))
+    nb = float(np.linalg.norm(b))
+    if na == 0.0 or nb == 0.0:
+        return 0.0
+    return float(np.dot(a, b) / (na * nb))
+
+
 def wilson_ci(
     x: int | npt.NDArray[np.int64],
     n: int | npt.NDArray[np.int64],

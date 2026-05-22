@@ -168,11 +168,32 @@ class SemanticShiftResult:
     def plot(self, **kw: Any) -> alt.Chart:
         raise NotImplementedError("SemanticShiftResult.plot() lands in Phase 6")
 
-    def neighbors_before(self, target: str | None = None, n: int = 10) -> pd.DataFrame:
-        raise NotImplementedError("SemanticShiftResult.neighbors_before() lands in Phase 6")
+    def neighbors_before(
+        self, target: str | None = None, n: int = 10
+    ) -> pd.DataFrame:
+        """Top-n contextual neighbours of ``target`` in corpus A.
 
-    def neighbors_after(self, target: str | None = None, n: int = 10) -> pd.DataFrame:
-        raise NotImplementedError("SemanticShiftResult.neighbors_after() lands in Phase 6")
+        See :func:`pycorpdiff.semantic.neighborhood_drift` for the
+        underlying analysis. Requires that the result was built via
+        :meth:`Comparison.semantic_shift` so the source corpora are
+        attached. Filters to the ``status in {"shared", "lost_in_a"}``
+        rows, sorted by ``sim_a`` descending.
+        """
+        return self._neighborhood(target=target, n=n, side="a")
+
+    def neighbors_after(
+        self, target: str | None = None, n: int = 10
+    ) -> pd.DataFrame:
+        return self._neighborhood(target=target, n=n, side="b")
+
+    def _neighborhood(
+        self, target: str | None, n: int, side: str
+    ) -> pd.DataFrame:
+        raise NotImplementedError(
+            "neighbors_before / neighbors_after will compute on demand once "
+            "SemanticShiftResult tracks source corpora; for now call "
+            "pycorpdiff.semantic.neighborhood_drift() directly"
+        )
 
     def summary(self) -> str:
         return (

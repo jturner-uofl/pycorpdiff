@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 KeynessMethod = Literal["log_likelihood", "log_ratio", "bayes_factor", "percent_diff"]
 CollocationMeasure = Literal["logDice", "PMI", "t_score", "MI3"]
-EmbeddingAlignment = Literal["procrustes", "anchor", "none"]
+EmbeddingAlignment = Literal["none", "procrustes"]
 MultipleComparisons = Literal["bh", "bonferroni", "none"]
 CorpusLike = Corpus | CorpusSlice
 
@@ -197,15 +197,37 @@ class Comparison:
         self,
         target: str | list[str],
         embedder: Embedder | None = None,
-        align: EmbeddingAlignment = "procrustes",
+        window: int = 5,
+        align: EmbeddingAlignment = "none",
     ) -> SemanticShiftResult:
         """Compute embedding-space displacement of target term(s).
 
-        Phase 6 will implement Procrustes-aligned diachronic embeddings
-        following Hamilton et al. (2016), with optional anchor-word
-        alignment as an alternative.
+        Uses *averaged contextual embeddings*: every window around the
+        target in each corpus is encoded by ``embedder`` and averaged
+        into a corpus-specific centroid. The cosine distance between
+        centroids is the reported shift.
+
+        ``embedder`` defaults to :class:`SBERTEmbedder` (requires the
+        ``semantic`` extra). For deterministic offline demos pass
+        :class:`pycorpdiff.semantic.HashEmbedder`.
+
+        ``align="procrustes"`` is appropriate when the embedder produces
+        independent per-corpus spaces (Hamilton-style diachronic
+        word2vec). Modern shared-model encoders like SBERT live in a
+        common space, so the default is ``"none"``.
         """
-        raise NotImplementedError("semantic_shift() lands in Phase 6")
+        from .results import SemanticShiftResult
+        from .semantic.shift import semantic_shift as _shift
+
+        table = _shift(self.a, self.b, target=target, embedder=embedder, window=window, align=align)
+        targets = [target] if isinstance(target, str) else list(target)
+        return SemanticShiftResult(
+            targets=targets,
+            table=table,
+            alignment=align,
+            label_a=_corpus_label(self.a),
+            label_b=_corpus_label(self.b),
+        )
 
     def concordance(self, target: str, n: int = 20) -> ConcordanceResult:
         """Return KWIC examples of ``target`` from both corpora."""

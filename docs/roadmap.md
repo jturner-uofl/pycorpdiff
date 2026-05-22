@@ -8,8 +8,8 @@
 | 3     | KWIC concordances + `explain()` plumbing | ✅ Done |
 | 4a    | Temporal slicing + trajectories + Wilson CIs | ✅ Done |
 | 4b    | altair plots on every Result | ✅ Done |
-| 5     | **v0.1.0a1** — PyPI alpha release | ⏳ Next |
-| 6     | Semantic shift via Procrustes-aligned embeddings | — |
-| 7     | Changepoint detection + interrupted time series | — |
+| 5     | **v0.1.0a1** — PyPI alpha release | ⏸ Deferred |
+| 6     | Semantic shift via Procrustes-aligned embeddings | ✅ Done |
+| 7     | Changepoint detection + interrupted time series | ⏳ Next |
 | 8     | Documentation site + JSS paper draft | — |
 | 9     | **v0.2.0** — JSS submission | — |

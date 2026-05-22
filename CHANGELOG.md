@@ -6,6 +6,36 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Phase 6: semantic shift via embeddings
+- `pycorpdiff.semantic.semantic_shift(a, b, target, embedder, window, align)`
+  — averaged contextual embeddings. For every occurrence of the target
+  in each corpus, the surrounding window is encoded as a sentence and
+  averaged into a corpus-specific centroid; cosine distance between
+  centroids is the reported shift.
+- `pycorpdiff.semantic.neighborhood_drift(a, b, target, k, embedder, window, min_count)`
+  — top-k contextual neighbours in each corpus and a tidy `(neighbor,
+  sim_a, sim_b, rank_a, rank_b, drift, status)` table where ``status``
+  is one of ``"shared"`` / ``"gained_in_a"`` / ``"lost_in_a"``.
+- `pycorpdiff.semantic.procrustes_align(source, target)` — Schönemann's
+  closed-form orthogonal Procrustes (SVD-based). For Hamilton-style
+  independently-trained diachronic embeddings.
+- `Comparison.semantic_shift(target, embedder, window, align)` wired
+  end-to-end, returning a populated `SemanticShiftResult`.
+- `pycorpdiff.HashEmbedder(dim=32)` — deterministic seed-derived
+  embedder for offline demos and reproducible tests. Maps each input
+  string to a unit vector via SHA-256-seeded RNG. No semantic signal,
+  but perfect for verifying that the orchestrators (averaging, cosine,
+  Procrustes) wire up correctly without paying torch download time.
+- `pycorpdiff.SBERTEmbedder(model_name="all-MiniLM-L6-v2")` — lazy
+  sentence-transformers wrapper. The base install stays light;
+  construction is free, the actual model loads on first `.encode()`.
+  Friendly `ImportError` if the `[semantic]` extra isn't installed.
+- 25 new tests (176 total): Procrustes identity / known-rotation /
+  norm-preservation / Frobenius-minimisation; HashEmbedder
+  determinism / shape / orthogonality; semantic_shift identity
+  (distance≈0) / different-contexts (distance>0) / swap-symmetry /
+  procrustes-end-to-end; integration through `Comparison.semantic_shift`.
+
 ### Added — Tutorial notebook (post-Phase-4 polish)
 - `examples/pycorpdiff_tutorial.ipynb` rewritten as a real, executable
   guided tour. Builds a 144-document synthetic news corpus with two
