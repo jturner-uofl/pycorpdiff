@@ -69,14 +69,35 @@ def read_txt(
 ) -> Corpus:
     """Read a single text file into a :class:`Corpus`.
 
-    ``one_doc_per="file"`` treats the entire file as one document.
-    ``one_doc_per="line"`` (Phase 1) will treat each non-empty line as a
-    separate document.
+    Parameters
+    ----------
+    path
+        Path to a UTF-8 text file (override via ``encoding``).
+    one_doc_per
+        ``"file"`` treats the whole file as one document. ``"line"``
+        treats each non-empty line as its own document — useful for
+        per-line corpora like JSONL exports already projected to text,
+        or one-utterance-per-line transcripts.
+    tokenizer
+        Optional :class:`Tokenizer`. Defaults to :class:`RegexTokenizer`.
+
+    The returned corpus has columns ``text``, ``source`` (the path), and
+    when ``one_doc_per="line"`` an integer ``line`` column with the 1-based
+    line number so KWIC results can point back at the original file.
     """
-    if one_doc_per != "file":
-        raise NotImplementedError(
-            "read_txt(one_doc_per='line') lands in Phase 1; only 'file' is wired up"
+    if one_doc_per not in ("file", "line"):
+        raise ValueError(
+            f"one_doc_per must be 'file' or 'line'; got {one_doc_per!r}"
         )
     text = Path(path).read_text(encoding=encoding)
-    df = pd.DataFrame({"text": [text], "source": [str(path)]})
+    if one_doc_per == "file":
+        df = pd.DataFrame({"text": [text], "source": [str(path)]})
+    else:
+        lines = text.splitlines()
+        rows = [
+            {"text": line, "source": str(path), "line": i + 1}
+            for i, line in enumerate(lines)
+            if line.strip()
+        ]
+        df = pd.DataFrame(rows, columns=["text", "source", "line"])
     return from_dataframe(df, text_col="text", tokenizer=tokenizer)

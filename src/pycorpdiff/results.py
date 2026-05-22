@@ -161,6 +161,10 @@ class SemanticShiftResult:
     alignment: str
     label_a: str = "a"
     label_b: str = "b"
+    corpus_a: Corpus | CorpusSlice | None = None
+    corpus_b: Corpus | CorpusSlice | None = None
+    embedder: Any | None = None
+    window: int = 5
 
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()
@@ -173,26 +177,54 @@ class SemanticShiftResult:
     ) -> pd.DataFrame:
         """Top-n contextual neighbours of ``target`` in corpus A.
 
-        See :func:`pycorpdiff.semantic.neighborhood_drift` for the
-        underlying analysis. Requires that the result was built via
-        :meth:`Comparison.semantic_shift` so the source corpora are
-        attached. Filters to the ``status in {"shared", "lost_in_a"}``
-        rows, sorted by ``sim_a`` descending.
+        Returns the rows of :func:`pycorpdiff.semantic.neighborhood_drift`
+        with a non-null ``sim_a`` (i.e. terms that appeared in A's
+        top-k), sorted by ``sim_a`` descending. Requires the result was
+        built via :meth:`Comparison.semantic_shift` so the source
+        corpora and embedder are attached.
         """
         return self._neighborhood(target=target, n=n, side="a")
 
     def neighbors_after(
         self, target: str | None = None, n: int = 10
     ) -> pd.DataFrame:
+        """Top-n contextual neighbours of ``target`` in corpus B."""
         return self._neighborhood(target=target, n=n, side="b")
 
     def _neighborhood(
         self, target: str | None, n: int, side: str
     ) -> pd.DataFrame:
-        raise NotImplementedError(
-            "neighbors_before / neighbors_after will compute on demand once "
-            "SemanticShiftResult tracks source corpora; for now call "
-            "pycorpdiff.semantic.neighborhood_drift() directly"
+        if self.corpus_a is None or self.corpus_b is None:
+            raise ValueError(
+                "neighbors_before / neighbors_after require source corpora; "
+                "this SemanticShiftResult was constructed without them"
+            )
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"result carries {len(self.targets)} targets; pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(
+                f"target={target!r} not in result targets {self.targets!r}"
+            )
+        from .semantic.shift import neighborhood_drift
+
+        full = neighborhood_drift(
+            self.corpus_a,
+            self.corpus_b,
+            target=target,
+            k=n,
+            embedder=self.embedder,
+            window=self.window,
+        )
+        sim_col = "sim_a" if side == "a" else "sim_b"
+        return (
+            full.dropna(subset=[sim_col])
+            .sort_values(sim_col, ascending=False, kind="stable")
+            .head(n)
+            .reset_index(drop=True)
         )
 
     def summary(self) -> str:

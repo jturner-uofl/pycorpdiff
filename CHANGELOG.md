@@ -6,6 +6,30 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Tier-1 audit cleanups
+- `read_txt(one_doc_per="line")` now wired up. Each non-empty line
+  becomes a separate document; the 1-based line number is preserved in
+  the corpus's ``line`` column so KWIC results can point back to the
+  original file.
+- `Comparison.concordance(target, n, window)` implemented — returns a
+  populated `ConcordanceResult` with KWIC lines from both corpora
+  side-by-side. Documented in the README quick-start but had been a
+  `NotImplementedError` stub through Phases 0-8.
+- `SemanticShiftResult` now carries `corpus_a`, `corpus_b`, `embedder`,
+  and `window` so `.neighbors_before(target, n)` and
+  `.neighbors_after(target, n)` work on-demand. They filter
+  `neighborhood_drift` output to the relevant side and sort by
+  per-corpus similarity. Construction without corpus refs (bare
+  DataFrame) raises a clear error when the methods are called.
+- Hypothesis property tests for collocations (7 tests): logDice / PMI /
+  t-score / MI³ symmetry in target↔collocate, monotonicity in joint
+  count, logDice ≤ 14 in realistic regimes.
+- Hypothesis property tests for Wilson CI (5 tests): CI brackets the
+  point estimate, bounds in [0, 1], width monotonic in confidence,
+  complement symmetry (CI for x/n is the reflection of CI for (n-x)/n
+  through 0.5), and rel-freq monotonic in count.
+- 29 new tests (222 total). ruff and mypy --strict still clean.
+
 ### Added — Phase 8b: JSS paper skeleton + replication
 - `paper/paper.tex` — JSS-class manuscript skeleton with the full
   section structure (intro, related work, design, API, worked

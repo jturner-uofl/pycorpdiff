@@ -217,9 +217,14 @@ class Comparison:
         common space, so the default is ``"none"``.
         """
         from .results import SemanticShiftResult
+        from .semantic.embed import SBERTEmbedder
         from .semantic.shift import semantic_shift as _shift
 
-        table = _shift(self.a, self.b, target=target, embedder=embedder, window=window, align=align)
+        effective_embedder = embedder if embedder is not None else SBERTEmbedder()
+        table = _shift(
+            self.a, self.b, target=target, embedder=effective_embedder,
+            window=window, align=align,
+        )
         targets = [target] if isinstance(target, str) else list(target)
         return SemanticShiftResult(
             targets=targets,
@@ -227,11 +232,33 @@ class Comparison:
             alignment=align,
             label_a=_corpus_label(self.a),
             label_b=_corpus_label(self.b),
+            corpus_a=self.a,
+            corpus_b=self.b,
+            embedder=effective_embedder,
+            window=window,
         )
 
-    def concordance(self, target: str, n: int = 20) -> ConcordanceResult:
-        """Return KWIC examples of ``target`` from both corpora."""
-        raise NotImplementedError("concordance() lands in Phase 3")
+    def concordance(
+        self, target: str, n: int = 20, window: int = 5
+    ) -> ConcordanceResult:
+        """Return side-by-side KWIC examples of ``target`` from both corpora.
+
+        Up to ``n`` lines per corpus are returned, concatenated into a
+        single :class:`ConcordanceResult` with a ``corpus`` column
+        distinguishing the source. Shortcut for
+        ``pycorpdiff.explain.kwic_compare(a, b, target, ...)``.
+        """
+        from .explain import kwic_compare
+
+        return kwic_compare(
+            self.a,
+            self.b,
+            target=target,
+            window=window,
+            n_per_side=n,
+            label_a=_corpus_label(self.a),
+            label_b=_corpus_label(self.b),
+        )
 
 
 def compare(a: CorpusLike, b: CorpusLike) -> Comparison:
