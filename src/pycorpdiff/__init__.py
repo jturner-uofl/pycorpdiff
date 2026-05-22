@@ -24,7 +24,7 @@ __version__ = "0.1.0a0"
 
 from .compare import Comparison, compare
 from .corpus import Corpus, CorpusSlice
-from .datasets import load_hansard_sample
+from .datasets import fetch_hansard, load_hansard_sample
 from .explain import kwic, representative_docs
 from .io.duckdb import read_duckdb
 from .io.readers import from_dataframe, read_csv, read_parquet, read_txt
@@ -58,6 +58,7 @@ __all__ = [
     "Tokenizer",
     "__version__",
     "compare",
+    "fetch_hansard",
     "from_dataframe",
     "kwic",
     "load_hansard_sample",

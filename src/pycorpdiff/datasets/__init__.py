@@ -16,6 +16,6 @@ project users will want the real Hansard archive — see the docstring on
 
 from __future__ import annotations
 
-from .hansard import load_hansard_sample
+from .hansard import fetch_hansard, load_hansard_sample
 
-__all__ = ["load_hansard_sample"]
+__all__ = ["fetch_hansard", "load_hansard_sample"]
