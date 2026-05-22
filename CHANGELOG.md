@@ -6,6 +6,37 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Phase 8b: JSS paper skeleton + replication
+- `paper/paper.tex` — JSS-class manuscript skeleton with the full
+  section structure (intro, related work, design, API, worked
+  example, statistical defaults, reproducibility, conclusion).
+  Sections carry `[TODO: ...]` placeholders with detailed prose
+  scaffolding so the writing pass is straightforward to finish.
+- `paper/references.bib` — 23 BibTeX entries covering every primary
+  citation behind the package's statistical defaults: Dunning,
+  Hardie, Gabrielatos, Wilson, Kass & Raftery, Juilland, Gries,
+  Rychly, Church-Hanks, Daille, Wagner, Killick, Hamilton,
+  Giulianelli, Newcombe, Wilson 1927, Schoenemann, Benoit
+  (quanteda), Silge (tidytext), Reimers (SBERT), Truong (ruptures),
+  Kessler (Scattertext), Grootendorst (BERTopic).
+- `paper/replication/reproduce.py` — single-script regeneration of
+  every figure and table referenced in the manuscript. Outputs four
+  SVG figures (volcano, top-N bar, collocation diverging bar,
+  trajectory with CI band) and a `paper_outputs.json` with the
+  numeric tables (top-12 keyness rows, ITS coefficients,
+  semantic-shift centroid distances, detected changepoints, corpus
+  size). Uses the deterministic synthetic corpus so the outputs are
+  byte-stable across runs.
+- `paper/replication/README.md` — how to run the replication.
+- `[paper]` extra in `pyproject.toml` for `vl-convert-python` +
+  `jupyter`. Required only to render altair charts to SVG; not part
+  of `[viz]` since the static-export driver is heavy (Rust binary).
+- New `paper` CI job runs `reproduce.py` on every push, asserts the
+  output JSON has the documented schema, and uploads the figures +
+  JSON as an artefact.
+- JSS template files (`jss.cls`, `jss.bst`, `jsslogo.jpg`) copied in
+  from the official template for ease of local compilation.
+
 ### Added — Phase 8a: documentation site
 - `docs/index.md` rewritten as a real landing page (what it's for, what
   it's not, design principles, quick taste).

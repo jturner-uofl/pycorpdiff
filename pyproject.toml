@@ -60,6 +60,10 @@ duckdb = ["duckdb>=0.10"]
 # Multilingual tokenisation pipelines satisfy the Tokenizer protocol with
 # a thin adapter; not required for the lexical-comparative core.
 nlp = ["spacy>=3.7"]
+# Required to re-render the paper's figures from paper/replication/reproduce.py.
+# Pulls a Rust-backed binary that altair uses for static SVG/PNG export —
+# heavy, so it's not part of the [viz] base.
+paper = ["vl-convert-python>=1.5", "jupyter>=1.0"]
 # Meta-extra so `pycorpdiff[all]` exercises every optional code path.
 all = [
     "altair>=5",
@@ -72,6 +76,7 @@ all = [
     "pyarrow>=15",
     "duckdb>=0.10",
     "spacy>=3.7",
+    "vl-convert-python>=1.5",
 ]
 dev = [
     "pytest>=8",

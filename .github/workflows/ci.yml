@@ -60,6 +60,46 @@ jobs:
       - run: uv pip install --system -e ".[docs,viz]"
       - run: mkdocs build --strict
 
+  paper:
+    name: regenerate paper replication outputs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv pip install --system -e ".[viz,temporal,paper]"
+      - name: Re-run the paper replication script
+        # Regenerates paper/figures/*.svg and paper/replication/paper_outputs.json
+        # from the published package code. If any cell or figure differs
+        # from what the manuscript cites, this job goes red and forces a
+        # paper update in the same PR.
+        run: python paper/replication/reproduce.py
+      - name: Confirm the JSON has the documented schema
+        run: |
+          python - <<'PY'
+          import json, sys
+          out = json.loads(open("paper/replication/paper_outputs.json").read())
+          required = {
+              "table_1_keyness_top12", "table_2_its_results",
+              "table_3_semantic", "changepoints", "corpus_size",
+          }
+          missing = required - set(out)
+          if missing:
+              sys.exit(f"FAIL: paper_outputs.json missing keys {sorted(missing)}")
+          if len(out["table_1_keyness_top12"]) != 12:
+              sys.exit("FAIL: top-12 keyness should have 12 rows")
+          print("OK: paper_outputs.json has expected schema")
+          PY
+      - name: Upload paper artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-replication
+          path: |
+            paper/figures/
+            paper/replication/paper_outputs.json
+
   tutorial:
     name: execute tutorial notebook (drift check)
     runs-on: ubuntu-latest

@@ -11,5 +11,6 @@
 | 5     | **v0.1.0a1** — PyPI alpha release | ⏸ Deferred |
 | 6     | Semantic shift via Procrustes-aligned embeddings | ✅ Done |
 | 7     | Changepoint detection + interrupted time series | ✅ Done |
-| 8     | Documentation site + JSS paper draft | ⏳ Next |
-| 9     | **v0.2.0** — JSS submission | — |
+| 8a    | Documentation site (mkdocs + prose) | ✅ Done |
+| 8b    | JSS paper skeleton + replication archive | ✅ Done |
+| 9     | **v0.2.0** — JSS submission (writing pass + PyPI) | ⏳ Next |

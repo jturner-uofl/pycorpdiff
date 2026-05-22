@@ -1,0 +1,283 @@
+\documentclass[codesnippet]{jss}
+
+\usepackage[T1]{fontenc}
+\usepackage{orcidlink,lmodern}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{microtype}
+\emergencystretch=3em
+\raggedbottom
+\DeclareFontShape{T1}{lmr}{b}{it}{<-> ssub * lmr/bx/it}{}
+
+\newcommand{\class}[1]{`\code{#1}'}
+\newcommand{\fct}[1]{\code{#1()}}
+\urlstyle{tt}
+\newcommand{\file}[1]{\path{#1}}
+
+%% -- Article meta-information ------------------------------------------------
+
+\author{Jason Turner\\Independent Researcher}
+\Plainauthor{Jason Turner}
+
+\title{\pkg{pycorpdiff}: Comparative Corpus Analysis for Modern \proglang{Python} Workflows}
+\Plaintitle{pycorpdiff: Comparative Corpus Analysis for Modern Python Workflows}
+\Shorttitle{\pkg{pycorpdiff}: Comparative Corpus Analysis in \proglang{Python}}
+
+\Abstract{
+Corpus linguistics, digital humanities, and computational social
+science routinely require *comparing* text corpora --- across
+political alignments, across time, across discourse contexts. The
+existing tooling is fragmented across the corpus-linguistics
+ecosystem (\proglang{R}'s \pkg{quanteda}, SketchEngine),
+visualisation-first packages (\pkg{Scattertext}, \pkg{BERTopic}), and
+the \proglang{Python} NLP stack (\pkg{nltk}, \pkg{spaCy},
+\pkg{gensim}, \pkg{sentence-transformers}). No \proglang{Python}
+package has unified the comparative workflow under a single coherent
+API.
+
+This paper presents \pkg{pycorpdiff}, a \proglang{Python} package
+that provides a comparative layer over the existing PyData and NLP
+stacks. The package exposes three public verbs ---
+\fct{compare(a, b)}, \fct{track(c, term)}, and
+\fct{compare.before\_after()} --- that consolidate keyness analysis
+(Dunning log-likelihood with LogRatio effect sizes, dispersion
+sanity checks, multiple-comparison correction), collocation shift
+(window-based co-occurrence with logDice, PMI, $t$-score, MI\textsuperscript{3}),
+temporal trajectories with Wilson score confidence intervals,
+changepoint detection, interrupted time series, and embedding-based
+semantic shift via averaged contextual representations. Every
+analytical result carries its evidence: each Result object exposes
+\fct{.explain(term)} which returns KWIC concordance lines from both
+source corpora.
+
+\pkg{pycorpdiff} is positioned as a comparative layer, not a general
+NLP framework. It does not reinvent tokenisation, embeddings, or
+topic modelling --- those concerns plug in via two \class{typing.Protocol}
+extension points (\code{Tokenizer} and \code{Embedder}). The base
+install depends only on \pkg{numpy}, \pkg{pandas}, \pkg{scipy}, and
+\pkg{pyarrow}; visualisation, semantic, temporal-statistics, and
+multilingual functionality are opt-in extras.
+
+We describe the package's three-layer architecture, the statistical
+defaults that drive each analytical method, and a worked example on
+a synthetic two-frame discourse corpus. A replication archive
+accompanies the manuscript so every figure and table in the paper
+can be reproduced from the published code.
+}
+
+\Keywords{comparative corpus analysis, keyness, collocations,
+semantic change, diachronic NLP, digital humanities,
+computational social science, reproducible research, \proglang{Python}}
+
+\Plainkeywords{comparative corpus analysis, keyness, collocations,
+semantic change, diachronic NLP, digital humanities,
+computational social science, reproducible research, Python}
+
+\Address{
+  Jason Turner\\
+  Independent Researcher\\
+  E-mail: \email{jason.s.turner@gmail.com}\\
+  URL: \url{https://github.com/jasonsturner/pycorpdiff}
+}
+
+\begin{document}
+
+\section{Introduction}\label{sec:intro}
+
+[TODO: motivate the comparative-corpus problem. Researchers in
+corpus linguistics, digital humanities, computational social
+science, communication studies, and discourse analysis frequently
+need to answer: how does corpus A differ from corpus B?\ how has
+language around \emph{X} evolved over time?\ what discourse
+changed before vs.\ after a known event?\ Existing tooling is
+fragmented across at least four ecosystems: classical corpus
+linguistics (\proglang{R}'s \pkg{quanteda}, the Sketch Engine
+platform), visualisation-first systems (\pkg{Scattertext}), modern
+\proglang{Python} NLP (\pkg{nltk}, \pkg{spaCy}, \pkg{gensim},
+\pkg{sentence-transformers}), and temporal/time-series tooling
+(\pkg{statsmodels}, \pkg{ruptures}, \pkg{sktime}). Each does its
+job well, none provides the comparative-analysis layer.]
+
+[TODO: state the contribution. \pkg{pycorpdiff} is the missing
+comparative layer. Three verbs (\fct{compare}, \fct{track},
+\fct{compare.before\_after}) consolidate keyness, collocations,
+semantic shift, temporal trajectories, changepoint detection, ITS,
+and explainable evidence into a single notebook-native API. The
+package is positioned as orchestration: it integrates the existing
+ecosystem rather than reimplementing it.]
+
+\section{Related work}\label{sec:related}
+
+\subsection{Corpus linguistics and keyness}
+
+[TODO: Scott (1997) on WordSmith; Kilgarriff on corpus comparison;
+Dunning (1993); Gabrielatos \& Marchi on keyness methodology;
+Hardie (2014) on LogRatio; Wilson (2013) on Bayes-factor keyness;
+Rayson's LL Wizard; Juilland (1964) and Gries (2008) on dispersion.]
+
+\subsection{Sketch Engine and the comparative tradition}
+
+[TODO: Kilgarriff et al.\ on SketchEngine; word sketches, sketch
+diff, multilingual comparison. Note: \pkg{pycorpdiff} is not a
+SketchEngine clone --- it deliberately stays in \proglang{Python}'s
+data-frame idiom and integrates with the \proglang{Python} embedding
+ecosystem rather than reproducing SketchEngine's hosted-platform model.]
+
+\subsection{Semantic change}
+
+[TODO: Hamilton et al.\ (2016) diachronic word embeddings;
+Procrustes alignment for independent per-corpus spaces;
+Giulianelli et al.\ (2020) on averaged contextual embeddings
+under shared encoders like BERT/SBERT.]
+
+\subsection{R ecosystem}
+
+[TODO: \pkg{quanteda} (Benoit et al.\ 2018) and \pkg{tidytext} (Silge
+\& Robinson 2016). Note shared idioms (tidy data frames, pipelines)
+and differences (\pkg{quanteda}'s document-feature matrix vs.\
+\pkg{pycorpdiff}'s dataframe-of-documents).]
+
+\subsection{Python ecosystem}
+
+[TODO: \pkg{nltk}, \pkg{spaCy}, \pkg{gensim}, \pkg{sentence-transformers},
+\pkg{Scattertext}, \pkg{BERTopic}. Each is best-of-breed in its
+specific niche; none is a comparative-analysis layer.]
+
+\section{Design}\label{sec:design}
+
+\pkg{pycorpdiff} is structured as three concentric layers, each
+with a single responsibility:
+
+\begin{itemize}
+  \item \textbf{Layer 1 (data plumbing).} \class{Corpus},
+    \class{CorpusSlice}, \class{Tokenizer} (a \class{typing.Protocol}),
+    \class{Embedder} (a \class{typing.Protocol}), and the I/O
+    readers for txt, CSV, parquet, and \pkg{pandas}.
+  \item \textbf{Layer 2 (methods).} Pure mathematical functions
+    that take dataframes and return dataframes.
+    \fct{log\_likelihood}, \fct{log\_ratio},
+    \fct{percent\_diff}, \fct{bayes\_factor},
+    \fct{juilland\_d}, \fct{dispersion\_dp},
+    \fct{benjamini\_hochberg}; \fct{logdice}, \fct{pmi},
+    \fct{t\_score}, \fct{mi\_three}, \fct{collocation\_shift};
+    \fct{semantic\_shift}, \fct{neighborhood\_drift},
+    \fct{procrustes\_align}; \fct{detect\_changepoints},
+    \fct{interrupted\_time\_series}.
+  \item \textbf{Layer 3 (public verbs and results).}
+    \fct{compare}, \fct{track}, \fct{compare.before\_after},
+    plus the four \class{Result} dataclasses
+    (\class{KeynessResult}, \class{CollocationShiftResult},
+    \class{SemanticShiftResult}, \class{TemporalTrajectory}).
+\end{itemize}
+
+[TODO: expand on the architectural invariants. Layer 2 never
+imports Layer 3. Layer 1 is backend-pluggable. Tokenizer and
+Embedder are \class{typing.Protocol}, not classes --- spaCy /
+Stanza / jieba / fugashi adapters are one-line wrappers. Every
+Result implements the same informal contract: \fct{.to\_df()},
+\fct{.plot()}, \fct{.explain()}, \fct{.summary()}.]
+
+\section{API}\label{sec:api}
+
+\subsection{Constructing a corpus}
+
+[TODO: code listing of \fct{from\_dataframe}, \fct{read\_csv},
+\fct{read\_parquet}, slicing, \fct{by\_time}. Reference
+Section~\ref{sec:design} for the type structure.]
+
+\subsection{Keyness}
+
+[TODO: \fct{compare(a, b).keyness} with effect-size and
+dispersion options. Show the volcano plot and the top-N bar.
+Reference Hardie's LogRatio and Wilson's BF.]
+
+\subsection{Collocation shift}
+
+[TODO: \fct{compare(a, b).collocation\_shift(target)}; logDice
+default, alternative measures, Laplace smoothing for
+absent-on-one-side collocates.]
+
+\subsection{Temporal trajectories}
+
+[TODO: \fct{track(corpus, term).over\_time} with Wilson CIs.
+Show the line plot with the CI band.
+\fct{TemporalTrajectory.changepoints} and \fct{.interrupted\_time\_series}
+for follow-up analyses.]
+
+\subsection{Semantic shift}
+
+[TODO: \fct{compare(a, b).semantic\_shift(target, embedder)} via
+averaged contextual embeddings. SBERT as the default;
+\class{HashEmbedder} for deterministic testing; Procrustes
+alignment for Hamilton-style independent spaces.]
+
+\subsection{Explainability}
+
+[TODO: \fct{KeynessResult.explain} and
+\fct{CollocationShiftResult.explain} return \class{ConcordanceResult}
+with KWIC lines from both source corpora. Every ranked term
+carries its evidence by construction.]
+
+\section{Worked example}\label{sec:example}
+
+[TODO: a single end-to-end run on a synthetic two-frame migrant-
+discourse corpus. The replication script in
+\file{paper/replication/reproduce.py} regenerates every figure
+and table in this section. Walk through: keyness, collocation
+shift, temporal trajectory with engineered 2016 event,
+changepoint detection, ITS, semantic shift via \class{HashEmbedder}
+(for byte-reproducibility in CI).]
+
+\section{Statistical defaults}\label{sec:defaults}
+
+[TODO: one paragraph per metric explaining what the default
+does and why. Keyness: signed G\textsuperscript{2} primary,
+LogRatio as effect size, BH adjustment. Collocations: logDice
+default with Laplace smoothing. Trajectories: Wilson score CIs
+at 95\%. Changepoints: PELT with rbf cost, BIC-style penalty.
+ITS: segmented regression via \pkg{statsmodels.OLS}. Semantic
+shift: averaged contextual embeddings, no alignment by default
+under shared-model encoders. All defaults are configurable.]
+
+\section{Reproducibility and testing}\label{sec:reproducibility}
+
+[TODO: the package ships 193 tests including known-answer tests
+against Rayson's LL Wizard (G\textsuperscript{2} = 182.07 for
+12000/1M vs 10000/1M), Newcombe's Wilson CI tables, Schoenemann's
+Procrustes invariants, and Hardie-recommended LogRatio behaviour.
+Hypothesis-based property tests guard swap-symmetry,
+non-negativity of $|G^2|$, and proportional-corpora-equal-rate
+invariants. The tutorial notebook is executed in CI on every push
+so it cannot silently drift. Coverage exceeds 90\% on the keyness
+and collocation core.]
+
+\section{Conclusion}\label{sec:conclusion}
+
+[TODO: \pkg{pycorpdiff} provides the missing comparative layer
+over the \proglang{Python} corpus-analysis ecosystem. Future work
+includes a polars backend, the multilingual demo corpora,
+real-world worked examples on UK Hansard and CORD-19, and the
+plug-in path for trained domain embeddings.]
+
+\section*{Computational details}
+
+The results in this paper were obtained using \proglang{Python}
+3.12 with \pkg{pycorpdiff}~0.1.0a0, \pkg{numpy}~$\ge$~1.24,
+\pkg{pandas}~$\ge$~2.0, \pkg{scipy}~$\ge$~1.11,
+\pkg{pyarrow}~$\ge$~14, \pkg{altair}~$\ge$~5,
+\pkg{sentence-transformers}~$\ge$~2.2, \pkg{ruptures}~$\ge$~1.1,
+and \pkg{statsmodels}~$\ge$~0.14. \pkg{pycorpdiff} is freely
+available from the project repository at
+\url{https://github.com/jasonsturner/pycorpdiff} under the MIT
+license.
+
+\section*{Acknowledgments}
+
+[TODO]
+
+\bibliography{references}
+
+\end{document}
