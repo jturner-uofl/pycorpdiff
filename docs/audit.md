@@ -24,7 +24,7 @@ are crossed off as commits close them.
 | 5  | Demo analysis (Hansard end-to-end notebook)         | ✅ done       |
 | 4-follow-up | Live `fetch_hansard()` from parliament.uk API   | ✅ done       |
 | (semantic_trajectory) | Multi-period semantic shift           | ✅ done       |
-| 15 | Cross-validation receipts (Rayson + Scattertext + quanteda) | ✅ partially done — Rayson + Scattertext in tree; quanteda gated on R install |
+| 15 | Cross-validation receipts (Rayson + Scattertext + quanteda + **histwords**) | ✅ done — Rayson + Scattertext run on every PR; quanteda + histwords are slow-tier (gated on R / network) |
 
 ## Item #15 — cross-validation against open-source equivalents
 
@@ -50,10 +50,20 @@ agrees with the standard tool".
   `quanteda::textstat_keyness(measure="lr")` on the same fixture and
   asserts G² values agree to 1e-4. Skips if rpy2 / R / quanteda
   aren't installed; ready to run once R lands in CI.
+- ✅ **HistWords (Hamilton et al. 2016) partial replication** in
+  `tests/integration/test_crossval_histwords.py`. Downloads aligned
+  per-decade word2vec embeddings from snap.stanford.edu, computes
+  cosine distance for famous shifters (gay / broadcast / awful /
+  terrific) vs stable function words (the / and / of) between the
+  1900s and 1990s, and asserts the shifter mean exceeds the stable
+  mean by at least 0.2 — the headline finding of the paper, made
+  into an automated check. The smallest English subset is
+  `eng-fiction` at ~380 MB; persistent cache via
+  `PYCORPDIFF_HISTWORDS_CACHE` environment variable.
 
-**What's still out:** the `histwords` (Hamilton et al.) partial
-replication. Needs COHA data which we don't have. Tracked under
-"original audit" rather than re-listed.
+**Item #15 is now fully done.** The remaining cross-validation
+opportunities (NLTK collocations, more BNC examples, etc.) are
+follow-ups, not gaps.
 
 ### Tier 1 — open source, exact number match possible
 

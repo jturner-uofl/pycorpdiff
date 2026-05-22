@@ -17,5 +17,11 @@ project users will want the real Hansard archive — see the docstring on
 from __future__ import annotations
 
 from .hansard import fetch_hansard, load_hansard_sample
+from .histwords import fetch_histwords_decade, histwords_cosine_shift
 
-__all__ = ["fetch_hansard", "load_hansard_sample"]
+__all__ = [
+    "fetch_hansard",
+    "fetch_histwords_decade",
+    "histwords_cosine_shift",
+    "load_hansard_sample",
+]
