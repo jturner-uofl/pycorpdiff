@@ -7,8 +7,8 @@
 | 2     | Collocation measures + collocation shift | ✅ Done |
 | 3     | KWIC concordances + `explain()` plumbing | ✅ Done |
 | 4a    | Temporal slicing + trajectories + Wilson CIs | ✅ Done |
-| 4b    | altair plots on every Result | ⏳ Next |
-| 5     | **v0.1.0a1** — PyPI alpha release | — |
+| 4b    | altair plots on every Result | ✅ Done |
+| 5     | **v0.1.0a1** — PyPI alpha release | ⏳ Next |
 | 6     | Semantic shift via Procrustes-aligned embeddings | — |
 | 7     | Changepoint detection + interrupted time series | — |
 | 8     | Documentation site + JSS paper draft | — |

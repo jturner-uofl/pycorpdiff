@@ -6,6 +6,25 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Phase 4b: altair plots on every Result
+- `KeynessResult.plot(kind="volcano" | "bar", **kw)` — volcano-style
+  scatter of effect size vs −log₁₀(p) by default, with the top-N labelled;
+  optional `kind="bar"` for the cleaner top-N horizontal bar.
+- `CollocationShiftResult.plot(n=20, **kw)` — diverging horizontal bar
+  of the top |shift| collocates, colour-coded by direction.
+- `TemporalTrajectory.plot(**kw)` — line + Wilson CI band, multi-term
+  ready, `pd.Period` automatically coerced to timestamps for altair's
+  temporal axis.
+- Module-level `pycorpdiff.viz.{keyness_volcano,keyness_top_n_bar,collocation_diverging_bar,trajectory_with_ci}`
+  for users with a bare DataFrame.
+- altair is lazy-imported inside each viz function so the base install
+  remains lightweight; missing altair fails with a friendly install hint
+  via the standard `ImportError`.
+- CI workflow now installs `[dev,viz]` to cover the new tests.
+- 7 new tests (151 total): spec-shape assertions for each Result.plot
+  variant, period-to-timestamp coercion, and the bare-DataFrame entry
+  points.
+
 ### Added — Phase 4a: temporal slicing and trajectories
 - `pycorpdiff.stats.wilson_ci` — vectorised Wilson score interval for
   binomial proportions, the default CI for every relative-frequency

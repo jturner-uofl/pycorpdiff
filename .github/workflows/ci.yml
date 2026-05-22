@@ -29,12 +29,12 @@ jobs:
           enable-cache: true
       - name: Set up Python
         run: uv python install ${{ matrix.python-version }}
-      - name: Install dependencies (dev only — extras land per phase)
-        # Phase 0 only exercises the lexical-comparative core's base deps.
-        # When semantic / temporal / viz extras are wired up in later
-        # phases, swap this to `-e ".[dev,all]"` so coverage exercises
-        # every optional-dep path.
-        run: uv pip install --system -e ".[dev]"
+      - name: Install dependencies (dev + viz extras)
+        # Viz extras (altair) are exercised by tests/integration/test_viz.py
+        # which assert on chart.to_dict() spec shapes. Other optional extras
+        # (semantic, temporal, polars, duckdb) land in their respective
+        # phases and the install line widens with them.
+        run: uv pip install --system -e ".[dev,viz]"
       - name: Run ruff
         run: ruff check src tests
       - name: Run mypy

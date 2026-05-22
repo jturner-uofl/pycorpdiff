@@ -49,8 +49,22 @@ class KeynessResult:
     def to_df(self) -> pd.DataFrame:
         return self.table.copy()
 
-    def plot(self, **kw: Any) -> alt.Chart:
-        raise NotImplementedError("KeynessResult.plot() lands in Phase 4")
+    def plot(self, kind: str = "volcano", **kw: Any) -> alt.Chart:
+        """Return an altair chart of the keyness result.
+
+        ``kind="volcano"`` (default) returns a volcano-style scatter of
+        effect size against −log₁₀(*p*); ``kind="bar"`` returns a top-N
+        horizontal bar chart. Extra keyword arguments are forwarded to
+        the underlying viz function (``n_labels``, ``n``, ``width``,
+        ``height``).
+        """
+        from .viz.keyness import keyness_top_n_bar, keyness_volcano
+
+        if kind == "volcano":
+            return keyness_volcano(self.table, **kw)
+        if kind == "bar":
+            return keyness_top_n_bar(self.table, **kw)
+        raise ValueError(f"unknown kind={kind!r}; expected 'volcano' or 'bar'")
 
     def explain(self, term: str, n: int = 5, window: int = 5) -> ConcordanceResult:
         """Show KWIC examples of ``term`` from both source corpora.
@@ -101,7 +115,10 @@ class CollocationShiftResult:
         return self.table.copy()
 
     def plot(self, **kw: Any) -> alt.Chart:
-        raise NotImplementedError("CollocationShiftResult.plot() lands in Phase 4")
+        """Return a diverging horizontal bar chart of the top collocate shifts."""
+        from .viz.collocation import collocation_diverging_bar
+
+        return collocation_diverging_bar(self.table, **kw)
 
     def explain(self, collocate: str, n: int = 5) -> ConcordanceResult:
         """Show KWIC windows where ``target`` co-occurs with ``collocate``.
@@ -179,7 +196,10 @@ class TemporalTrajectory:
         return self.table.copy()
 
     def plot(self, **kw: Any) -> alt.Chart:
-        raise NotImplementedError("TemporalTrajectory.plot() lands in Phase 4")
+        """Return a line plot with Wilson CI bands per term."""
+        from .viz.trajectory import trajectory_with_ci
+
+        return trajectory_with_ci(self.table, **kw)
 
     def changepoints(self, **kw: Any) -> pd.DataFrame:
         raise NotImplementedError("TemporalTrajectory.changepoints() lands in Phase 7")
