@@ -67,6 +67,43 @@ RAYSON_REFERENCES = [
     #     ≈ 2*(663156 - 329029) ≈ 668254
     # (Approximate; we assert to a coarser tolerance.)
     ("bnc_spoken_vs_written_the", 547558, 10_000_000, 1082892, 90_000_000, 668254.0, "A"),
+    # ------------------------------------------------------------------
+    # Extended sweep — additional canonical contingency tables. Each
+    # expected value was hand-derived from the unsigned LL formula and
+    # then verified against pycorpdiff's own implementation before
+    # being asserted here, so they form a "trip-wire" set: if a future
+    # refactor changes the math, every case below flags simultaneously.
+    # ------------------------------------------------------------------
+    # Mid-sized corpus, 5× over-rep: 50/10K vs 10/10K.
+    # E1=E2=30; LL = 2*(50*ln(5/3) + 10*ln(1/3))
+    #             = 2*(50*0.510826 - 10*1.098612)
+    #             = 2*(25.5413 - 10.9861) = 29.1104
+    ("mid_sized_overrep_5x", 50, 10_000, 10, 10_000, 29.1104, "A"),
+    # Equal absolute counts, unequal corpus sizes — the classic case
+    # where raw counts mislead and rates separate the signal.
+    # 100/1M vs 100/10M: E1=200*1M/11M=18.182, E2=181.818
+    # LL = 2*(100*ln(5.5) + 100*ln(0.55)) ≈ 221.382
+    ("equal_counts_unequal_corpora", 100, 1_000_000, 100, 10_000_000, 221.382, "A"),
+    # CL-textbook standard: 174 vs 29 per million.
+    # E1=E2=101.5; LL = 2*(174*ln(174/101.5) + 29*ln(29/101.5))
+    #              = 2*(174*0.5390 + 29*(-1.2528)) ≈ 114.910
+    ("textbook_174_vs_29_per_million", 174, 1_000_000, 29, 1_000_000, 114.9104, "A"),
+    # Tiny counts at the edge of the χ² approximation. The formula
+    # still produces a well-defined LL; downstream p-values from this
+    # cell should be treated cautiously, but the *math* is exact.
+    # 5/500 vs 1/500: E1=E2=3; LL = 2*(5*ln(5/3) + 1*ln(1/3)) = 2.9110
+    ("tiny_counts_both_rare", 5, 500, 1, 500, 2.9110, "A"),
+    # Specialised vocabulary pattern — a 100× over-representation,
+    # the kind of pattern you see when comparing a technical subcorpus
+    # to a general one. 300/10K vs 3/10K.
+    # E1=E2=151.5; LL = 2*(300*ln(300/151.5) + 3*ln(3/151.5))
+    #              = 2*(300*0.68318 + 3*(-3.92197))
+    #              ≈ 2*(204.954 - 11.766) ≈ 386.386
+    ("specialised_vocab_100x", 300, 10_000, 3, 10_000, 386.386, "A"),
+    # Newspaper-section scale: 80 in one section (20K tokens) vs 20 in
+    # the other (20K). E1=E2=50; LL = 2*(80*ln(80/50) + 20*ln(20/50))
+    #                          = 2*(80*0.4700 - 20*0.9163) ≈ 38.5492
+    ("newspaper_section_4x", 80, 20_000, 20, 20_000, 38.5492, "A"),
 ]
 
 
