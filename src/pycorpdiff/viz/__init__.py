@@ -12,11 +12,13 @@ ImportError lives at that boundary.
 from __future__ import annotations
 
 from .collocation import collocation_diverging_bar
+from .dispersion import dispersion_plot
 from .keyness import keyness_top_n_bar, keyness_volcano
 from .trajectory import trajectory_with_ci
 
 __all__ = [
     "collocation_diverging_bar",
+    "dispersion_plot",
     "keyness_top_n_bar",
     "keyness_volcano",
     "trajectory_with_ci",

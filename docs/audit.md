@@ -26,6 +26,20 @@ are crossed off as commits close them.
 | (semantic_trajectory) | Multi-period semantic shift           | ✅ done       |
 | 15 | Cross-validation receipts (Rayson + Scattertext + quanteda + **histwords**) | ✅ done — Rayson + Scattertext run on every PR; quanteda + histwords are slow-tier (gated on R / network) |
 
+## Post-audit small + tiny follow-ups (knocked out)
+
+These weren't in the original numbered audit but got picked up as the
+project matured. Listed here for traceability:
+
+| Feature | Status |
+|---|---|
+| `Comparison.keyness(method="chi_squared")` (Pearson χ²)         | ✅ done |
+| `Comparison.keyness(stop_words=...)` (function-word filter)     | ✅ done |
+| `Corpus.__hash__` content-derived (dict-key safe)               | ✅ done |
+| `Result.to_html()` / `.to_json()` across every Result type      | ✅ done |
+| `from_huggingface(dataset_id, ...)` loader + `[huggingface]` extra | ✅ done |
+| `pcd.viz.dispersion_plot(corpus, target)` (Mosteller-style)     | ✅ done |
+
 ## Item #15 — cross-validation against open-source equivalents
 
 The "receipt" layer that turns "the math is correct" into "the math
