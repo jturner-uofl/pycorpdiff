@@ -24,6 +24,9 @@ docs/_build/
 # asv results / generated HTML — regenerate locally with `asv run`
 .asv/
 
+# Temp notebooks produced by scripts/render_notebooks_to_html.py
+examples/*.patched.ipynb
+
 # Hypothesis example database (auto-managed)
 .hypothesis/
 

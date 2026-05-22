@@ -4,6 +4,11 @@ This directory hosts the executable example notebooks. All three are
 re-executed in CI on every push so they can't silently drift from the
 public API.
 
+Self-contained HTML renders of each notebook (with every chart
+pre-rendered as inline SVG — no CDN, no JS) live in
+[`docs/rendered/`](../docs/rendered/). Regenerate with
+[`scripts/render_notebooks_to_html.py`](../scripts/render_notebooks_to_html.py).
+
 - **🌟 [`pycorpdiff_showcase.ipynb`](pycorpdiff_showcase.ipynb)** —
   *the* showcase. One coherent research narrative (UK parliamentary
   discourse on migration) driving every analytical surface in
