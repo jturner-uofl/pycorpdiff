@@ -13,7 +13,7 @@ onto the target space before comparison.
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -41,8 +41,8 @@ def _window_texts(
     return out
 
 
-def _centroid(vectors: np.ndarray) -> np.ndarray:
-    out: np.ndarray = vectors.mean(axis=0)
+def _centroid(vectors: np.ndarray[Any, Any]) -> np.ndarray[Any, Any]:
+    out: np.ndarray[Any, Any] = vectors.mean(axis=0)
     return out
 
 

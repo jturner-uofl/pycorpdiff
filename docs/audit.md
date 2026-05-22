@@ -22,13 +22,38 @@ are crossed off as commits close them.
 | 9  | polars backend (interop, not internal storage)      | ✅ done       |
 | 4  | Real benchmark corpora (Hansard sample bundled; real-data sources documented) | ✅ done |
 | 5  | Demo analysis (Hansard end-to-end notebook)         | ✅ done       |
-| 15 | Cross-validation against quanteda / Scattertext / histwords / Rayson | 🔲 deferred until 4–13 are done |
+| 4-follow-up | Live `fetch_hansard()` from parliament.uk API   | ✅ done       |
+| (semantic_trajectory) | Multi-period semantic shift           | ✅ done       |
+| 15 | Cross-validation receipts (Rayson + Scattertext + quanteda) | ✅ partially done — Rayson + Scattertext in tree; quanteda gated on R install |
 
 ## Item #15 — cross-validation against open-source equivalents
 
-Captured here so it doesn't get lost. **Not stupid** — this is the
-"receipt" layer that turns a methods claim into a citeable one, and
-it's exactly the pattern pysofra uses for its R cross-checks.
+The "receipt" layer that turns "the math is correct" into "the math
+agrees with the standard tool".
+
+**What's in tree as of the cross-validation commit:**
+
+- ✅ **9 Rayson-style known-answer triples** in
+  `tests/integration/test_crossval_rayson.py` covering the classic
+  12k/10k/1M/1M case, equal-rate-no-signal, absent-on-each-side,
+  10× and 5× over-rep, and the BNC spoken-vs-written 'the' example
+  from Hardie's CASS note. Plus the Hardie LogRatio canonical
+  worked example (log₂(1000/100) ≈ 3.32).
+- ✅ **Scattertext slow-tier cross-check** in
+  `tests/integration/test_crossval_scattertext.py`. On Scattertext's
+  bundled 2012 US Presidential Conventions corpus, our keyness top-25
+  Dem-leaning terms overlap 11/25 with Scattertext's scaled F-score
+  top-25 (different measures, behavioural agreement). The
+  `obama` / `romney` sign check holds.
+- ✅ **quanteda slow-tier scaffolding** in
+  `tests/integration/test_crossval_quanteda.py`. Uses `rpy2` to call
+  `quanteda::textstat_keyness(measure="lr")` on the same fixture and
+  asserts G² values agree to 1e-4. Skips if rpy2 / R / quanteda
+  aren't installed; ready to run once R lands in CI.
+
+**What's still out:** the `histwords` (Hamilton et al.) partial
+replication. Needs COHA data which we don't have. Tracked under
+"original audit" rather than re-listed.
 
 ### Tier 1 — open source, exact number match possible
 

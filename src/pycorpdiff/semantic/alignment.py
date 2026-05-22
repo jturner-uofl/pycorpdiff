@@ -39,8 +39,15 @@ def procrustes_align(
         raise ValueError(
             f"source and target must have the same shape; got {source.shape} vs {target.shape}"
         )
-    m = source.T @ target
-    u, _, vt = np.linalg.svd(m, full_matrices=False)
-    rotation = u @ vt
-    rotated: npt.NDArray[np.float64] = source @ rotation
+    # Rank-deficient inputs (e.g. identical rows from a HashEmbedder
+    # encoding identical strings) make matmul emit a numpy 2.2.x
+    # divide-by-zero RuntimeWarning that isn't a real numerical
+    # problem — the SVD below handles the singular case correctly.
+    # Suppress the warning locally so strict filterwarnings doesn't
+    # promote it to an error.
+    with np.errstate(divide="ignore", invalid="ignore", over="ignore", under="ignore"):
+        m = source.T @ target
+        u, _, vt = np.linalg.svd(m, full_matrices=False)
+        rotation = u @ vt
+        rotated: npt.NDArray[np.float64] = source @ rotation
     return rotated

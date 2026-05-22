@@ -20,6 +20,8 @@ on y, one line per target if you tracked multiple at once.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 
@@ -83,10 +85,10 @@ def semantic_trajectory(
     periods = temporal.periods()
 
     # First pass: per-target, per-period centroids + context counts.
-    per_target: dict[str, dict[pd.Period, np.ndarray | None]] = {}
+    per_target: dict[str, dict[pd.Period, np.ndarray[Any, Any] | None]] = {}
     per_target_counts: dict[str, dict[pd.Period, int]] = {}
     for tgt in targets:
-        centroids: dict[pd.Period, np.ndarray | None] = {}
+        centroids: dict[pd.Period, np.ndarray[Any, Any] | None] = {}
         counts: dict[pd.Period, int] = {}
         for period, slice_ in temporal.iter_slices():
             windows = _window_texts(slice_, tgt, window=window)
