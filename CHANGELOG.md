@@ -6,6 +6,17 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Tutorial notebook (post-Phase-4 polish)
+- `examples/pycorpdiff_tutorial.ipynb` rewritten as a real, executable
+  guided tour. Builds a 144-document synthetic news corpus with two
+  outlets across nine years, then walks the full working API: slicing,
+  keyness with all four side-statistics, volcano + bar plots, KWIC
+  explain, collocation shift with logDice, collocation explain,
+  multi-term temporal trajectories with Wilson CIs, the trajectory plot,
+  and `compare.before_after`.
+- New `tutorial` CI job re-executes the notebook on every push so it
+  can't drift from the public API silently.
+
 ### Added — Phase 4b: altair plots on every Result
 - `KeynessResult.plot(kind="volcano" | "bar", **kw)` — volcano-style
   scatter of effect size vs −log₁₀(p) by default, with the top-N labelled;

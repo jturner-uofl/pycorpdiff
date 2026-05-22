@@ -56,5 +56,25 @@ jobs:
         with:
           enable-cache: true
       - run: uv python install 3.12
-      - run: uv pip install --system -e ".[docs]"
+      - run: uv pip install --system -e ".[docs,viz]"
       - run: mkdocs build --strict
+
+  tutorial:
+    name: execute tutorial notebook (drift check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      # Same surface a user would hit: pycorpdiff + viz extras + jupyter
+      # to run the notebook. Failing this job means the public API has
+      # drifted from the canonical tutorial — fix one or the other in the
+      # same PR.
+      - run: uv pip install --system -e ".[viz,docs]"
+      - name: Re-execute the tutorial in a temp file
+        run: |
+          jupyter nbconvert --to notebook --execute \
+            examples/pycorpdiff_tutorial.ipynb \
+            --output /tmp/pycorpdiff_tutorial_executed.ipynb
