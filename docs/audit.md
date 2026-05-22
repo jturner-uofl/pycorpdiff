@@ -19,7 +19,7 @@ are crossed off as commits close them.
 | 10 | DuckDB out-of-core reader                           | ✅ done       |
 | 13 | LaTeX-compile CI job                                | ✅ done       |
 | 11 | `benchmarks/` with `asv` regression suite           | ✅ done       |
-| 9  | polars backend                                      | 🔲 future    |
+| 9  | polars backend (interop, not internal storage)      | ✅ done       |
 | 4  | Real benchmark corpora                              | 🔲 future    |
 | 5  | The five demo analyses (depend on #4)               | 🔲 future    |
 | 15 | Cross-validation against quanteda / Scattertext / histwords / Rayson | 🔲 deferred until 4–13 are done |

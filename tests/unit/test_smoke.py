@@ -69,11 +69,11 @@ def test_corpus_rejects_missing_text_col(toy_df: pd.DataFrame) -> None:
         pcd.Corpus(docs=toy_df, text_col="body")
 
 
-def test_corpus_rejects_polars_backend(toy_df: pd.DataFrame) -> None:
-    # The polars backend is reserved for a later phase; surfacing it as
-    # NotImplementedError now keeps the contract honest.
-    with pytest.raises(NotImplementedError):
-        pcd.Corpus(docs=toy_df, backend="polars")
+def test_corpus_rejects_non_dataframe_input() -> None:
+    # The Corpus constructor accepts pandas or polars DataFrames; anything
+    # else gets a clear TypeError pointing at the supported types.
+    with pytest.raises(TypeError, match="pandas or polars DataFrame"):
+        pcd.Corpus(docs="not a dataframe")  # type: ignore[arg-type]
 
 
 def test_corpus_slice_scalar_filter(toy_corpus: pcd.Corpus) -> None:

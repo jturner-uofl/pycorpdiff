@@ -1,17 +1,28 @@
 """Core ``Corpus`` and ``CorpusSlice`` data structures.
 
 A :class:`Corpus` wraps a :class:`pandas.DataFrame` of documents plus
-metadata. Slicing returns a :class:`CorpusSlice` that shares the parent's
-configuration (text column, tokenizer, backend) but presents a
-boolean-masked or filtered view. Both objects are immutable frozen
-dataclasses; mutations produce new objects.
+metadata. Slicing returns a :class:`CorpusSlice` that shares the
+parent's configuration (text column, tokenizer) but presents a
+boolean-masked view. Both objects are immutable frozen dataclasses;
+mutations produce new objects.
+
+**Polars interop.** A Corpus stores its documents internally as a
+pandas DataFrame because that's what the analytical layer is built on,
+but the constructors and round-trip helpers accept and produce polars
+DataFrames so they slot into polars-native pipelines:
+
+>>> import polars as pl
+>>> df = pl.DataFrame({"text": ["the cat sat"], "outlet": ["A"]})
+>>> corpus = pcd.from_dataframe(df, text_col="text")  # polars → pandas internally
+>>> corpus.to_polars().shape   # round-trip back
+(1, 2)
 """
 
 from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -19,10 +30,9 @@ import pandas as pd
 from .tokenize import RegexTokenizer, Tokenizer
 
 if TYPE_CHECKING:
+    import polars as pl
+
     from .temporal.slicing import TemporalCorpus
-
-
-Backend = Literal["pandas", "polars"]
 
 
 def _doc_term_counts(
@@ -53,6 +63,27 @@ def _doc_term_counts(
     return df
 
 
+def _coerce_to_pandas(docs: Any) -> pd.DataFrame:
+    """Accept a pandas or polars DataFrame; return a pandas one.
+
+    The analytical layer is pandas-based; this function is the single
+    boundary where polars input gets converted. ``polars.DataFrame``
+    has ``.to_pandas()`` so the conversion is one method call.
+    """
+    if isinstance(docs, pd.DataFrame):
+        return docs
+    # Defer the polars import — it's an optional dep.
+    try:
+        import polars as pl
+    except ImportError:  # pragma: no cover
+        pl = None  # type: ignore[assignment]
+    if pl is not None and isinstance(docs, pl.DataFrame):
+        return docs.to_pandas()
+    raise TypeError(
+        f"docs must be a pandas or polars DataFrame; got {type(docs).__name__}"
+    )
+
+
 @dataclass(frozen=True)
 class Corpus:
     """A corpus of documents with optional metadata columns.
@@ -61,7 +92,9 @@ class Corpus:
     ----------
     docs
         A DataFrame whose rows are documents. Must contain at least the
-        text column named by ``text_col``.
+        text column named by ``text_col``. Accepts either
+        :class:`pandas.DataFrame` or :class:`polars.DataFrame`; polars
+        input is converted to pandas internally.
     text_col
         Name of the column containing document text.
     id_col
@@ -73,9 +106,6 @@ class Corpus:
     tokenizer
         A callable conforming to :class:`pycorpdiff.tokenize.Tokenizer`.
         Defaults to the package's :class:`RegexTokenizer`.
-    backend
-        ``"pandas"`` (default) or ``"polars"``. Only pandas is wired up
-        in the scaffolding release.
     """
 
     docs: pd.DataFrame
@@ -83,9 +113,11 @@ class Corpus:
     id_col: str | None = None
     meta_cols: tuple[str, ...] = ()
     tokenizer: Tokenizer = field(default_factory=RegexTokenizer)
-    backend: Backend = "pandas"
 
     def __post_init__(self) -> None:
+        # Coerce polars to pandas if needed; otherwise leave alone.
+        if not isinstance(self.docs, pd.DataFrame):
+            object.__setattr__(self, "docs", _coerce_to_pandas(self.docs))
         if self.text_col not in self.docs.columns:
             raise ValueError(
                 f"text_col={self.text_col!r} not found in DataFrame columns "
@@ -96,13 +128,6 @@ class Corpus:
                 f"id_col={self.id_col!r} not found in DataFrame columns "
                 f"{list(self.docs.columns)!r}"
             )
-        if self.backend not in ("pandas", "polars"):
-            raise ValueError(f"backend must be 'pandas' or 'polars', got {self.backend!r}")
-        if self.backend == "polars":
-            # Polars backend is reserved for a later phase; surfacing it as
-            # NotImplementedError now (rather than silently coercing) keeps
-            # the contract honest.
-            raise NotImplementedError("polars backend is not yet wired up")
 
     def __len__(self) -> int:
         return len(self.docs)
@@ -162,6 +187,21 @@ class Corpus:
         """Total tokens across all documents (before any min_count filter)."""
         return int(self.doc_term_counts(min_count=1).values.sum())
 
+    def to_polars(self) -> pl.DataFrame:
+        """Return the corpus's documents as a polars DataFrame.
+
+        Requires the ``polars`` extra. The original pandas index is
+        dropped (polars has no concept of a row index); the document
+        ordering is preserved.
+        """
+        try:
+            import polars as pl
+        except ImportError as exc:  # pragma: no cover
+            raise ImportError(
+                "to_polars() requires polars. Install with: pip install 'pycorpdiff[polars]'"
+            ) from exc
+        return pl.from_pandas(self.docs.reset_index(drop=True))
+
 
 @dataclass(frozen=True)
 class CorpusSlice:
@@ -217,3 +257,13 @@ class CorpusSlice:
 
     def total_tokens(self) -> int:
         return int(self.doc_term_counts(min_count=1).values.sum())
+
+    def to_polars(self) -> pl.DataFrame:
+        """Return the slice's documents as a polars DataFrame."""
+        try:
+            import polars as pl
+        except ImportError as exc:  # pragma: no cover
+            raise ImportError(
+                "to_polars() requires polars. Install with: pip install 'pycorpdiff[polars]'"
+            ) from exc
+        return pl.from_pandas(self.docs.reset_index(drop=True))

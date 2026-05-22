@@ -12,15 +12,25 @@ from ..tokenize import RegexTokenizer, Tokenizer
 
 
 def from_dataframe(
-    df: pd.DataFrame,
+    df: Any,
     text_col: str = "text",
     id_col: str | None = None,
     meta_cols: tuple[str, ...] = (),
     tokenizer: Tokenizer | None = None,
 ) -> Corpus:
-    """Construct a :class:`Corpus` from an in-memory DataFrame."""
+    """Construct a :class:`Corpus` from an in-memory DataFrame.
+
+    Accepts either a :class:`pandas.DataFrame` or a
+    :class:`polars.DataFrame`. Polars input is converted to pandas
+    internally — the analytical layer is pandas-based, but the
+    constructor is symmetric so polars-native pipelines slot in
+    without explicit conversion.
+    """
+    if isinstance(df, pd.DataFrame):
+        df = df.reset_index(drop=True)
+    # else: Corpus.__post_init__ handles polars → pandas coercion.
     return Corpus(
-        docs=df.reset_index(drop=True),
+        docs=df,
         text_col=text_col,
         id_col=id_col,
         meta_cols=meta_cols,
@@ -52,9 +62,30 @@ def read_parquet(
     id_col: str | None = None,
     meta_cols: tuple[str, ...] = (),
     tokenizer: Tokenizer | None = None,
+    use_polars: bool = False,
     **read_parquet_kwargs: Any,
 ) -> Corpus:
-    """Read a parquet file (or directory of parquet files) into a :class:`Corpus`."""
+    """Read a parquet file (or directory of parquet files) into a :class:`Corpus`.
+
+    Set ``use_polars=True`` to read via ``polars.read_parquet`` instead
+    of ``pandas.read_parquet`` — polars's parquet reader is often
+    several × faster on large files, particularly when only a subset of
+    columns is materialised. The result is converted to pandas
+    internally; the user-visible Corpus is identical either way.
+    Requires the ``polars`` extra.
+    """
+    if use_polars:
+        try:
+            import polars as pl
+        except ImportError as exc:  # pragma: no cover
+            raise ImportError(
+                "use_polars=True requires polars. Install with: "
+                "pip install 'pycorpdiff[polars]'"
+            ) from exc
+        df_pl = pl.read_parquet(path, **read_parquet_kwargs)
+        return from_dataframe(
+            df_pl, text_col=text_col, id_col=id_col, meta_cols=meta_cols, tokenizer=tokenizer
+        )
     df = pd.read_parquet(path, **read_parquet_kwargs)
     return from_dataframe(
         df, text_col=text_col, id_col=id_col, meta_cols=meta_cols, tokenizer=tokenizer
