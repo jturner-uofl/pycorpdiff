@@ -39,6 +39,8 @@ project matured. Listed here for traceability:
 | `Result.to_html()` / `.to_json()` across every Result type      | ✅ done |
 | `from_huggingface(dataset_id, ...)` loader + `[huggingface]` extra | ✅ done |
 | `pcd.viz.dispersion_plot(corpus, target)` (Mosteller-style)     | ✅ done |
+| `NgramTokenizer` — bigrams/trigrams as first-class terms        | ✅ done |
+| `Corpus.doc_term_counts_sparse()` — scipy.sparse for big corpora | ✅ done |
 
 ## Item #15 — cross-validation against open-source equivalents
 

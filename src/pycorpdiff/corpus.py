@@ -44,9 +44,9 @@ def _doc_term_counts(
     """Build a docs × term integer count matrix.
 
     The result is dense (``int64``) and indexed by the parent frame's index.
-    Sparse representations are deferred to a later phase — for the corpus
-    sizes pycorpdiff targets in MVP scope (medium millions of tokens) dense
-    is fast enough and downstream operations stay vectorisable.
+    For corpora large enough that a dense ``n_docs × |vocab|`` matrix is
+    infeasible (~10⁵ docs × ~10⁵ vocab → ~80 GB int64), use
+    :meth:`Corpus.doc_term_counts_sparse` instead.
     """
     counts_per_doc: list[Counter[str]] = [Counter(tokenizer(t)) for t in docs[text_col]]
     all_terms: list[str] = sorted({term for c in counts_per_doc for term in c})
@@ -61,6 +61,54 @@ def _doc_term_counts(
     if min_count > 1:
         df = df.loc[:, df.sum(axis=0) >= min_count]
     return df
+
+
+def _doc_term_counts_sparse(
+    docs: pd.DataFrame,
+    text_col: str,
+    tokenizer: Tokenizer,
+    min_count: int = 1,
+) -> tuple[Any, list[str]]:
+    """Build the same docs × term counts as :func:`_doc_term_counts` but sparse.
+
+    Returns ``(csr_matrix, vocab)`` — the canonical scikit-learn shape that
+    sklearn's :class:`CountVectorizer` and gensim's matrix utilities both
+    expose. Memory scales with nnz (non-zero cells), not ``n_docs × |vocab|``.
+
+    Computed by accumulating ``(row, col, count)`` triples in ``coo`` form
+    then converting to ``csr``; vocabulary is sorted lexicographically to
+    match :func:`_doc_term_counts` so the two views agree column-for-column.
+    """
+    from scipy.sparse import coo_matrix
+
+    counts_per_doc: list[Counter[str]] = [Counter(tokenizer(t)) for t in docs[text_col]]
+    all_terms: list[str] = sorted({term for c in counts_per_doc for term in c})
+    term_to_idx: dict[str, int] = {t: i for i, t in enumerate(all_terms)}
+
+    rows: list[int] = []
+    cols: list[int] = []
+    vals: list[int] = []
+    for i, doc_counts in enumerate(counts_per_doc):
+        for term, n in doc_counts.items():
+            rows.append(i)
+            cols.append(term_to_idx[term])
+            vals.append(n)
+
+    n_docs = len(counts_per_doc)
+    n_terms = len(all_terms)
+    matrix = coo_matrix(
+        (np.asarray(vals, dtype=np.int64), (rows, cols)),
+        shape=(n_docs, n_terms),
+        dtype=np.int64,
+    ).tocsr()
+
+    if min_count > 1:
+        col_totals = np.asarray(matrix.sum(axis=0)).ravel()
+        keep_mask = col_totals >= min_count
+        matrix = matrix[:, keep_mask]
+        all_terms = [t for t, k in zip(all_terms, keep_mask, strict=True) if k]
+
+    return matrix, all_terms
 
 
 def _coerce_to_pandas(docs: Any) -> pd.DataFrame:
@@ -208,6 +256,26 @@ class Corpus:
         """Return a docs × term integer count DataFrame."""
         return _doc_term_counts(self.docs, self.text_col, self.tokenizer, min_count)
 
+    def doc_term_counts_sparse(self, min_count: int = 1) -> tuple[Any, list[str]]:
+        """Return the docs × term matrix in :class:`scipy.sparse` form.
+
+        Returns ``(matrix, vocab)`` where ``matrix`` is a
+        :class:`scipy.sparse.csr_matrix` of shape ``(n_docs, |vocab|)``
+        and ``vocab`` is the lexicographically-sorted list of column
+        terms. This is the canonical scikit-learn shape, and lets you
+        plug a pycorpdiff corpus directly into anything that expects
+        :class:`~sklearn.feature_extraction.text.CountVectorizer` output.
+
+        For typical analytical work the dense
+        :meth:`doc_term_counts` is fine — but on a corpus with ~100K
+        docs and ~50K vocab the dense int64 matrix is ~40 GB while the
+        sparse CSR is megabytes. Use this when the dense matrix would
+        blow your RAM budget.
+        """
+        return _doc_term_counts_sparse(
+            self.docs, self.text_col, self.tokenizer, min_count
+        )
+
     def vocab(self, min_count: int = 1) -> pd.Series:
         """Return a term → total-count Series sorted descending."""
         counts = self.doc_term_counts(min_count=min_count).sum(axis=0)
@@ -280,6 +348,14 @@ class CorpusSlice:
 
     def doc_term_counts(self, min_count: int = 1) -> pd.DataFrame:
         return _doc_term_counts(self.docs, self.text_col, self.tokenizer, min_count)
+
+    def doc_term_counts_sparse(self, min_count: int = 1) -> tuple[Any, list[str]]:
+        """Sparse counterpart to :meth:`doc_term_counts`. See
+        :meth:`Corpus.doc_term_counts_sparse` for semantics.
+        """
+        return _doc_term_counts_sparse(
+            self.docs, self.text_col, self.tokenizer, min_count
+        )
 
     def vocab(self, min_count: int = 1) -> pd.Series:
         counts = self.doc_term_counts(min_count=min_count).sum(axis=0)
