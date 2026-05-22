@@ -41,10 +41,16 @@ plugins:
 nav:
   - Home: index.md
   - Getting started: getting-started.md
+  - Design: design.md
+  - Statistical methods: statistical-methods.md
+  - Multilingual: multilingual.md
   - API reference:
       - Corpus: api/corpus.md
       - Compare: api/compare.md
       - Results: api/results.md
+      - Temporal: api/temporal.md
+      - Semantic: api/semantic.md
+      - Visualisation: api/viz.md
   - Roadmap: roadmap.md
 
 markdown_extensions:

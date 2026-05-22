@@ -6,6 +6,24 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Phase 8a: documentation site
+- `docs/index.md` rewritten as a real landing page (what it's for, what
+  it's not, design principles, quick taste).
+- `docs/getting-started.md` expanded with installation, Corpus
+  construction, slicing, compare verbs, track, before/after.
+- `docs/design.md` — the three-layer architecture and the two-Protocol
+  extension model. Includes the optional-extras table.
+- `docs/statistical-methods.md` — what each metric in the package
+  computes, why these defaults, and the full reference list (Dunning,
+  Hardie, Gabrielatos, Wilson, Juilland, Gries, Rychly, Church-Hanks,
+  Daille, Wagner, Killick, Hamilton, Giulianelli, Newcombe, Schonemann).
+- `docs/multilingual.md` — concrete adapter snippets for spaCy, Stanza,
+  jieba, fugashi. Covers tokenizer-swap idiom and multilingual SBERT.
+- `docs/api/temporal.md`, `docs/api/semantic.md`, `docs/api/viz.md` —
+  mkdocstrings-driven reference pages for the new modules.
+- `mkdocs.yml` nav updated to surface the new pages.
+- `mkdocs build --strict` passes (already running in CI's docs job).
+
 ### Added — Tutorial extension (covers Phases 6 + 7)
 - Tutorial corpus redesigned: 19 years (2005–2023) with a 4× publication-
   volume swap at the engineered 2016 event, giving PELT and ITS real
