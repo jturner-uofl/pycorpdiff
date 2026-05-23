@@ -7,7 +7,7 @@ JavaScript — just open in any browser.
 
 | File | Source notebook | Charts |
 |---|---|---|
-| [`pycorpdiff_showcase.html`](pycorpdiff_showcase.html) | [`examples/pycorpdiff_showcase.ipynb`](../../examples/pycorpdiff_showcase.ipynb) | 8 |
+| [`pycorpdiff_showcase.html`](pycorpdiff_showcase.html) | [`examples/pycorpdiff_showcase.ipynb`](../../examples/pycorpdiff_showcase.ipynb) | 17 |
 | [`pycorpdiff_tutorial.html`](pycorpdiff_tutorial.html) | [`examples/pycorpdiff_tutorial.ipynb`](../../examples/pycorpdiff_tutorial.ipynb) | 4 |
 | [`hansard_demo.html`](hansard_demo.html) | [`examples/hansard_demo.ipynb`](../../examples/hansard_demo.ipynb) | 3 |
 

@@ -56,6 +56,23 @@ from .temporal.forecast import (
 from .temporal.slicing import TemporalCorpus, track
 from .tokenize import NgramTokenizer, RegexTokenizer, Tokenizer
 
+# Convenience aliases for the standalone (non-`.plot()`-delegated)
+# visualisation functions. The full plot family also lives at
+# ``pycorpdiff.viz.*`` — these are surfaced at the root so common
+# patterns like ``pcd.dispersion_plot(corpus, term)`` work without
+# requiring a separate import path. Plots that are only meaningful
+# as ``Result.plot()`` (keyness_volcano, keyness_top_n_bar,
+# collocation_diverging_bar, trajectory_with_ci) stay in ``viz`` only.
+from .viz import (
+    bocpd_plot,
+    causal_impact_plot,
+    dispersion_plot,
+    forecast_plot,
+    network_plot,
+    scattertext_plot,
+    semantic_forecast_plot,
+)
+
 __all__ = [
     "BocpdResult",
     "CausalImpactResult",
@@ -78,11 +95,15 @@ __all__ = [
     "Tokenizer",
     "__version__",
     "bocpd",
+    "bocpd_plot",
     "causal_impact",
+    "causal_impact_plot",
     "compare",
     "cooccurrence_network",
+    "dispersion_plot",
     "fetch_hansard",
     "fetch_histwords_decade",
+    "forecast_plot",
     "forecast_semantic_drift",
     "forecast_trajectory",
     "from_dataframe",
@@ -92,11 +113,14 @@ __all__ = [
     "kwic",
     "load_hansard_sample",
     "neighborhood_drift",
+    "network_plot",
     "read_csv",
     "read_duckdb",
     "read_parquet",
     "read_txt",
     "representative_docs",
+    "scattertext_plot",
+    "semantic_forecast_plot",
     "semantic_trajectory",
     "track",
 ]
