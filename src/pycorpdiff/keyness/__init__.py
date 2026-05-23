@@ -8,6 +8,7 @@ from .correction import benjamini_hochberg, bonferroni
 from .dispersion import dispersion_dp, juilland_d
 from .effect_sizes import log_ratio, percent_diff
 from .loglikelihood import log_likelihood
+from .multicorpus import keyness_multi
 from .permutation import permutation_pvalues
 
 __all__ = [
@@ -17,6 +18,7 @@ __all__ = [
     "chi_squared",
     "dispersion_dp",
     "juilland_d",
+    "keyness_multi",
     "log_likelihood",
     "log_ratio",
     "percent_diff",

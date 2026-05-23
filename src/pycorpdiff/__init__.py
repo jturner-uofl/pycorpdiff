@@ -34,6 +34,7 @@ from .explain import kwic, representative_docs
 from .io.duckdb import read_duckdb
 from .io.huggingface import from_huggingface
 from .io.readers import from_dataframe, read_csv, read_parquet, read_txt
+from .keyness.multicorpus import keyness_multi
 from .results import (
     CollocationShiftResult,
     ConcordanceResult,
@@ -70,6 +71,7 @@ __all__ = [
     "from_dataframe",
     "from_huggingface",
     "histwords_cosine_shift",
+    "keyness_multi",
     "kwic",
     "load_hansard_sample",
     "neighborhood_drift",
