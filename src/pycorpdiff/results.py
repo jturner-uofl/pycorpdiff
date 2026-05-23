@@ -398,6 +398,80 @@ class TemporalTrajectory:
         sub = self.table[self.table["term"] == target].set_index("period")["relfreq"]
         return interrupted_time_series(sub, event_date=event_date)
 
+    def forecast(
+        self,
+        horizon: int = 4,
+        *,
+        target: str | None = None,
+        level: float = 0.95,
+        method: str = "auto",
+        logit_transform: bool = True,
+    ) -> Any:
+        """Extend this trajectory ``horizon`` periods forward.
+
+        Wraps state-space exponential smoothing (Hyndman et al. 2008)
+        via statsmodels' ``ETSModel`` (for series of length ≥ 8) or
+        ``Holt`` linear-trend (for shorter histories). Rates are
+        forecast on the logit scale and back-transformed so prediction
+        intervals stay in ``[0, 1]``.
+
+        Parameters
+        ----------
+        horizon
+            Periods to project forward.
+        target
+            Restrict to a single term. ``None`` (default) forecasts
+            every term in the trajectory.
+        level
+            Prediction-interval level. ``0.95`` → 95% PI.
+        method
+            ``"auto"`` (default), ``"ets"``, or ``"holt"``.
+        logit_transform
+            Keep the PI in [0, 1] by working on the logit scale.
+
+        Returns
+        -------
+        :class:`pycorpdiff.temporal.forecast.ForecastResult`
+            Carries the history *and* forecast tables; ``.plot()``
+            renders the combined chart with a dashed continuation.
+
+        Requires the ``[temporal]`` extra (statsmodels).
+        """
+        from .temporal.forecast import (
+            ForecastResult,
+            forecast_trajectory,
+        )
+
+        if target is None:
+            chosen_targets = self.targets
+        else:
+            if target not in self.targets:
+                raise ValueError(
+                    f"target={target!r} not in trajectory targets {self.targets!r}"
+                )
+            chosen_targets = [target]
+
+        fc_table = forecast_trajectory(
+            self.table,
+            targets=chosen_targets,
+            horizon=horizon,
+            level=level,
+            method=method,  # type: ignore[arg-type]
+            logit_transform=logit_transform,
+        )
+        return ForecastResult(
+            history=self.table[self.table["term"].isin(chosen_targets)].copy(),
+            forecast=fc_table,
+            targets=list(chosen_targets),
+            freq=self.freq,
+            horizon=horizon,
+            level=level,
+            method=method,
+            params={
+                "logit_transform": logit_transform,
+            },
+        )
+
     def summary(self) -> str:
         return (
             f"TemporalTrajectory(targets={self.targets!r}, freq={self.freq!r}, "

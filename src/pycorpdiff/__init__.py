@@ -46,6 +46,7 @@ from .results import (
 from .semantic.embed import Embedder, HashEmbedder, SBERTEmbedder
 from .semantic.shift import neighborhood_drift
 from .semantic.trajectory import semantic_trajectory
+from .temporal.forecast import ForecastResult, forecast_trajectory
 from .temporal.slicing import TemporalCorpus, track
 from .tokenize import NgramTokenizer, RegexTokenizer, Tokenizer
 
@@ -56,6 +57,7 @@ __all__ = [
     "Corpus",
     "CorpusSlice",
     "Embedder",
+    "ForecastResult",
     "HashEmbedder",
     "KeynessResult",
     "NetworkResult",
@@ -71,6 +73,7 @@ __all__ = [
     "cooccurrence_network",
     "fetch_hansard",
     "fetch_histwords_decade",
+    "forecast_trajectory",
     "from_dataframe",
     "from_huggingface",
     "histwords_cosine_shift",
