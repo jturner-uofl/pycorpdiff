@@ -282,37 +282,58 @@ h3, .text_cell h3 {
 }
 .text_cell code { white-space: nowrap; }
 
-/* Code cells — dark themed */
+/* Code blocks — dark themed (catches BOTH Jupyter code cells and
+   markdown fenced code, which render through the same .highlight class). */
 div.input { margin-bottom: 0 !important; }
 .input_area {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.highlight {
   background: var(--pcd-code-bg) !important;
   border-radius: var(--pcd-radius) !important;
   border: 0 !important;
   padding: 16px 18px !important;
+  margin: 8px 0 !important;
   box-shadow: var(--pcd-shadow);
   overflow-x: auto;
 }
-.input_area pre, .highlight pre, .input_area .highlight {
+.highlight pre, .highlight code {
   background: transparent !important;
   color: var(--pcd-code-fg) !important;
   font-family: var(--pcd-font-mono) !important;
   font-size: 13.5px !important;
-  line-height: 1.55 !important;
+  line-height: 1.6 !important;
   margin: 0 !important;
   padding: 0 !important;
+  white-space: pre !important;
+  border: 0 !important;
 }
-/* Syntax-token overrides for dark code background */
-.highlight .k, .highlight .kn, .highlight .kc, .highlight .kd, .highlight .kr,
-.highlight .kp, .highlight .ow { color: #f38ba8 !important; font-weight: 500; }
+/* Inline code inside a .highlight block should NOT get the inline-chip pill. */
+.highlight code { display: inline; white-space: pre; }
+
+/* Syntax-token overrides — Catppuccin Mocha palette, high contrast on
+   the dark code background. Applied globally because every code block
+   now has the dark background. */
+.highlight .k, .highlight .kn, .highlight .kc, .highlight .kd,
+.highlight .kr, .highlight .kp, .highlight .ow {
+  color: #cba6f7 !important; font-weight: 500;
+}
 .highlight .s, .highlight .s1, .highlight .s2, .highlight .sb,
-.highlight .sx { color: #a6e3a1 !important; }
+.highlight .sx, .highlight .sd { color: #a6e3a1 !important; }
 .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch,
-.highlight .cp { color: #6c7086 !important; font-style: italic; }
+.highlight .cp { color: #9399b2 !important; font-style: italic; }
 .highlight .nf, .highlight .nc, .highlight .nn { color: #89b4fa !important; }
-.highlight .nb { color: #fab387 !important; }
-.highlight .mi, .highlight .mf, .highlight .m { color: #fab387 !important; }
-.highlight .o, .highlight .p { color: #cdd6f4 !important; }
-.highlight .n, .highlight .na { color: #cdd6f4 !important; }
+.highlight .nb { color: #f9e2af !important; }
+.highlight .mi, .highlight .mf, .highlight .m, .highlight .il {
+  color: #fab387 !important;
+}
+.highlight .o, .highlight .p { color: #bac2de !important; }
+.highlight .n, .highlight .na, .highlight .nx { color: #cdd6f4 !important; }
+.highlight .kc { color: #fab387 !important; }  /* True/False/None */
+.highlight .se { color: #f5c2e7 !important; }  /* String escapes */
 
 /* Output area */
 .output_area { padding: 0 !important; margin-top: 10px !important; }
