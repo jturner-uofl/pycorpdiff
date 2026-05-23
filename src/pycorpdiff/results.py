@@ -398,6 +398,80 @@ class TemporalTrajectory:
         sub = self.table[self.table["term"] == target].set_index("period")["relfreq"]
         return interrupted_time_series(sub, event_date=event_date)
 
+    def causal_impact(
+        self,
+        event_date: str,
+        target: str | None = None,
+        *,
+        level: float = 0.95,
+        n_samples: int = 1000,
+        seed: int | None = 0,
+        model: str = "local linear trend",
+    ) -> Any:
+        """Counterfactual causal impact of an event on this trajectory.
+
+        Bayesian structural time-series (Brodersen et al. 2015) — fits a
+        local-linear-trend state-space model on the pre-event window
+        and projects forward as the counterfactual "what would have
+        happened without the event". Observed minus counterfactual is
+        the causal effect, with credible intervals from Monte Carlo
+        simulation against the joint state-space posterior.
+
+        Requires the ``[temporal]`` extra (statsmodels).
+
+        Parameters
+        ----------
+        event_date
+            Where to place the intervention.
+        target
+            Which term to analyse. Defaults to the trajectory's single
+            target when there's only one.
+        level
+            Credible-interval level. ``0.95`` → 95% CrI.
+        n_samples
+            Monte Carlo path count for the joint CrI. ``1000`` is the
+            conventional default.
+        seed
+            RNG seed for reproducibility.
+        model
+            Trend specification — usually ``"local linear trend"`` (the
+            default) or ``"local level"``.
+
+        Returns
+        -------
+        :class:`pycorpdiff.temporal.causal_impact.CausalImpactResult`
+        """
+        from dataclasses import replace as _dc_replace
+
+        from .temporal.causal_impact import causal_impact
+
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"trajectory carries {len(self.targets)} targets; "
+                    "pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(
+                f"target={target!r} not in trajectory targets {self.targets!r}"
+            )
+
+        sub = (
+            self.table[self.table["term"] == target]
+            .sort_values("period")
+            .set_index("period")["relfreq"]
+        )
+        result = causal_impact(
+            sub,
+            event_date=event_date,
+            level=level,
+            n_samples=n_samples,
+            seed=seed,
+            model=model,
+        )
+        return _dc_replace(result, target=target)
+
     def forecast(
         self,
         horizon: int = 4,
