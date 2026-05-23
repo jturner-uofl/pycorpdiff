@@ -46,7 +46,7 @@ dependencies = [
 
 [project.optional-dependencies]
 # Visualisation: altair-first, matplotlib retained for paper-grade figures.
-viz = ["altair>=5", "matplotlib>=3.8"]
+viz = ["altair>=5", "matplotlib>=3.8", "networkx>=3.1"]
 # Embedding-based semantic shift (Phase 2). sentence-transformers pulls
 # torch transitively, which is why this is opt-in rather than a base dep.
 semantic = ["sentence-transformers>=2.2", "scikit-learn>=1.3"]
@@ -71,6 +71,7 @@ paper = ["vl-convert-python>=1.5", "jupyter>=1.0"]
 all = [
     "altair>=5",
     "matplotlib>=3.8",
+    "networkx>=3.1",
     "sentence-transformers>=2.2",
     "scikit-learn>=1.3",
     "datasets>=2.14",
@@ -187,6 +188,8 @@ module = [
     "duckdb.*",
     "matplotlib",
     "matplotlib.*",
+    "networkx",
+    "networkx.*",
     "polars",
     "polars.*",
     "ruptures",

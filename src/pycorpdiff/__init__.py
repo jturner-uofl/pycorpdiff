@@ -22,6 +22,7 @@ from __future__ import annotations
 
 __version__ = "0.1.0a0"
 
+from .collocation.network import NetworkResult, cooccurrence_network
 from .compare import Comparison, compare
 from .corpus import Corpus, CorpusSlice
 from .datasets import (
@@ -57,6 +58,7 @@ __all__ = [
     "Embedder",
     "HashEmbedder",
     "KeynessResult",
+    "NetworkResult",
     "NgramTokenizer",
     "RegexTokenizer",
     "SBERTEmbedder",
@@ -66,6 +68,7 @@ __all__ = [
     "Tokenizer",
     "__version__",
     "compare",
+    "cooccurrence_network",
     "fetch_hansard",
     "fetch_histwords_decade",
     "from_dataframe",
