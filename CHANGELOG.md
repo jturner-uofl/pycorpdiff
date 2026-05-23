@@ -6,7 +6,74 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Added — Tier-1 audit cleanups
+<!-- This section accumulates post-0.1.0a0 work. Move entries down to a
+  new versioned heading when the next tag is cut. -->
+
+## [0.1.0a0] — 2026-05-22
+
+The complete pre-release feature set, frozen for the JSS submission.
+519 default tests, ruff + mypy --strict clean across 55 source files,
+three example notebooks rendered to self-contained HTML, paper
+replication archive runnable in CI on every push.
+
+### The temporal predictive stack
+- `TemporalTrajectory.forecast(horizon)` — state-space exponential
+  smoothing (Hyndman et al. 2008) with logit-pinned PIs.
+- `TemporalTrajectory.causal_impact(event_date)` — Bayesian structural
+  time-series counterfactual (Brodersen et al. 2015) with three-panel
+  Brodersen-style plot.
+- `TemporalTrajectory.changepoints_online(hazard)` — Bayesian online
+  changepoint detection (Adams & MacKay 2007), three-panel diagnostic.
+- `pcd.forecast_semantic_drift(traj_df)` — forecast cosine-distance
+  trajectories with the same ETS machinery.
+
+### N-way + network surfaces
+- `pcd.keyness_multi([a, b, c, ...])` — one-way contingency G² with
+  df=N−1; N=2 reduces exactly to pairwise.
+- `pcd.cooccurrence_network(corpus)` — Kamada-Kawai term-as-vertex
+  network with PMI / t-score / MI³ / logDice edge weights.
+
+### Visualisation
+- `viz.scattertext_plot` — Kessler 2017 rank-percentile scatter.
+- `viz.dispersion_plot` — Mosteller-style tick chart.
+- `viz.network_plot` — force-directed graph for `NetworkResult`.
+- `viz.forecast_plot`, `viz.causal_impact_plot`, `viz.bocpd_plot`,
+  `viz.semantic_forecast_plot` — predictive-stack visualisations.
+- All seven surfaced at the package root for ergonomics
+  (`pcd.dispersion_plot`, etc.) while remaining available via
+  `pcd.viz.*`.
+
+### Keyness
+- Pearson χ² as an alternative method (`method="chi_squared"`).
+- Stop-word filtering (`stop_words=`).
+- Empirical permutation *p*-values (`permutation_n=B`) with
+  Phipson–Smyth (2010) `+1/+1` correction.
+
+### Tokenization + storage
+- `NgramTokenizer` — bigrams / trigrams as first-class terms via any
+  base tokenizer.
+- `Corpus.doc_term_counts_sparse()` — scipy.sparse CSR escape hatch
+  for large vocabularies.
+- `Corpus.__hash__` — content-derived hashing for memoised analyses.
+
+### I/O
+- `pcd.from_huggingface(dataset_id, ...)` loader + `[huggingface]` extra.
+- `read_duckdb(con, sql)` — out-of-core SQL ingestion.
+
+### Cross-validation receipts
+- 15 hand-derived Rayson LL Wizard reference triples.
+- NLTK `BigramAssocMeasures` — PMI and t-score to ≤ 1e-12.
+- Scattertext (Kessler 2017) on the 2012 US Conventions.
+- quanteda (R) via rpy2 — byte-for-byte G² agreement (slow tier).
+- HistWords (Hamilton et al. 2016) — diachronic cosine displacements
+  on COHA (slow tier).
+
+### Result surface
+- `.to_html()` and `.to_json()` on every Result class.
+- All Result types are frozen dataclasses; share the same six-method
+  protocol.
+
+### Tier-1 audit cleanups (incorporated into 0.1.0a0)
 - `read_txt(one_doc_per="line")` now wired up. Each non-empty line
   becomes a separate document; the 1-based line number is preserved in
   the corpus's ``line`` column so KWIC results can point back to the

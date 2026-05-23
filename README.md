@@ -1,110 +1,147 @@
 # pycorpdiff
 
+<!--
+TODO post-publish (Phase 5 — once GitHub repo public + PyPI published + Zenodo DOI minted):
+
+[![PyPI](https://img.shields.io/pypi/v/pycorpdiff.svg)](https://pypi.org/project/pycorpdiff/)
+[![Python versions](https://img.shields.io/pypi/pyversions/pycorpdiff.svg)](https://pypi.org/project/pycorpdiff/)
+[![CI](https://github.com/jasonsturner/pycorpdiff/actions/workflows/ci.yml/badge.svg)](https://github.com/jasonsturner/pycorpdiff/actions/workflows/ci.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.<RECORD>.svg)](https://doi.org/10.5281/zenodo.<RECORD>)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+-->
+
 **Comparative corpus analysis for modern Python workflows.**
 
-`pycorpdiff` is a Python package for *comparing* text corpora — across groups,
-across time, and across discourse contexts. It unifies classical corpus
-linguistics methods (keyness, collocations, dispersion) with modern
-embedding-based semantic-shift analysis under a single, composable API.
+`pycorpdiff` is the **missing comparative layer** between R's
+[`quanteda`](https://quanteda.io/), the closed-source SketchEngine
+platform, and the fragmented Python NLP stack
+(`nltk`/`spaCy`/`gensim`/`sentence-transformers`). Three public verbs
+— `compare(a, b)`, `track(c, term)`, `compare.before_after(c, event)` —
+consolidate keyness, collocations, dispersion, temporal trajectories,
+changepoint detection, interrupted time series, causal-impact analysis,
+forecasting, online changepoint detection, and embedding-based semantic
+shift under a single notebook-native API. Every result carries its own
+KWIC evidence: `.explain(term)` returns the source-text concordances
+behind any ranked term.
 
-> **Status: pre-alpha (0.1.0a0)** — scaffolding is in place; the lexical
-> comparative core is the next milestone. Not yet on PyPI.
+The package answers the questions corpus linguistics, digital humanities,
+and computational social science routinely have:
 
-## What it's for
+- *How does corpus A differ from corpus B?* — `compare(a, b).keyness()`
+- *How has discourse around X evolved over time?* — `track(c, "x").over_time()`
+- *What did "migrant" mean in 2005 vs 2023?* — `compare(...).semantic_shift("migrant", embedder=...)`
+- *Did this event actually shift the conversation?* — `track(...).causal_impact(event_date=...)`
+- *Where is the discourse heading?* — `track(...).forecast(horizon=4)`
 
-Researchers in corpus linguistics, digital humanities, and computational
-social science routinely need to answer questions like:
+`pycorpdiff` is positioned as **orchestration**, not reinvention.
+Tokenizers (`spaCy`, `Stanza`, `jieba`, `fugashi`) and embedders (any
+`SBERT`-compatible model) plug in via two `typing.Protocol` extension
+points — one-line adapters, no plugin registry. The base install pulls
+only `numpy`, `pandas`, `scipy`, and `pyarrow`; everything else is opt-in
+via extras.
 
-- How does corpus A differ from corpus B?
-- How has discourse around *X* changed between 1990 and 2020?
-- What semantic shifts occurred around a given event?
-- Which collocations gained or lost ground?
+> **Status: pre-release alpha (0.1.0a0).** Public API is stable for the
+> features described below; PyPI publication is the next milestone.
 
-`pycorpdiff` provides a coherent comparative layer over the existing PyData
-and NLP stacks (`pandas`, `polars`, `pyarrow`, `scipy`, `statsmodels`,
-`sentence-transformers`, `spacy`) without reinventing tokenisation, embeddings,
-or topic modelling.
+## The three-layer architecture
 
-## What it is not
+| Layer | Purpose | Key surface |
+|---|---|---|
+| **1 — Ingestion + `Corpus`** | get text in, slice it, hash it | `from_dataframe`, `read_csv`, `read_parquet`, `read_txt`, `read_duckdb`, `from_huggingface`, `fetch_hansard`, `Corpus.slice/by_time/__hash__/doc_term_counts(_sparse)/to_polars` |
+| **2 — Pure math** | statistics with no I/O | `keyness.{log_likelihood,chi_squared,log_ratio,percent_diff,bayes_factor,permutation_pvalues,keyness_multi,juilland_d,benjamini_hochberg}`; `collocation.{logdice,pmi,t_score,mi_three,collocation_shift,cooccurrence_network}`; `semantic.{HashEmbedder,SBERTEmbedder,semantic_trajectory,neighborhood_drift}`; `temporal.{changepoints,interrupted_time_series,forecast,causal_impact,bocpd}` |
+| **3 — Verbs + Results** | public API | `compare`, `track`, `compare.before_after`, `keyness_multi`, plus 9 frozen-dataclass Result types each with `.to_df() / .plot() / .explain() / .summary() / .to_html() / .to_json()` |
 
-- Not a general NLP framework. It does not replace `nltk`, `spaCy`, or `gensim`.
-- Not a SketchEngine clone. It is comparative-first and notebook-native.
-- Not a deep learning framework. Embeddings are treated as a pluggable
-  interface, not a training substrate.
-- Not a forecasting tool. Temporal analysis here is for *explanation*, not
-  prediction.
-
-## Design principles
-
-- **Interoperability over reinvention** — adapters around existing libraries.
-- **Comparative abstractions** — `compare(a, b)`, `track(c, "x")` as first-class verbs.
-- **Temporal as first-class** — `before_after`, `over_time`, trajectories.
-- **Explainability by default** — every result carries its evidence.
-- **Statistically grounded defaults** — log-likelihood + effect sizes, Wilson
-  CIs, dispersion sanity checks. No bare *p*-values.
-- **Dataframe-first I/O** — `pandas` by default, `polars` opt-in.
-- **Notebook-native** — `altair` plots, idiomatic Jupyter ergonomics.
-
-## Quick start *(target API — Phase 1 in progress)*
+## Quick start
 
 ```python
 import pycorpdiff as pcd
 
-news = pcd.read_parquet("uk_news.parquet", text_col="body", time_col="date")
+news = pcd.from_dataframe(df, text_col="body", meta_cols=("outlet", "date"))
 
-# Lexical comparison
-k = pcd.compare(
-    news.slice(outlet=["Guardian", "Mirror"]),
-    news.slice(outlet=["Mail", "Telegraph"]),
-).keyness(method="log_likelihood", effect_size=True)
-k.plot()
-k.explain("migrant", n=5)
+# Compare — three verbs
+k = pcd.compare(news.slice(outlet="Guardian"), news.slice(outlet="Mail")).keyness()
+c = pcd.compare(a, b).collocation_shift("migrant")
+s = pcd.compare(a, b).semantic_shift("migrant", embedder=pcd.SBERTEmbedder())
 
-# Before / after an event
+# Track over time
+tr = pcd.track(news, "migrant").over_time(freq="Y")
+tr.changepoints()                                     # offline PELT
+tr.changepoints_online(hazard=1/24)                   # Bayesian online (Adams & MacKay 2007)
+tr.interrupted_time_series(event_date="2016-06-23")   # segmented OLS
+tr.causal_impact(event_date="2016-06-23")             # Bayesian counterfactual (Brodersen 2015)
+tr.forecast(horizon=4)                                # state-space ETS
+
+# Before / after a known event
 pcd.compare.before_after(news, event_date="2016-06-23").keyness()
 
-# Diachronic trajectory of a single term
-pcd.track(news, "sovereignty").over_time(freq="Q").plot()
+# N-way (≥ 2 corpora)
+pcd.keyness_multi([gu, ma, te, mi], labels=["Guardian", "Mail", "Telegraph", "Mirror"])
+
+# The discourse as a graph
+pcd.cooccurrence_network(news, top_n=50).plot()
+
+# Every Result: .to_df() · .plot() · .explain() · .summary() · .to_html() · .to_json()
 ```
 
-## Installation *(once on PyPI)*
+See [`examples/pycorpdiff_showcase.ipynb`](examples/pycorpdiff_showcase.ipynb)
+([rendered HTML](docs/rendered/pycorpdiff_showcase.html)) for a 94-cell
+walkthrough on a synthetic UK Hansard corpus exercising every analytical
+surface.
 
-```bash
-pip install pycorpdiff               # lexical-comparative core
-pip install "pycorpdiff[viz]"        # + altair / matplotlib
-pip install "pycorpdiff[semantic]"   # + sentence-transformers
-pip install "pycorpdiff[temporal]"   # + ruptures / statsmodels
-pip install "pycorpdiff[all]"        # everything
-```
+## Installation
 
-Until then, from a local clone:
+<!-- TODO post-publish: replace this block with the PyPI install commands once published. -->
+
+Currently a pre-release alpha. From a local clone:
 
 ```bash
 git clone https://github.com/jasonsturner/pycorpdiff
 cd pycorpdiff
 pip install -e ".[dev]"
-pytest
+pytest -q                          # 519 default tests, ~7s
 ```
 
-## Roadmap
+Optional extras: `[viz]` (altair + matplotlib + networkx), `[semantic]`
+(sentence-transformers + scikit-learn), `[temporal]` (ruptures +
+statsmodels), `[polars]`, `[duckdb]`, `[huggingface]`, `[nlp]` (spaCy),
+`[paper]` (vl-convert + jupyter), or `[all]`.
 
-| Phase | Milestone |
-|-------|-----------|
-| 0     | Scaffolding (this commit) |
-| 1     | Corpus ingestion + frequency-based keyness (LL, LogRatio, BF, effect sizes) |
-| 2     | Collocation measures + collocation shift |
-| 3     | KWIC concordances + `explain()` plumbing |
-| 4     | Temporal slicing, rolling frequencies, basic viz |
-| 5     | **v0.1.0a1** — PyPI alpha release |
-| 6     | Semantic shift via Procrustes-aligned embeddings |
-| 7     | Changepoint detection + interrupted time series |
-| 8     | Documentation site + JSS paper draft |
-| 9     | **v0.2.0** — JSS submission |
+## Cross-validation receipts
+
+The math agrees with the standard tools — by automated test:
+
+- **Rayson's LL Wizard** — 15 hand-derived contingency-table reference triples
+- **NLTK** `BigramAssocMeasures` — PMI + t-score to ≤ 1e-12 on every adjacent bigram
+- **Scattertext (Kessler 2017)** — behavioural agreement on the 2012 US Conventions corpus
+- **quanteda (R)** via `rpy2` — byte-for-byte G² agreement (slow tier)
+- **HistWords (Hamilton et al. 2016)** — diachronic cosine displacements on COHA (slow tier)
+
+## Citation
+
+If you use `pycorpdiff` in academic work, please cite both the software
+and the JSS paper:
+
+```bibtex
+@article{turner2025pycorpdiff,
+  title   = {pycorpdiff: Comparative Corpus Analysis for Modern Python Workflows},
+  author  = {Turner, Jason},
+  journal = {Journal of Statistical Software},
+  year    = {2025},
+  note    = {Forthcoming}
+}
+```
+
+A machine-readable `CITATION.cff` is in this repository (`cff-version 1.2.0`);
+GitHub renders a "Cite this repository" widget directly from it.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
 
-## Citation
+## Further reading
 
-If you use `pycorpdiff` in academic work, see [CITATION.cff](CITATION.cff).
+- [`docs/design.md`](docs/design.md) — three-layer architecture
+- [`docs/statistical-methods.md`](docs/statistical-methods.md) — every metric's formula + citation
+- [`docs/audit.md`](docs/audit.md) — rolling status board ("what's promised vs done")
+- [`paper/paper.tex`](paper/paper.tex) — the JSS submission
+- [`paper/replication/`](paper/replication/) — fully reproducible figure regeneration

@@ -1,0 +1,58 @@
+# Replication manifest for the pycorpdiff JSS paper
+#
+# This file records the exact environment used to generate the figures
+# and tables that appear in paper/paper.tex. Reviewers and re-runners
+# should install these exact versions to obtain byte-identical outputs.
+#
+# Reproducibility procedure:
+#   1. Create a Python 3.12 virtual environment.
+#   2. pip install pycorpdiff==<paper.version> AND the explicit pins below.
+#      (Or: `uv sync --frozen` against the uv.lock at the repo root, which
+#      is the strongest form of pinning.)
+#   3. Run `python paper/replication/reproduce.py` from the repo root.
+#   4. The CI workflow in .github/workflows/ci.yml re-runs this on every
+#      push and asserts the generated paper_outputs.json is byte-identical
+#      to the committed version. Any drift fails the build.
+#
+# A locked dependency tree is also available at the repo root as
+# `uv.lock` (uv >= 0.5 lockfile format).
+
+[paper]
+version = "0.1.0a0"
+date = "2026-05-22"
+
+[python]
+version = "3.12.13"
+
+# Base dependencies — required to import pycorpdiff at all.
+[base]
+numpy = "2.4.6"
+pandas = "2.3.3"
+scipy = "1.17.1"
+pyarrow = "24.0.0"
+
+# Optional extras used by the paper's worked example + figure regeneration.
+[viz]
+altair = "6.1.0"
+matplotlib = "3.10.9"
+networkx = "3.6.1"
+
+[temporal]
+ruptures = "1.1.10"
+statsmodels = "0.14.6"
+
+[semantic]
+sentence-transformers = "5.5.1"
+scikit-learn = "1.8.0"
+
+[paper-extras]
+# Required for the static-SVG export of altair charts that the LaTeX
+# manuscript embeds. Heavy (Rust-backed) so kept opt-in.
+vl-convert-python = "1.9.0.post1"
+jupyter = "1.1.1"
+nbconvert = "7.17.1"
+
+# Optional, only needed if you re-render the rendered HTML notebooks.
+[optional]
+polars = "1.41.0"
+duckdb = "1.5.3"
