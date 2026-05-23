@@ -144,7 +144,23 @@ def _layout(
     for _, row in edges.iterrows():
         g.add_edge(row["source"], row["target"], weight=abs(float(row["weight"])))
 
-    pos = nx.spring_layout(g, seed=seed, k=None, iterations=120)
+    # Kamada-Kawai produces more uniformly-spaced layouts than the
+    # default spring algorithm on densely-connected graphs, which is
+    # the common case for corpus discourse networks (every top term
+    # tends to co-occur with many others). Falls back to a high-k
+    # spring layout for disconnected graphs (KK requires connectivity).
+    n = max(1, g.number_of_nodes())
+    try:
+        if nx.is_connected(g):
+            pos = nx.kamada_kawai_layout(g)
+        else:
+            pos = nx.spring_layout(
+                g, seed=seed, k=2.5 / math.sqrt(n), iterations=200
+            )
+    except (nx.NetworkXError, ValueError):
+        pos = nx.spring_layout(
+            g, seed=seed, k=2.5 / math.sqrt(n), iterations=200
+        )
     coords = pd.DataFrame(
         {"x": [pos[t][0] for t in nodes.index], "y": [pos[t][1] for t in nodes.index]},
         index=nodes.index,
