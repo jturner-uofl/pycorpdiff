@@ -47,7 +47,11 @@ from .semantic.embed import Embedder, HashEmbedder, SBERTEmbedder
 from .semantic.shift import neighborhood_drift
 from .semantic.trajectory import semantic_trajectory
 from .temporal.causal_impact import CausalImpactResult, causal_impact
-from .temporal.forecast import ForecastResult, forecast_trajectory
+from .temporal.forecast import (
+    ForecastResult,
+    forecast_semantic_drift,
+    forecast_trajectory,
+)
 from .temporal.slicing import TemporalCorpus, track
 from .tokenize import NgramTokenizer, RegexTokenizer, Tokenizer
 
@@ -76,6 +80,7 @@ __all__ = [
     "cooccurrence_network",
     "fetch_hansard",
     "fetch_histwords_decade",
+    "forecast_semantic_drift",
     "forecast_trajectory",
     "from_dataframe",
     "from_huggingface",

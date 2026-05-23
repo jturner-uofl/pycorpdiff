@@ -18,6 +18,7 @@ from .forecast import forecast_plot
 from .keyness import keyness_top_n_bar, keyness_volcano
 from .network import network_plot
 from .scattertext import scattertext_plot
+from .semantic_forecast import semantic_forecast_plot
 from .trajectory import trajectory_with_ci
 
 __all__ = [
@@ -29,5 +30,6 @@ __all__ = [
     "keyness_volcano",
     "network_plot",
     "scattertext_plot",
+    "semantic_forecast_plot",
     "trajectory_with_ci",
 ]

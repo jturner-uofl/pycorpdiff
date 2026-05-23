@@ -186,6 +186,98 @@ def forecast_trajectory(
     return pd.concat(rows, ignore_index=True)
 
 
+def forecast_semantic_drift(
+    trajectory_df: pd.DataFrame,
+    *,
+    targets: Sequence[str] | None = None,
+    horizon: int = 4,
+    level: float = 0.95,
+    method: ForecastMethod = "auto",
+) -> pd.DataFrame:
+    """Forecast a :func:`pycorpdiff.semantic_trajectory` output forward.
+
+    Operates on the ``distance_from_baseline`` column — the cosine
+    displacement of each per-period contextual centroid from the
+    baseline period. Same state-space machinery as
+    :func:`forecast_trajectory`, but the logit transform is *off* by
+    default (cosine distance lives in roughly ``[0, 2]``, not
+    ``[0, 1]``) and the prediction interval is clipped to be
+    non-negative since negative cosine *distance* is nonsensical.
+
+    Parameters
+    ----------
+    trajectory_df
+        The DataFrame returned by :func:`pycorpdiff.semantic_trajectory`
+        — must carry ``period``, ``target``, ``distance_from_baseline``
+        columns.
+    targets
+        Restrict to a subset of targets. ``None`` forecasts every
+        target in the table.
+    horizon
+        Number of periods to extrapolate.
+    level
+        Prediction-interval level. ``0.95`` → 95% PI.
+    method
+        ``"auto"`` (default), ``"ets"``, or ``"holt"``.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Columns: ``period``, ``target``, ``point``, ``ci_lower``,
+        ``ci_upper``. One row per (target, future period).
+    """
+    if horizon < 1:
+        raise ValueError(f"horizon must be >= 1; got {horizon}")
+    if not 0 < level < 1:
+        raise ValueError(f"level must be in (0, 1); got {level}")
+
+    required_cols = {"period", "target", "distance_from_baseline"}
+    missing = required_cols - set(trajectory_df.columns)
+    if missing:
+        raise ValueError(
+            f"trajectory_df is missing required columns: {sorted(missing)!r}"
+        )
+
+    if targets is None:
+        target_list = list(trajectory_df["target"].unique())
+    else:
+        target_list = list(targets)
+        unknown = set(target_list) - set(trajectory_df["target"].unique())
+        if unknown:
+            raise ValueError(
+                f"unknown targets: {sorted(unknown)!r}; "
+                f"trajectory carries {sorted(trajectory_df['target'].unique())!r}"
+            )
+
+    rows: list[pd.DataFrame] = []
+    for tgt in target_list:
+        sub = (
+            trajectory_df[trajectory_df["target"] == tgt]
+            .sort_values("period")
+            .set_index("period")["distance_from_baseline"]
+        )
+        sub = sub.dropna()
+        if len(sub) < 4:
+            raise ValueError(
+                f"need at least 4 observations to forecast {tgt!r}; "
+                f"got {len(sub)}"
+            )
+        fc = _forecast_one(
+            sub,
+            horizon=horizon,
+            level=level,
+            method=method,
+            logit_transform=False,
+        )
+        # Clip lower bound at 0 — cosine distance is non-negative.
+        fc["ci_lower"] = fc["ci_lower"].clip(lower=0.0)
+        fc["point"] = fc["point"].clip(lower=0.0)
+        fc.insert(1, "target", tgt)
+        rows.append(fc)
+
+    return pd.concat(rows, ignore_index=True)
+
+
 def _forecast_one(
     series: pd.Series,
     *,
@@ -209,11 +301,17 @@ def _forecast_one(
             "Install with: pip install 'pycorpdiff[temporal]'"
         ) from exc
 
-    # statsmodels prefers a DatetimeIndex with a freq for ETS — convert.
+    # statsmodels prefers a DatetimeIndex with a known freq for ETS —
+    # convert from PeriodIndex and attach the inferred frequency so the
+    # state-space model can extrapolate cleanly.
     ts_series = series.copy()
     if isinstance(series.index, pd.PeriodIndex):
         period_freq = series.index.freq
-        ts_series.index = series.index.to_timestamp()
+        ts_index = series.index.to_timestamp()
+        inferred = getattr(ts_index, "inferred_freq", None)
+        ts_series.index = (
+            pd.DatetimeIndex(ts_index, freq=inferred) if inferred else ts_index
+        )
     else:
         period_freq = None
 
