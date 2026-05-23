@@ -102,29 +102,38 @@ def main() -> None:
     dem = conventions.slice(party="democrat")
     rep = conventions.slice(party="republican")
 
+    def _save_both(chart: object, stem: str) -> None:
+        """Save an altair chart as both SVG (web/notebook) and PDF
+        (LaTeX consumption). The paper.tex \\includegraphics calls
+        omit the extension so pdflatex picks .pdf and lualatex/xelatex
+        can pick whichever is available."""
+        for ext in ("svg", "pdf"):
+            chart.save(str(figures / f"{stem}.{ext}"))  # type: ignore[attr-defined]
+
     # --- §5.1 Keyness ---------------------------------------------------------
     keyness = pcd.compare(dem, rep).keyness(min_count=10, dispersion=True)
-    keyness.plot(kind="volcano", n_labels=20).properties(
-        width=600, height=380
-    ).save(str(figures / "figure_1_keyness_volcano.svg"))
-    keyness.plot(kind="scattertext", n_labels=18).properties(
-        width=600, height=600
-    ).save(str(figures / "figure_2_keyness_scattertext.svg"))
+    _save_both(
+        keyness.plot(kind="volcano", n_labels=20).properties(width=600, height=380),
+        "figure_1_keyness_volcano",
+    )
+    _save_both(
+        keyness.plot(kind="scattertext", n_labels=18).properties(width=600, height=600),
+        "figure_2_keyness_scattertext",
+    )
 
     # --- §5.2 Collocation shift on the politically loaded term 'jobs' --------
     shift = pcd.compare(dem, rep).collocation_shift(
         "jobs", window=4, min_count=3, measure="logDice"
     )
-    shift.plot(n=15).properties(width=580).save(
-        str(figures / "figure_3_collocations.svg")
-    )
+    _save_both(shift.plot(n=15).properties(width=580), "figure_3_collocations")
 
     # --- §5.3 Co-occurrence network on the Dem corpus ------------------------
     net = pcd.cooccurrence_network(
         dem, top_n=25, window=5, measure="PMI", min_count=15, min_cooccur=4
     )
-    net.plot(width=620, height=520, max_edges=40, label_top_n=20).save(
-        str(figures / "figure_4_network.svg")
+    _save_both(
+        net.plot(width=620, height=520, max_edges=40, label_top_n=20),
+        "figure_4_network",
     )
 
     # =========================================================================
@@ -139,27 +148,25 @@ def main() -> None:
     )
 
     # --- §5.4 Trajectory with Wilson CIs --------------------------------------
-    trajectory.plot().properties(width=600, height=300).save(
-        str(figures / "figure_5_trajectory.svg")
+    _save_both(
+        trajectory.plot().properties(width=600, height=300), "figure_5_trajectory"
     )
 
     # --- §5.5 Causal impact (Brodersen et al. 2015) ---------------------------
     impact = trajectory.causal_impact(
         event_date="2016", target="criminal", n_samples=1000, seed=42
     )
-    impact.plot().save(str(figures / "figure_6_causal_impact.svg"))
+    _save_both(impact.plot(), "figure_6_causal_impact")
 
     # --- §5.6 Forecast --------------------------------------------------------
     fc = trajectory.forecast(horizon=4, level=0.95)
-    fc.plot().properties(width=600, height=300).save(
-        str(figures / "figure_7_forecast.svg")
-    )
+    _save_both(fc.plot().properties(width=600, height=300), "figure_7_forecast")
 
     # --- §5.7 Bayesian online changepoint detection ---------------------------
     bocpd = trajectory.changepoints_online(
         target="criminal", hazard=0.02, mu_0=0.0, beta_0=0.0001
     )
-    bocpd.plot().save(str(figures / "figure_8_bocpd.svg"))
+    _save_both(bocpd.plot(), "figure_8_bocpd")
 
     # --- ITS for the table (no figure) ----------------------------------------
     its_results = trajectory.interrupted_time_series(
