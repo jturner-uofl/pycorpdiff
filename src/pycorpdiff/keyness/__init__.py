@@ -8,6 +8,7 @@ from .correction import benjamini_hochberg, bonferroni
 from .dispersion import dispersion_dp, juilland_d
 from .effect_sizes import log_ratio, percent_diff
 from .loglikelihood import log_likelihood
+from .permutation import permutation_pvalues
 
 __all__ = [
     "bayes_factor",
@@ -19,4 +20,5 @@ __all__ = [
     "log_likelihood",
     "log_ratio",
     "percent_diff",
+    "permutation_pvalues",
 ]

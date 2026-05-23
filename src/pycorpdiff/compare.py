@@ -51,6 +51,8 @@ class Comparison:
         min_count: int = 5,
         multiple_comparisons: MultipleComparisons = "bh",
         stop_words: set[str] | list[str] | None = None,
+        permutation_n: int = 0,
+        permutation_seed: int | None = None,
     ) -> KeynessResult:
         """Compute keyness for every shared-vocabulary item.
 
@@ -82,6 +84,16 @@ class Comparison:
             filtering function-word noise without modifying the source
             corpus. Tokens drop *after* vocabulary union, so the corpus
             totals (used as normalisation denominators) are unaffected.
+        permutation_n
+            If positive, also compute an empirical permutation *p*-value
+            for every retained term and emit it as the ``p_permutation``
+            column. Documents are the unit of exchangeability. Useful
+            when the asymptotic χ² approximation is suspect (small
+            expected counts, very small corpora). ``999`` is the
+            conventional value; cost scales linearly. Disabled by
+            default — this is the expensive opt-in.
+        permutation_seed
+            Optional RNG seed for reproducible permutation *p*-values.
         """
         # Imports kept local to break circulars and to keep this module
         # importable without the keyness machinery on hand.
@@ -142,6 +154,17 @@ class Comparison:
         elif multiple_comparisons == "bonferroni":
             table["p_adjusted"] = bonferroni(table["p_value"].to_numpy())
 
+        if permutation_n > 0:
+            from .keyness.permutation import permutation_pvalues as _perm
+
+            p_perm = _perm(
+                self.a, self.b,
+                terms=table.index,
+                n_permutations=permutation_n,
+                seed=permutation_seed,
+            )
+            table["p_permutation"] = p_perm.reindex(table.index)
+
         sort_col = {
             "log_likelihood": "g2",
             "log_ratio": "log_ratio",
@@ -174,6 +197,8 @@ class Comparison:
                 "min_count": min_count,
                 "multiple_comparisons": multiple_comparisons,
                 "stop_words": tuple(stop_words) if stop_words else None,
+                "permutation_n": permutation_n,
+                "permutation_seed": permutation_seed,
             },
             corpus_a=self.a,
             corpus_b=self.b,
