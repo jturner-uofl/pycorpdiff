@@ -46,6 +46,7 @@ from .results import (
 from .semantic.embed import Embedder, HashEmbedder, SBERTEmbedder
 from .semantic.shift import neighborhood_drift
 from .semantic.trajectory import semantic_trajectory
+from .temporal.bocpd import BocpdResult, bocpd
 from .temporal.causal_impact import CausalImpactResult, causal_impact
 from .temporal.forecast import (
     ForecastResult,
@@ -56,6 +57,7 @@ from .temporal.slicing import TemporalCorpus, track
 from .tokenize import NgramTokenizer, RegexTokenizer, Tokenizer
 
 __all__ = [
+    "BocpdResult",
     "CausalImpactResult",
     "CollocationShiftResult",
     "Comparison",
@@ -75,6 +77,7 @@ __all__ = [
     "TemporalTrajectory",
     "Tokenizer",
     "__version__",
+    "bocpd",
     "causal_impact",
     "compare",
     "cooccurrence_network",

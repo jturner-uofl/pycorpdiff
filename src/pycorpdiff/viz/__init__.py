@@ -11,6 +11,7 @@ ImportError lives at that boundary.
 
 from __future__ import annotations
 
+from .bocpd import bocpd_plot
 from .causal_impact import causal_impact_plot
 from .collocation import collocation_diverging_bar
 from .dispersion import dispersion_plot
@@ -22,6 +23,7 @@ from .semantic_forecast import semantic_forecast_plot
 from .trajectory import trajectory_with_ci
 
 __all__ = [
+    "bocpd_plot",
     "causal_impact_plot",
     "collocation_diverging_bar",
     "dispersion_plot",

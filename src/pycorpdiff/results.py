@@ -373,6 +373,62 @@ class TemporalTrajectory:
         sub = self.table[self.table["term"] == target].set_index("period")["relfreq"]
         return detect_changepoints(sub, method=method, penalty=penalty)  # type: ignore[arg-type]
 
+    def changepoints_online(
+        self,
+        target: str | None = None,
+        *,
+        hazard: float = 0.01,
+        mu_0: float | None = None,
+        kappa_0: float = 1.0,
+        alpha_0: float = 1.0,
+        beta_0: float | None = None,
+        max_run_length: int | None = None,
+    ) -> Any:
+        """Bayesian *online* changepoint detection (Adams & MacKay 2007).
+
+        Where :meth:`changepoints` runs PELT offline (needs the full
+        series, returns MAP locations after the fact), this runs an
+        online forward pass: at each step it updates the posterior
+        distribution over the *run length* — the number of periods
+        since the last changepoint. The MAP run length collapsing to
+        a small value marks a changepoint.
+
+        Returns
+        -------
+        :class:`pycorpdiff.temporal.bocpd.BocpdResult`
+
+        Requires the ``[temporal]`` extra is *not* needed —
+        ``scipy.stats`` already in the base dependency set is enough.
+        """
+        from .temporal.bocpd import bocpd
+
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"trajectory carries {len(self.targets)} targets; "
+                    "pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(
+                f"target={target!r} not in trajectory targets {self.targets!r}"
+            )
+
+        sub = (
+            self.table[self.table["term"] == target]
+            .sort_values("period")
+            .set_index("period")["relfreq"]
+        )
+        return bocpd(
+            sub,
+            hazard=hazard,
+            mu_0=mu_0,
+            kappa_0=kappa_0,
+            alpha_0=alpha_0,
+            beta_0=beta_0,
+            max_run_length=max_run_length,
+        )
+
     def interrupted_time_series(
         self,
         event_date: str,
