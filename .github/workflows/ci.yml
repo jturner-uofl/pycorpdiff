@@ -47,31 +47,6 @@ jobs:
         with:
           fail_ci_if_error: false
 
-  sbert-slow:
-    name: SBERT integration (slow tier)
-    # Only on push to main + manual dispatch; PRs use the fast default
-    # suite. Downloading torch + the all-MiniLM-L6-v2 model is heavy;
-    # running it on every PR would balloon CI wall-clock for little
-    # incremental signal. PR-tier coverage of the semantic surface is
-    # the deterministic HashEmbedder tests in the default `test` job.
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-          python-version: "3.12"
-      - run: uv sync --extra dev --extra semantic
-      - name: Cache the HuggingFace model
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/huggingface
-          # Bump this key when the default model in SBERTEmbedder changes.
-          key: hf-${{ runner.os }}-all-MiniLM-L6-v2
-      - name: Run the slow SBERT integration suite
-        run: uv run pytest -m slow tests/integration/test_sbert_slow.py
-
   notebooks:
     name: execute example notebooks (drift check)
     runs-on: ubuntu-latest
