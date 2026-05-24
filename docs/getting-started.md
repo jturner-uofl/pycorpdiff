@@ -5,7 +5,7 @@
 `pycorpdiff` is in pre-alpha and not yet on PyPI. Install from a local clone:
 
 ```bash
-git clone https://github.com/jasonsturner/pycorpdiff
+git clone https://github.com/jturner-uofl/pycorpdiff
 cd pycorpdiff
 pip install -e ".[dev]"
 pytest
@@ -116,7 +116,7 @@ ba.plot()
 
 ## Where next?
 
-- **[Tutorial notebook](https://github.com/jasonsturner/pycorpdiff/blob/main/examples/pycorpdiff_tutorial.ipynb)** —
+- **[Tutorial notebook](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_tutorial.ipynb)** —
   end-to-end walkthrough on a synthetic two-frame corpus.
 - **[Design](design.md)** — the architectural ideas behind the verbs.
 - **[Statistical methods](statistical-methods.md)** — what each metric

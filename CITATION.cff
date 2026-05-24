@@ -12,7 +12,7 @@ authors:
     given-names: Jason
     email: jason.s.turner@gmail.com
 license: MIT
-repository-code: "https://github.com/jasonsturner/pycorpdiff"
+repository-code: "https://github.com/jturner-uofl/pycorpdiff"
 keywords:
   - corpus linguistics
   - comparative corpus analysis
@@ -45,5 +45,5 @@ preferred-citation:
   status: in-preparation
 identifiers:
   - type: url
-    value: "https://github.com/jasonsturner/pycorpdiff"
+    value: "https://github.com/jturner-uofl/pycorpdiff"
     description: Project repository

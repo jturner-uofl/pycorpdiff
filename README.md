@@ -5,7 +5,7 @@ TODO post-publish (Phase 5 — once GitHub repo public + PyPI published + Zenodo
 
 [![PyPI](https://img.shields.io/pypi/v/pycorpdiff.svg)](https://pypi.org/project/pycorpdiff/)
 [![Python versions](https://img.shields.io/pypi/pyversions/pycorpdiff.svg)](https://pypi.org/project/pycorpdiff/)
-[![CI](https://github.com/jasonsturner/pycorpdiff/actions/workflows/ci.yml/badge.svg)](https://github.com/jasonsturner/pycorpdiff/actions/workflows/ci.yml)
+[![CI](https://github.com/jturner-uofl/pycorpdiff/actions/workflows/ci.yml/badge.svg)](https://github.com/jturner-uofl/pycorpdiff/actions/workflows/ci.yml)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.<RECORD>.svg)](https://doi.org/10.5281/zenodo.<RECORD>)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 -->
@@ -84,7 +84,7 @@ pcd.cooccurrence_network(news, top_n=50).plot()
 ```
 
 See [`examples/pycorpdiff_showcase.ipynb`](examples/pycorpdiff_showcase.ipynb)
-([rendered HTML](docs/rendered/pycorpdiff_showcase.html)) for a 94-cell
+([rendered HTML](docs/rendered/pycorpdiff_showcase.html)) for a
 walkthrough on a synthetic UK Hansard corpus exercising every analytical
 surface.
 
@@ -95,7 +95,7 @@ surface.
 Currently a pre-release alpha. From a local clone:
 
 ```bash
-git clone https://github.com/jasonsturner/pycorpdiff
+git clone https://github.com/jturner-uofl/pycorpdiff
 cd pycorpdiff
 pip install -e ".[dev]"
 pytest -q                          # 519 default tests, ~7s
@@ -104,7 +104,8 @@ pytest -q                          # 519 default tests, ~7s
 Optional extras: `[viz]` (altair + matplotlib + networkx), `[semantic]`
 (sentence-transformers + scikit-learn), `[temporal]` (ruptures +
 statsmodels), `[polars]`, `[duckdb]`, `[huggingface]`, `[nlp]` (spaCy),
-`[paper]` (vl-convert + jupyter), or `[all]`.
+`[notebooks]` (jupyter + vl-convert + pysofra, for the showcase),
+or `[all]`.
 
 ## Cross-validation receipts
 

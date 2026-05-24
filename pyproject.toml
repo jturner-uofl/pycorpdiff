@@ -98,10 +98,10 @@ dev = [
     "pandas-stubs>=2.2",
 ]
 [project.urls]
-Homepage = "https://github.com/jasonsturner/pycorpdiff"
-Documentation = "https://github.com/jasonsturner/pycorpdiff"
-Repository = "https://github.com/jasonsturner/pycorpdiff"
-Issues = "https://github.com/jasonsturner/pycorpdiff/issues"
+Homepage = "https://github.com/jturner-uofl/pycorpdiff"
+Documentation = "https://github.com/jturner-uofl/pycorpdiff"
+Repository = "https://github.com/jturner-uofl/pycorpdiff"
+Issues = "https://github.com/jturner-uofl/pycorpdiff/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pycorpdiff"]
