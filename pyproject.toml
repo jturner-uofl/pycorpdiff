@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "pycorpdiff"
 version = "0.1.0a0"
-description = "Comparative corpus analysis for modern Python workflows."
+description = "Comparative corpus analysis for Python: keyness, collocations, semantic shift, temporal trajectories with changepoints + causal inference."
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "Jason Turner", email = "jason.s.turner@gmail.com" }]
@@ -63,10 +63,11 @@ nlp = ["spacy>=3.7"]
 # Public-text-corpus hub. Heavy (pulls pyarrow, fsspec, requests, aiohttp),
 # so opt-in only — base install stays small.
 huggingface = ["datasets>=2.14"]
-# Required to re-render the paper's figures from paper/replication/reproduce.py.
-# Pulls a Rust-backed binary that altair uses for static SVG/PNG export —
-# heavy, so it's not part of the [viz] base.
-paper = ["vl-convert-python>=1.5", "jupyter>=1.0", "pysofra>=0.1.0a2"]
+# Needed if you want to execute the showcase notebook or regenerate the
+# rendered HTML examples. `jupyter` runs the notebook, `vl-convert` does
+# static SVG/PNG export of altair charts, `pysofra` renders the showcase's
+# result tables in JAMA-style typography.
+notebooks = ["jupyter>=1.0", "vl-convert-python>=1.5", "pysofra>=0.1.0a2"]
 # Meta-extra so `pycorpdiff[all]` exercises every optional code path.
 all = [
     "altair>=5",
@@ -96,13 +97,6 @@ dev = [
     # typing regressions in pandas-mediated code paths.
     "pandas-stubs>=2.2",
 ]
-docs = [
-    "mkdocs>=1.5",
-    "mkdocs-material>=9.5",
-    "mkdocstrings[python]>=0.24",
-    "jupyter>=1.0",
-]
-
 [project.urls]
 Homepage = "https://github.com/jasonsturner/pycorpdiff"
 Documentation = "https://github.com/jasonsturner/pycorpdiff"
@@ -123,13 +117,10 @@ include = [
     "pyproject.toml",
 ]
 exclude = [
-    "paper",
     "docs",
     "examples",
-    "benchmarks",
     "site",
     ".github",
-    ".claude",
     "uv.lock",
 ]
 

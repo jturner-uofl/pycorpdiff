@@ -118,21 +118,9 @@ The math agrees with the standard tools — by automated test:
 
 ## Citation
 
-If you use `pycorpdiff` in academic work, please cite both the software
-and the JSS paper:
-
-```bibtex
-@article{turner2025pycorpdiff,
-  title   = {pycorpdiff: Comparative Corpus Analysis for Modern Python Workflows},
-  author  = {Turner, Jason},
-  journal = {Journal of Statistical Software},
-  year    = {2025},
-  note    = {Forthcoming}
-}
-```
-
-A machine-readable `CITATION.cff` is in this repository (`cff-version 1.2.0`);
-GitHub renders a "Cite this repository" widget directly from it.
+If you use `pycorpdiff` in academic work, please cite the software via
+the `CITATION.cff` file in this repository — GitHub renders a "Cite this
+repository" widget directly from it.
 
 ## License
 
@@ -142,6 +130,5 @@ MIT — see [LICENSE](LICENSE).
 
 - [`docs/design.md`](docs/design.md) — three-layer architecture
 - [`docs/statistical-methods.md`](docs/statistical-methods.md) — every metric's formula + citation
-- [`docs/audit.md`](docs/audit.md) — rolling status board ("what's promised vs done")
-- [`paper/paper.tex`](paper/paper.tex) — the JSS submission
-- [`paper/replication/`](paper/replication/) — fully reproducible figure regeneration
+- [`examples/pycorpdiff_showcase.ipynb`](examples/pycorpdiff_showcase.ipynb) — full feature tour as a notebook
+- [`docs/rendered/`](docs/rendered/) — self-contained HTML renders of the example notebooks
