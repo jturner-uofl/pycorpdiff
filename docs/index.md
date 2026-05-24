@@ -77,5 +77,3 @@ pcd.compare.before_after(corpus, event_date="2016-06-23").keyness()
   computing and why we chose these defaults.
 - **[Multilingual support](multilingual.md)** — plug in spaCy, Stanza,
   jieba, fugashi, or your own.
-- **[API reference](api/corpus.md)** — generated from the docstrings.
-- **[Roadmap](roadmap.md)** — what's shipped and what's coming.

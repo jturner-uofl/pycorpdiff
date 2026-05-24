@@ -2,7 +2,20 @@
 
 ## Install
 
-`pycorpdiff` is in pre-alpha and not yet on PyPI. Install from a local clone:
+```bash
+pip install pycorpdiff                # lexical-comparative core
+pip install "pycorpdiff[viz]"         # + altair / matplotlib / networkx
+pip install "pycorpdiff[semantic]"    # + sentence-transformers
+pip install "pycorpdiff[temporal]"    # + ruptures / statsmodels
+pip install "pycorpdiff[notebooks]"   # + jupyter / vl-convert / pysofra
+pip install "pycorpdiff[all]"         # everything
+```
+
+The base install keeps a small dependency footprint (`numpy`, `pandas`,
+`scipy`, `pyarrow`). Optional extras land per analytical layer so you
+only pay for what you use.
+
+To work from source:
 
 ```bash
 git clone https://github.com/jturner-uofl/pycorpdiff
@@ -10,20 +23,6 @@ cd pycorpdiff
 pip install -e ".[dev]"
 pytest
 ```
-
-Once on PyPI:
-
-```bash
-pip install pycorpdiff                # lexical-comparative core
-pip install "pycorpdiff[viz]"         # + altair / matplotlib
-pip install "pycorpdiff[semantic]"    # + sentence-transformers
-pip install "pycorpdiff[temporal]"    # + ruptures / statsmodels
-pip install "pycorpdiff[all]"         # everything
-```
-
-The base install keeps a small dependency footprint (numpy, pandas,
-scipy, pyarrow). Optional extras land per analytical layer so you only
-pay for what you use.
 
 ## Construct a Corpus
 
