@@ -251,7 +251,16 @@ class SemanticShiftResult:
         return _table_to_json(self.table, path, **kw)
 
     def plot(self, **kw: Any) -> alt.Chart:
-        raise NotImplementedError("SemanticShiftResult.plot() lands in Phase 6")
+        """Plotting for SemanticShiftResult is not yet implemented.
+
+        For a forward-looking trajectory of cosine distances, use
+        :func:`pycorpdiff.semantic_trajectory` and pass the resulting
+        DataFrame to :func:`pycorpdiff.viz.semantic_forecast_plot`.
+        """
+        raise NotImplementedError(
+            "SemanticShiftResult.plot() is not yet implemented; "
+            "use .table or pcd.viz.semantic_forecast_plot() instead"
+        )
 
     def neighbors_before(
         self, target: str | None = None, n: int = 10

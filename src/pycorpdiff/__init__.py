@@ -1,14 +1,13 @@
 """pycorpdiff — comparative corpus analysis for modern Python workflows.
 
 The package exposes three public verbs (:func:`compare`, :func:`track`,
-plus the :class:`Corpus` constructor and the I/O ``read_*`` helpers) and
-four families of result objects (:class:`KeynessResult`,
-:class:`CollocationShiftResult`, :class:`SemanticShiftResult`,
-:class:`TemporalTrajectory`).
-
-Layer-1 ingestion utilities are functional in this scaffolding release;
-Layer-2 analytical methods raise :class:`NotImplementedError` until Phase 1
-of the roadmap lands.
+:func:`compare.before_after`) and a family of frozen-dataclass
+result objects (:class:`KeynessResult`, :class:`CollocationShiftResult`,
+:class:`SemanticShiftResult`, :class:`TemporalTrajectory`,
+:class:`NetworkResult`, :class:`ForecastResult`,
+:class:`CausalImpactResult`, :class:`BocpdResult`,
+:class:`ConcordanceResult`), each implementing the same
+``.to_df / .plot / .explain / .summary / .to_html / .to_json`` contract.
 
 Example
 -------

@@ -1,9 +1,8 @@
 cff-version: 1.2.0
 message: >
-  If you use pycorpdiff in academic work, please cite both the
-  software (this entry) and the accompanying Journal of Statistical
-  Software paper once it appears. The JSS manuscript is in
-  preparation; the draft will live in this repository as paper/paper.tex.
+  If you use pycorpdiff in academic work, please cite this software
+  entry. GitHub renders a "Cite this repository" widget directly from
+  this file.
 title: "pycorpdiff: Comparative Corpus Analysis for Modern Python Workflows"
 version: 0.1.0a0
 date-released: 2026-05-22
@@ -34,16 +33,10 @@ abstract: >
   computational social science, and discourse analysis research,
   emphasising interpretability, explainability, statistical rigour,
   and reproducibility.
-preferred-citation:
-  type: article
-  authors:
-    - family-names: Turner
-      given-names: Jason
-  title: "pycorpdiff: Comparative Corpus Analysis for Modern Python Workflows"
-  journal: "Journal of Statistical Software"
-  year: 2026
-  status: in-preparation
 identifiers:
   - type: url
     value: "https://github.com/jturner-uofl/pycorpdiff"
     description: Project repository
+  - type: url
+    value: "https://pypi.org/project/pycorpdiff/"
+    description: PyPI release

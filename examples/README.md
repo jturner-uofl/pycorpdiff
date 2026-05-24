@@ -29,10 +29,10 @@ pre-rendered as inline SVG — no CDN, no JS) live in
 
 ## Conventions
 
-Mirroring the rule that's served `pysofra` well: **the tutorial must stay
-current.** Whenever a public API changes, update the notebook and its
-rendered HTML in the same change. CI executes the notebook in the
-documentation job and will fail loud if the notebook drifts.
+**The notebooks must stay current.** Whenever a public API changes,
+update the relevant notebook and its rendered HTML in the same commit.
+CI re-executes all three notebooks on every push and will fail loud
+if any one drifts from the live API surface.
 
 Run the notebook locally with:
 

@@ -1,10 +1,8 @@
-"""Smoke tests for the Phase 0 scaffolding.
+"""Smoke tests for the public surface.
 
-These exercise the parts of the package that are real in the scaffolding
-release: imports, the Corpus constructor, slicing, the regex tokenizer,
-and the CSV/parquet readers. Analytical methods are expected to raise
-NotImplementedError and are intentionally not exercised here — Phase 1
-will replace those tests with real ones.
+Quick exercises of imports, the :class:`Corpus` constructor, slicing,
+the default regex tokenizer, and the CSV/parquet readers. The deeper
+analytical surfaces have their own dedicated test modules.
 """
 
 from __future__ import annotations

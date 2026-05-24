@@ -1,14 +1,9 @@
 # pycorpdiff
 
-<!--
-TODO post-publish (Phase 5 — once GitHub repo public + PyPI published + Zenodo DOI minted):
-
 [![PyPI](https://img.shields.io/pypi/v/pycorpdiff.svg)](https://pypi.org/project/pycorpdiff/)
 [![Python versions](https://img.shields.io/pypi/pyversions/pycorpdiff.svg)](https://pypi.org/project/pycorpdiff/)
 [![CI](https://github.com/jturner-uofl/pycorpdiff/actions/workflows/ci.yml/badge.svg)](https://github.com/jturner-uofl/pycorpdiff/actions/workflows/ci.yml)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.<RECORD>.svg)](https://doi.org/10.5281/zenodo.<RECORD>)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
--->
 
 **Comparative corpus analysis for modern Python workflows.**
 
@@ -40,8 +35,8 @@ points — one-line adapters, no plugin registry. The base install pulls
 only `numpy`, `pandas`, `scipy`, and `pyarrow`; everything else is opt-in
 via extras.
 
-> **Status: pre-release alpha (0.1.0a0).** Public API is stable for the
-> features described below; PyPI publication is the next milestone.
+> **Status: alpha (0.1.0a0).** Public API is stable for the features
+> described below; on PyPI as `pip install pycorpdiff`.
 
 ## The three-layer architecture
 
@@ -90,22 +85,27 @@ surface.
 
 ## Installation
 
-<!-- TODO post-publish: replace this block with the PyPI install commands once published. -->
+```bash
+pip install pycorpdiff                # lexical-comparative core
+pip install "pycorpdiff[viz]"         # + altair / matplotlib / networkx
+pip install "pycorpdiff[semantic]"    # + sentence-transformers
+pip install "pycorpdiff[temporal]"    # + ruptures / statsmodels
+pip install "pycorpdiff[notebooks]"   # + jupyter / vl-convert / pysofra
+pip install "pycorpdiff[all]"         # everything
+```
 
-Currently a pre-release alpha. From a local clone:
+The base install keeps a small dependency footprint (`numpy`, `pandas`,
+`scipy`, `pyarrow`); optional extras land per analytical layer so you
+only pay for what you use.
+
+To work from source:
 
 ```bash
 git clone https://github.com/jturner-uofl/pycorpdiff
 cd pycorpdiff
 pip install -e ".[dev]"
-pytest -q                          # 519 default tests, ~7s
+pytest -q
 ```
-
-Optional extras: `[viz]` (altair + matplotlib + networkx), `[semantic]`
-(sentence-transformers + scikit-learn), `[temporal]` (ruptures +
-statsmodels), `[polars]`, `[duckdb]`, `[huggingface]`, `[nlp]` (spaCy),
-`[notebooks]` (jupyter + vl-convert + pysofra, for the showcase),
-or `[all]`.
 
 ## Cross-validation receipts
 
