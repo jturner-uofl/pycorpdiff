@@ -16732,7 +16732,7 @@ different-tokenizer hash diverges: True
 <span class="n">embedder</span> <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">SBERTEmbedder</span><span class="p">(</span><span class="s1">'paraphrase-multilingual-MiniLM-L12-v2'</span><span class="p">)</span>  <span class="c1"># 50+ languages</span>
 </pre></div>
 <p>Add <code>pip install 'pycorpdiff[semantic]'</code> first.</p>
-<p><strong>Reproducibility.</strong> Every Result has <code>.to_df()</code> → parquet round-trip. The replication archive in <code>paper/replication/reproduce.py</code> is the canonical pattern: one script regenerates every figure and number from the published code.</p>
+<p><strong>Reproducibility.</strong> Every Result has <code>.to_df()</code> → parquet round-trip, plus <code>.to_html()</code> / <code>.to_json()</code> for static-site or dashboard handoff. Wrap an analytical run in a single script that writes its outputs to JSON; re-running the script regenerates them byte-identically.</p>
 <p><strong>Cross-validation.</strong> Wire your own pipeline up to <code>pcd.histwords_cosine_shift(1900, 1990, target, source='coha')</code> for diachronic-embedding validation, or <code>pcd.compare(a, b).keyness()</code> against <code>quanteda::textstat_keyness(measure='lr')</code> via rpy2 for the byte-for-byte receipt.</p>
 <hr/>
 <p><strong>Cheat sheet — every analytical surface in one block:</strong></p>

@@ -27,21 +27,20 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      - name: Set up Python
-        run: uv python install ${{ matrix.python-version }}
-      - name: Install dependencies (dev + viz + temporal + duckdb + polars)
+          python-version: ${{ matrix.python-version }}
+      - name: Sync dev + viz + temporal + duckdb + polars extras
         # Viz drives the chart-spec tests; temporal drives changepoint +
         # ITS; duckdb drives read_duckdb; polars drives the polars-interop
         # tests. Semantic tests use the deterministic HashEmbedder so we
         # don't pay the sentence-transformers / torch download cost on
         # every CI run — the SBERT-backed tests live in `sbert-slow`.
-        run: uv pip install --system -e ".[dev,viz,temporal,duckdb,polars]"
+        run: uv sync --extra dev --extra viz --extra temporal --extra duckdb --extra polars
       - name: Run ruff
-        run: ruff check src tests
+        run: uv run ruff check src tests
       - name: Run mypy
-        run: mypy src/pycorpdiff
+        run: uv run mypy src/pycorpdiff
       - name: Run pytest
-        run: pytest --cov=pycorpdiff --cov-report=term-missing
+        run: uv run pytest --cov=pycorpdiff --cov-report=term-missing
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v4
@@ -62,8 +61,8 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      - run: uv python install 3.12
-      - run: uv pip install --system -e ".[dev,semantic]"
+          python-version: "3.12"
+      - run: uv sync --extra dev --extra semantic
       - name: Cache the HuggingFace model
         uses: actions/cache@v4
         with:
@@ -71,7 +70,7 @@ jobs:
           # Bump this key when the default model in SBERTEmbedder changes.
           key: hf-${{ runner.os }}-all-MiniLM-L6-v2
       - name: Run the slow SBERT integration suite
-        run: pytest -m slow tests/integration/test_sbert_slow.py
+        run: uv run pytest -m slow tests/integration/test_sbert_slow.py
 
   notebooks:
     name: execute example notebooks (drift check)
@@ -81,24 +80,25 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      - run: uv python install 3.12
+          python-version: "3.12"
       # The notebooks are the canonical demos shipped to users; if the
       # public API drifts away from what the notebooks expect, either the
       # API or the notebook needs to change in the same commit. Failing
       # this job surfaces that drift loudly.
-      - run: uv pip install --system -e ".[viz,temporal,polars,duckdb,notebooks]" scattertext
+      - run: uv sync --extra viz --extra temporal --extra polars --extra duckdb --extra notebooks
+      - run: uv pip install scattertext
       - name: Re-execute the tutorial
         run: |
-          jupyter nbconvert --to notebook --execute \
+          uv run jupyter nbconvert --to notebook --execute \
             examples/pycorpdiff_tutorial.ipynb \
             --output /tmp/pycorpdiff_tutorial_executed.ipynb
       - name: Re-execute the Hansard demo
         run: |
-          jupyter nbconvert --to notebook --execute \
+          uv run jupyter nbconvert --to notebook --execute \
             examples/hansard_demo.ipynb \
             --output /tmp/hansard_demo_executed.ipynb
       - name: Re-execute the showcase
         run: |
-          jupyter nbconvert --to notebook --execute \
+          uv run jupyter nbconvert --to notebook --execute \
             examples/pycorpdiff_showcase.ipynb \
             --output /tmp/pycorpdiff_showcase_executed.ipynb
