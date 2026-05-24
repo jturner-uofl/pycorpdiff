@@ -66,7 +66,7 @@ huggingface = ["datasets>=2.14"]
 # Required to re-render the paper's figures from paper/replication/reproduce.py.
 # Pulls a Rust-backed binary that altair uses for static SVG/PNG export —
 # heavy, so it's not part of the [viz] base.
-paper = ["vl-convert-python>=1.5", "jupyter>=1.0"]
+paper = ["vl-convert-python>=1.5", "jupyter>=1.0", "pysofra>=0.1.0a2"]
 # Meta-extra so `pycorpdiff[all]` exercises every optional code path.
 all = [
     "altair>=5",
@@ -82,6 +82,7 @@ all = [
     "duckdb>=0.10",
     "spacy>=3.7",
     "vl-convert-python>=1.5",
+    "pysofra>=0.1.0a2",
 ]
 dev = [
     "pytest>=8",
