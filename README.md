@@ -35,7 +35,7 @@ points — one-line adapters, no plugin registry. The base install pulls
 only `numpy`, `pandas`, `scipy`, and `pyarrow`; everything else is opt-in
 via extras.
 
-> **Status: alpha (0.1.0a0).** Public API is stable for the features
+> **Status: alpha (0.1.0a1).** Public API is stable for the features
 > described below; on PyPI as `pip install pycorpdiff`.
 
 ## The three-layer architecture
