@@ -14,12 +14,12 @@ Example
 
 >>> import pycorpdiff as pcd
 >>> pcd.__version__
-'0.1.0a2'
+'0.1.0a3'
 """
 
 from __future__ import annotations
 
-__version__ = "0.1.0a2"
+__version__ = "0.1.0a3"
 
 from .collocation.network import NetworkResult, cooccurrence_network
 from .compare import Comparison, compare

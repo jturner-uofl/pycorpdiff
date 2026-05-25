@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pycorpdiff"
-version = "0.1.0a2"
+version = "0.1.0a3"
 description = "Comparative corpus analysis for Python: keyness, collocations, semantic shift, temporal trajectories with changepoints + causal inference."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -66,7 +66,7 @@ huggingface = ["datasets>=2.14"]
 # rendered HTML examples. `jupyter` runs the notebook, `vl-convert` does
 # static SVG/PNG export of altair charts, `pysofra` renders the showcase's
 # result tables in JAMA-style typography.
-notebooks = ["jupyter>=1.0", "vl-convert-python>=1.5", "pysofra>=0.1.0a2"]
+notebooks = ["jupyter>=1.0", "vl-convert-python>=1.5", "pysofra>=0.1.0a3"]
 # Meta-extra so `pycorpdiff[all]` exercises every optional code path.
 all = [
     "altair>=5",
@@ -82,7 +82,7 @@ all = [
     "duckdb>=0.10",
     "spacy>=3.7",
     "vl-convert-python>=1.5",
-    "pysofra>=0.1.0a2",
+    "pysofra>=0.1.0a3",
 ]
 dev = [
     "pytest>=8",

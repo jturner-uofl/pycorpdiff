@@ -35,7 +35,7 @@ points — one-line adapters, no plugin registry. The base install pulls
 only `numpy`, `pandas`, `scipy`, and `pyarrow`; everything else is opt-in
 via extras.
 
-> **Status: alpha (0.1.0a2).** Public API is stable for the features
+> **Status: alpha (0.1.0a3).** Public API is stable for the features
 > described below; on PyPI as `pip install pycorpdiff`.
 
 ## The three-layer architecture
@@ -49,51 +49,60 @@ via extras.
 ## Quick start
 
 ```bash
-pip install "pycorpdiff[viz,temporal]"
+pip install "pycorpdiff[viz]"
 ```
 
 ```python
 import pycorpdiff as pcd
 
-# Bundled synthetic UK-Hansard corpus — runs offline, no data needed.
+# Bundled UK-Hansard sample — runs offline, no data download.
 corpus = pcd.load_hansard_sample()
 immigration = corpus.slice(topic="immigration")
-human = immigration.slice(frame="humanising")
-criminal = immigration.slice(frame="criminalising")
 
-# Compare — three verbs
-k = pcd.compare(human, criminal).keyness()
-c = pcd.compare(human, criminal).collocation_shift("immigrant")
-# s = pcd.compare(human, criminal).semantic_shift("immigrant", embedder=pcd.SBERTEmbedder())
-#   ↑ requires `pip install "pycorpdiff[semantic]"`
+# Which words separate the humanising and criminalising frames?
+keyness = pcd.compare(
+    immigration.slice(frame="humanising"),
+    immigration.slice(frame="criminalising"),
+).keyness(min_count=3)
 
-# Track over time
-tr = pcd.track(immigration, "criminal").over_time(freq="Y")
-tr.changepoints()                                # offline PELT
-tr.changepoints_online(hazard=1/24)              # Bayesian online (Adams & MacKay 2007)
-tr.interrupted_time_series(event_date="2016")    # segmented OLS
-tr.causal_impact(event_date="2016")              # Bayesian counterfactual (Brodersen 2015)
-tr.forecast(horizon=4)                           # state-space ETS
+keyness.plot()                # volcano plot — picture the result
+# keyness.table.head(10)      # or look at the ranked table directly
+# keyness.explain("criminal") # KWIC concordances showing the textual evidence
+```
+
+That's the entire surface in five lines: load a corpus, slice it,
+compare two slices, plot the result. Every other analytical method —
+collocation shifts, semantic drift, temporal trajectories, changepoint
+detection, causal-impact analysis, forecasting, co-occurrence networks,
+N-way keyness — follows the same shape. See
+[the showcase notebook](docs/rendered/pycorpdiff_showcase.html) for the
+full feature tour, or the cheat sheet below for one-line API previews.
+
+### Cheat sheet — every analytical surface in one block
+
+```python
+# Compare verbs (returns Result objects with .plot / .to_df / .explain / .summary)
+pcd.compare(a, b).keyness()
+pcd.compare(a, b).collocation_shift("migrant")
+pcd.compare(a, b).semantic_shift("migrant", embedder=pcd.SBERTEmbedder())   # [semantic]
+
+# Track over time (requires [temporal] for the changepoint + ITS + forecast + causal_impact methods)
+tr = pcd.track(corpus, "migrant").over_time(freq="Y")
+tr.changepoints()                                  # offline PELT
+tr.changepoints_online(hazard=1/24)                # Bayesian online (Adams & MacKay 2007)
+tr.interrupted_time_series(event_date="2016")      # segmented OLS
+tr.causal_impact(event_date="2016")                # Bayesian counterfactual (Brodersen 2015)
+tr.forecast(horizon=4)                             # state-space ETS
 
 # Before / after a known event
 pcd.compare.before_after(corpus, event_date="2016-06-23").keyness()
 
-# N-way (≥ 2 corpora) — one keyness across all four parties
-parties = ["Conservative", "Labour", "Liberal Democrat", "SNP"]
-nhs = corpus.slice(topic="nhs")
-pcd.keyness_multi([nhs.slice(party=p) for p in parties], labels=parties)
+# N-way (≥ 2 corpora)
+pcd.keyness_multi([a, b, c, d], labels=["A", "B", "C", "D"])
 
 # The discourse as a graph
-pcd.cooccurrence_network(immigration, top_n=30).plot()
-
-# Every Result: .to_df() · .plot() · .explain() · .summary() · .to_html() · .to_json()
+pcd.cooccurrence_network(corpus, top_n=30).plot()
 ```
-
-Every line of the snippet above is verified end-to-end against
-`pip install "pycorpdiff[viz,temporal]"` — no data download required.
-Replace `load_hansard_sample()` with `pcd.from_dataframe(your_df, ...)`,
-`pcd.read_parquet(...)`, `pcd.fetch_hansard(...)`, or
-`pcd.from_huggingface(...)` to use your own corpus.
 
 See [`examples/pycorpdiff_showcase.ipynb`](examples/pycorpdiff_showcase.ipynb)
 ([rendered HTML](docs/rendered/pycorpdiff_showcase.html)) for a
