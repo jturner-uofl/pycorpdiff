@@ -51,32 +51,44 @@ via extras.
 ```python
 import pycorpdiff as pcd
 
-news = pcd.from_dataframe(df, text_col="body", meta_cols=("outlet", "date"))
+# Bundled synthetic UK-Hansard corpus — runs offline, no data needed.
+corpus = pcd.load_hansard_sample()
+immigration = corpus.slice(topic="immigration")
+human = immigration.slice(frame="humanising")
+criminal = immigration.slice(frame="criminalising")
 
 # Compare — three verbs
-k = pcd.compare(news.slice(outlet="Guardian"), news.slice(outlet="Mail")).keyness()
-c = pcd.compare(a, b).collocation_shift("migrant")
-s = pcd.compare(a, b).semantic_shift("migrant", embedder=pcd.SBERTEmbedder())
+k = pcd.compare(human, criminal).keyness()
+c = pcd.compare(human, criminal).collocation_shift("immigrant")
+# s = pcd.compare(human, criminal).semantic_shift("immigrant", embedder=pcd.SBERTEmbedder())
+#   ↑ requires `pip install "pycorpdiff[semantic]"`
 
 # Track over time
-tr = pcd.track(news, "migrant").over_time(freq="Y")
-tr.changepoints()                                     # offline PELT
-tr.changepoints_online(hazard=1/24)                   # Bayesian online (Adams & MacKay 2007)
-tr.interrupted_time_series(event_date="2016-06-23")   # segmented OLS
-tr.causal_impact(event_date="2016-06-23")             # Bayesian counterfactual (Brodersen 2015)
-tr.forecast(horizon=4)                                # state-space ETS
+tr = pcd.track(immigration, "criminal").over_time(freq="Y")
+tr.changepoints()                                # offline PELT
+tr.changepoints_online(hazard=1/24)              # Bayesian online (Adams & MacKay 2007)
+tr.interrupted_time_series(event_date="2016")    # segmented OLS
+tr.causal_impact(event_date="2016")              # Bayesian counterfactual (Brodersen 2015)
+tr.forecast(horizon=4)                           # state-space ETS
 
 # Before / after a known event
-pcd.compare.before_after(news, event_date="2016-06-23").keyness()
+pcd.compare.before_after(corpus, event_date="2016-06-23").keyness()
 
-# N-way (≥ 2 corpora)
-pcd.keyness_multi([gu, ma, te, mi], labels=["Guardian", "Mail", "Telegraph", "Mirror"])
+# N-way (≥ 2 corpora) — one keyness across all four parties
+parties = ["Conservative", "Labour", "Liberal Democrat", "SNP"]
+nhs = corpus.slice(topic="nhs")
+pcd.keyness_multi([nhs.slice(party=p) for p in parties], labels=parties)
 
 # The discourse as a graph
-pcd.cooccurrence_network(news, top_n=50).plot()
+pcd.cooccurrence_network(immigration, top_n=30).plot()
 
 # Every Result: .to_df() · .plot() · .explain() · .summary() · .to_html() · .to_json()
 ```
+
+The snippet above runs as-is on a fresh `pip install pycorpdiff` — no data
+download required. Replace `load_hansard_sample()` with `pcd.from_dataframe(your_df, ...)`,
+`pcd.read_parquet(...)`, `pcd.fetch_hansard(...)`, or `pcd.from_huggingface(...)`
+to use your own corpus.
 
 See [`examples/pycorpdiff_showcase.ipynb`](examples/pycorpdiff_showcase.ipynb)
 ([rendered HTML](docs/rendered/pycorpdiff_showcase.html)) for a
