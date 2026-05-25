@@ -35,7 +35,7 @@ points — one-line adapters, no plugin registry. The base install pulls
 only `numpy`, `pandas`, `scipy`, and `pyarrow`; everything else is opt-in
 via extras.
 
-> **Status: alpha (0.1.0a1).** Public API is stable for the features
+> **Status: alpha (0.1.0a2).** Public API is stable for the features
 > described below; on PyPI as `pip install pycorpdiff`.
 
 ## The three-layer architecture
@@ -47,6 +47,10 @@ via extras.
 | **3 — Verbs + Results** | public API | `compare`, `track`, `compare.before_after`, `keyness_multi`, plus 9 frozen-dataclass Result types each with `.to_df() / .plot() / .explain() / .summary() / .to_html() / .to_json()` |
 
 ## Quick start
+
+```bash
+pip install "pycorpdiff[viz,temporal]"
+```
 
 ```python
 import pycorpdiff as pcd
@@ -85,10 +89,11 @@ pcd.cooccurrence_network(immigration, top_n=30).plot()
 # Every Result: .to_df() · .plot() · .explain() · .summary() · .to_html() · .to_json()
 ```
 
-The snippet above runs as-is on a fresh `pip install pycorpdiff` — no data
-download required. Replace `load_hansard_sample()` with `pcd.from_dataframe(your_df, ...)`,
-`pcd.read_parquet(...)`, `pcd.fetch_hansard(...)`, or `pcd.from_huggingface(...)`
-to use your own corpus.
+Every line of the snippet above is verified end-to-end against
+`pip install "pycorpdiff[viz,temporal]"` — no data download required.
+Replace `load_hansard_sample()` with `pcd.from_dataframe(your_df, ...)`,
+`pcd.read_parquet(...)`, `pcd.fetch_hansard(...)`, or
+`pcd.from_huggingface(...)` to use your own corpus.
 
 See [`examples/pycorpdiff_showcase.ipynb`](examples/pycorpdiff_showcase.ipynb)
 ([rendered HTML](docs/rendered/pycorpdiff_showcase.html)) for a
