@@ -1,0 +1,199 @@
+"""Temporal slicing primitives — ``TemporalCorpus``, ``track``, ``Tracker``."""
+
+from __future__ import annotations
+
+from collections.abc import Iterator
+from dataclasses import dataclass
+
+import numpy as np
+import pandas as pd
+
+from ..corpus import Corpus, CorpusSlice
+from ..results import TemporalTrajectory
+from ..stats import wilson_ci
+
+
+@dataclass(frozen=True)
+class TemporalCorpus:
+    """A corpus indexed by time period for diachronic analysis.
+
+    Constructed via :meth:`pycorpdiff.Corpus.by_time`; bucketing of the
+    parent corpus's ``time_col`` follows the pandas offset alias
+    ``freq``. Periods with no documents are skipped — there's no
+    silent-zero entry in :meth:`periods` or :meth:`iter_slices`.
+    """
+
+    parent: Corpus
+    time_col: str
+    freq: str = "Y"
+
+    def __len__(self) -> int:
+        return len(self.parent)
+
+    def _period_series(self) -> pd.Series:
+        """Per-document Period values, indexed like the parent's docs frame."""
+        times = pd.to_datetime(self.parent.docs[self.time_col])
+        return times.dt.to_period(self.freq)
+
+    def periods(self) -> list[pd.Period]:
+        """Sorted list of populated periods."""
+        return sorted(self._period_series().unique())
+
+    def slice(self, period: pd.Period | str) -> CorpusSlice:
+        """Return the :class:`CorpusSlice` for one period.
+
+        ``period`` may be a :class:`pandas.Period` or any string pandas
+        can parse to one (e.g. ``"2020"``, ``"2020Q1"``, ``"2020-03"``).
+        """
+        idx = self._period_series()
+        period_obj = pd.Period(period, freq=self.freq) if isinstance(period, str) else period
+        mask = pd.Series(idx.values == period_obj, index=self.parent.docs.index)
+        return CorpusSlice(
+            parent=self.parent,
+            mask=mask,
+            filters={"period": str(period_obj)},
+        )
+
+    def iter_slices(self) -> Iterator[tuple[pd.Period, CorpusSlice]]:
+        """Yield ``(period, CorpusSlice)`` pairs in chronological order."""
+        idx = self._period_series()
+        for period in self.periods():
+            mask = pd.Series(idx.values == period, index=self.parent.docs.index)
+            yield period, CorpusSlice(
+                parent=self.parent, mask=mask, filters={"period": str(period)}
+            )
+
+
+@dataclass(frozen=True)
+class Tracker:
+    """A diachronic tracker over one or more target terms."""
+
+    corpus: Corpus | CorpusSlice
+    targets: list[str]
+
+    def over_time(
+        self,
+        freq: str = "Y",
+        time_col: str = "date",
+        confidence: float = 0.95,
+    ) -> TemporalTrajectory:
+        """Return a :class:`TemporalTrajectory` of relative frequencies.
+
+        For every populated period × target, computes the raw count,
+        period token total, relative frequency, and a Wilson score
+        interval at ``confidence`` (default 95%). The output frame has
+        one row per (period, term) pair, sorted by term then period.
+        """
+        temporal = self.corpus.by_time(time_col, freq)
+        rows: list[dict[str, object]] = []
+        for period, slice_ in temporal.iter_slices():
+            tokens_per_doc = slice_.tokens()
+            all_tokens: list[str] = [tok for doc in tokens_per_doc for tok in doc]
+            total = len(all_tokens)
+            counter = pd.Series(all_tokens).value_counts() if total else pd.Series(dtype=int)
+            for target in self.targets:
+                count = int(counter.get(target, 0))
+                relfreq = (count / total) if total > 0 else float("nan")
+                lo, hi = wilson_ci(
+                    np.array([count], dtype=np.int64),
+                    np.array([total], dtype=np.int64),
+                    confidence=confidence,
+                )
+                rows.append(
+                    {
+                        "period": period,
+                        "term": target,
+                        "count": count,
+                        "total": total,
+                        "relfreq": relfreq,
+                        "ci_lower": float(lo[0]),
+                        "ci_upper": float(hi[0]),
+                    }
+                )
+        table = (
+            pd.DataFrame(rows)
+            .sort_values(["term", "period"], kind="stable")
+            .reset_index(drop=True)
+        )
+        return TemporalTrajectory(table=table, targets=list(self.targets), freq=freq)
+
+    def trajectory(
+        self,
+        freq: str = "Y",
+        time_col: str = "date",
+        confidence: float = 0.95,
+    ) -> TemporalTrajectory:
+        """Alias for :meth:`over_time`."""
+        return self.over_time(freq=freq, time_col=time_col, confidence=confidence)
+
+    def semantic_over_time(
+        self,
+        freq: str = "Y",
+        time_col: str = "date",
+        embedder: object | None = None,
+        window: int = 5,
+        baseline_period: str | None = None,
+    ) -> pd.DataFrame:
+        """Track each target's *contextual centroid* across time periods.
+
+        Where :meth:`over_time` returns relative frequencies, this
+        returns a semantic trajectory: per-period averaged contextual
+        embeddings with cosine distance to a baseline period. With
+        SBERT this surfaces meaning shifts that pure frequency
+        analysis misses.
+
+        See :func:`pycorpdiff.semantic.semantic_trajectory` for the
+        full parameter docs.
+        """
+        from ..semantic.shift import (  # noqa: F401 — keeps the import side-effect close to the use
+            semantic_shift,
+        )
+        from ..semantic.trajectory import semantic_trajectory
+
+        return semantic_trajectory(
+            self.corpus,
+            target=self.targets if len(self.targets) > 1 else self.targets[0],
+            time_col=time_col,
+            freq=freq,
+            embedder=embedder,  # type: ignore[arg-type]
+            window=window,
+            baseline_period=baseline_period,
+        )
+
+
+def track(
+    corpus: Corpus | CorpusSlice, target: str | list[str]
+) -> Tracker:
+    """Construct a :class:`Tracker` for diachronic analysis of target term(s).
+
+    Raises ``ValueError`` if ``target`` is ``None``, an empty string,
+    or an empty list — these would otherwise produce a cryptic
+    downstream ``TypeError`` from the iteration in
+    :meth:`Tracker.over_time`.
+
+    Accepts either a :class:`Corpus` or a :class:`CorpusSlice`, so
+    ``pcd.track(corpus.slice(topic="immigration"), "criminal")`` works
+    out of the box.
+    """
+    if target is None:
+        raise ValueError(
+            "track() requires a target term (or list of terms); got None."
+        )
+    if isinstance(target, str):
+        if not target:
+            raise ValueError(
+                "track() target string must be non-empty; got ''."
+            )
+        targets = [target]
+    else:
+        targets = list(target)
+        if not targets:
+            raise ValueError(
+                "track() target list must be non-empty; got []."
+            )
+        if any(not (isinstance(t, str) and t) for t in targets):
+            raise ValueError(
+                "track() target list must contain only non-empty strings; "
+                f"got {targets!r}"
+            )
+    return Tracker(corpus=corpus, targets=targets)

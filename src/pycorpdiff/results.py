@@ -1,0 +1,756 @@
+"""Result dataclasses returned by every public analytical verb.
+
+Each Result implements the relevant subset of an informal six-method
+contract:
+
+- ``.to_df()`` returns a tidy :class:`pandas.DataFrame`.
+- ``.plot(**kw)`` returns an :class:`altair.Chart`.
+- ``.to_html(path=None)`` renders the table as HTML.
+- ``.to_json(path=None)`` renders the table as JSON.
+- ``.summary()`` returns a short human-readable string.
+- ``.explain(term, n)`` returns a :class:`ConcordanceResult` with
+  KWIC evidence for one row of the result. Defined only on
+  term-ranked Results (``KeynessResult``, ``CollocationShiftResult``)
+  where "one row of the result" maps to a target term.
+
+See ``docs/design.md`` for the per-Result method matrix. This contract
+is a duck-typing convention rather than an abstract base class — it
+keeps Results lightweight and lets them be constructed from a plain
+DataFrame without inheritance gymnastics.
+
+**On "frozen" semantics.** Every Result is declared
+``@dataclass(frozen=True)``, which prevents attribute reassignment
+(``result.table = ...`` raises) but does *not* prevent in-place
+mutation of the contained pandas DataFrame
+(``result.table.loc[0, "g2"] = 99`` succeeds and persists). Treat
+Result objects as effectively immutable in your own code; do not
+rely on the ``frozen`` flag as a guard against mutation of the
+underlying tabular state.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+import pandas as pd
+
+if TYPE_CHECKING:
+    import altair as alt
+
+    from .corpus import Corpus, CorpusSlice
+
+
+def _table_to_html(table: pd.DataFrame, path: str | Path | None, **kw: Any) -> str:
+    """Render ``table`` as HTML; optionally write to ``path``."""
+    html: str = str(table.to_html(**kw))
+    if path is not None:
+        Path(path).write_text(html, encoding="utf-8")
+    return html
+
+
+def _table_to_json(
+    table: pd.DataFrame, path: str | Path | None, **kw: Any
+) -> str:
+    """Render ``table`` as JSON (records orientation by default); optionally
+    write to ``path``.
+
+    Coerces any object-dtype columns containing ``pd.Period`` values to
+    strings before serialisation — pandas's JSON writer doesn't know
+    how to represent Period and would raise OverflowError. The string
+    form (``"2020"``, ``"2020Q1"``, …) round-trips back to Period
+    cleanly via :func:`pandas.Period`.
+    """
+    serialisable = table.copy()
+    for col in serialisable.columns:
+        col_dtype = serialisable[col].dtype
+        if isinstance(col_dtype, pd.PeriodDtype):
+            serialisable[col] = serialisable[col].astype(str)
+        elif col_dtype == object:  # noqa: E721
+            sample = next(
+                (v for v in serialisable[col] if v is not None and not pd.isna(v)),
+                None,
+            )
+            if isinstance(sample, pd.Period):
+                serialisable[col] = serialisable[col].astype(str)
+    kw.setdefault("orient", "records")
+    json_str: str = str(serialisable.to_json(**kw))
+    if path is not None:
+        Path(path).write_text(json_str, encoding="utf-8")
+    return json_str
+
+
+@dataclass(frozen=True)
+class KeynessResult:
+    """Per-term keyness scores for two corpora.
+
+    The ``table`` DataFrame has one row per shared vocabulary item with
+    columns including ``term``, ``count_a``, ``count_b``, ``score``,
+    ``effect_size``, ``p_value``, ``dispersion_a``, ``dispersion_b``,
+    and a boolean ``dispersion_flag``.
+    """
+
+    table: pd.DataFrame
+    method: str
+    n_a: int
+    n_b: int
+    label_a: str = "a"
+    label_b: str = "b"
+    params: dict[str, Any] = field(default_factory=dict)
+    corpus_a: Corpus | CorpusSlice | None = None
+    corpus_b: Corpus | CorpusSlice | None = None
+
+    def to_df(self) -> pd.DataFrame:
+        return self.table.copy()
+
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.table, path, **kw)
+
+    def plot(self, kind: str = "volcano", **kw: Any) -> alt.Chart:
+        """Return an altair chart of the keyness result.
+
+        ``kind="volcano"`` (default) returns a volcano-style scatter of
+        effect size against −log₁₀(*p*); ``kind="bar"`` returns a top-N
+        horizontal bar chart; ``kind="scattertext"`` returns the
+        Scattertext-style interactive rank-percentile scatter (Kessler
+        2017). Extra keyword arguments are forwarded to the underlying
+        viz function (``n_labels``, ``n``, ``width``, ``height``).
+        """
+        from .viz.keyness import keyness_top_n_bar, keyness_volcano
+        from .viz.scattertext import scattertext_plot
+
+        if kind == "volcano":
+            return keyness_volcano(self.table, **kw)
+        if kind == "bar":
+            return keyness_top_n_bar(self.table, **kw)
+        if kind == "scattertext":
+            return scattertext_plot(
+                self.table, label_a=self.label_a, label_b=self.label_b, **kw
+            )
+        raise ValueError(
+            f"unknown kind={kind!r}; expected 'volcano', 'bar', or 'scattertext'"
+        )
+
+    def explain(self, term: str, n: int = 5, window: int = 5) -> ConcordanceResult:
+        """Show KWIC examples of ``term`` from the source corpora.
+
+        Returns up to ``n`` lines per corpus when the result holds two
+        full corpora (the usual :meth:`pycorpdiff.Comparison.keyness`
+        case). When the result was built via
+        :func:`pycorpdiff.against_baseline` — where ``corpus_b`` is a
+        bare frequency list, not a corpus — only the ``corpus_a`` side
+        has source text on hand, so ``explain`` falls back to KWIC from
+        ``corpus_a`` alone.
+
+        Building a ``KeynessResult`` from a bare DataFrame with no
+        corpus references at all will raise.
+        """
+        if self.corpus_a is None:
+            raise ValueError(
+                "explain() requires at least the A-side corpus; this "
+                "KeynessResult was constructed without one"
+            )
+        from .explain import kwic, kwic_compare
+
+        if self.corpus_b is None:
+            # Baseline keyness path: the reference side is an aggregate
+            # frequency list with no source text. Return concordances
+            # from the user's corpus only.
+            return kwic(
+                self.corpus_a, target=term, window=window, n=n, label=self.label_a
+            )
+
+        return kwic_compare(
+            self.corpus_a,
+            self.corpus_b,
+            target=term,
+            window=window,
+            n_per_side=n,
+            label_a=self.label_a,
+            label_b=self.label_b,
+        )
+
+    def summary(self) -> str:
+        return (
+            f"KeynessResult({self.method}, |a|={self.n_a:,}, |b|={self.n_b:,}, "
+            f"terms={len(self.table):,})"
+        )
+
+
+@dataclass(frozen=True)
+class CollocationShiftResult:
+    """Change in collocates of a target term between two corpora."""
+
+    target: str
+    table: pd.DataFrame
+    measure: str
+    window: int
+    label_a: str = "a"
+    label_b: str = "b"
+    corpus_a: Corpus | CorpusSlice | None = None
+    corpus_b: Corpus | CorpusSlice | None = None
+
+    def to_df(self) -> pd.DataFrame:
+        return self.table.copy()
+
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.table, path, **kw)
+
+    def plot(self, **kw: Any) -> alt.Chart:
+        """Return a diverging horizontal bar chart of the top collocate shifts."""
+        from .viz.collocation import collocation_diverging_bar
+
+        return collocation_diverging_bar(self.table, **kw)
+
+    def explain(self, collocate: str, n: int = 5) -> ConcordanceResult:
+        """Show KWIC windows where ``target`` co-occurs with ``collocate``.
+
+        Returns up to ``n`` lines per corpus, restricted to contexts in
+        which both the target and ``collocate`` appear within the same
+        window. This is the per-row evidence behind a shift score.
+        """
+        if self.corpus_a is None or self.corpus_b is None:
+            raise ValueError(
+                "explain() requires source corpora; this CollocationShiftResult "
+                "was constructed without them"
+            )
+        from .explain import kwic_compare
+
+        return kwic_compare(
+            self.corpus_a,
+            self.corpus_b,
+            target=self.target,
+            window=self.window,
+            n_per_side=n,
+            collocate=collocate,
+            label_a=self.label_a,
+            label_b=self.label_b,
+        )
+
+    def summary(self) -> str:
+        return (
+            f"CollocationShiftResult(target={self.target!r}, measure={self.measure}, "
+            f"window={self.window}, collocates={len(self.table):,})"
+        )
+
+
+@dataclass(frozen=True)
+class SemanticShiftResult:
+    """Embedding-space displacement of a target term between corpora."""
+
+    targets: list[str]
+    table: pd.DataFrame
+    alignment: str
+    label_a: str = "a"
+    label_b: str = "b"
+    corpus_a: Corpus | CorpusSlice | None = None
+    corpus_b: Corpus | CorpusSlice | None = None
+    embedder: Any | None = None
+    window: int = 5
+
+    def to_df(self) -> pd.DataFrame:
+        return self.table.copy()
+
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.table, path, **kw)
+
+    def plot(self, **kw: Any) -> alt.Chart:
+        """Horizontal bar chart of cosine distance per target term.
+
+        For a multi-period trajectory of cosine distances (an across-
+        time view rather than a single A-vs-B snapshot), use
+        :func:`pycorpdiff.semantic_trajectory` paired with
+        :func:`pycorpdiff.viz.semantic_forecast_plot`.
+
+        Extra keyword arguments forward to :meth:`altair.Chart.properties`.
+        """
+        import altair as alt
+
+        return (  # type: ignore[no-any-return]
+            alt.Chart(self.table)
+            .mark_bar(color="#0b6e7c")
+            .encode(
+                x=alt.X("cosine_distance:Q", title="Cosine distance (A → B)"),
+                y=alt.Y("target:N", sort="-x", title=None),
+                tooltip=[
+                    "target",
+                    alt.Tooltip("cosine_similarity:Q", format=".4f"),
+                    alt.Tooltip("cosine_distance:Q", format=".4f"),
+                    "n_contexts_a",
+                    "n_contexts_b",
+                ],
+            )
+            .properties(width=400, **kw)
+        )
+
+    def neighbors_before(
+        self, target: str | None = None, n: int = 10
+    ) -> pd.DataFrame:
+        """Top-n contextual neighbours of ``target`` in corpus A.
+
+        Returns the rows of :func:`pycorpdiff.semantic.neighborhood_drift`
+        with a non-null ``sim_a`` (i.e. terms that appeared in A's
+        top-k), sorted by ``sim_a`` descending. Requires the result was
+        built via :meth:`Comparison.semantic_shift` so the source
+        corpora and embedder are attached.
+        """
+        return self._neighborhood(target=target, n=n, side="a")
+
+    def neighbors_after(
+        self, target: str | None = None, n: int = 10
+    ) -> pd.DataFrame:
+        """Top-n contextual neighbours of ``target`` in corpus B."""
+        return self._neighborhood(target=target, n=n, side="b")
+
+    def _neighborhood(
+        self, target: str | None, n: int, side: str
+    ) -> pd.DataFrame:
+        if self.corpus_a is None or self.corpus_b is None:
+            raise ValueError(
+                "neighbors_before / neighbors_after require source corpora; "
+                "this SemanticShiftResult was constructed without them"
+            )
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"result carries {len(self.targets)} targets; pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(
+                f"target={target!r} not in result targets {self.targets!r}"
+            )
+        from .semantic.shift import neighborhood_drift
+
+        full = neighborhood_drift(
+            self.corpus_a,
+            self.corpus_b,
+            target=target,
+            k=n,
+            embedder=self.embedder,
+            window=self.window,
+        )
+        sim_col = "sim_a" if side == "a" else "sim_b"
+        return (
+            full.dropna(subset=[sim_col])
+            .sort_values(sim_col, ascending=False, kind="stable")
+            .head(n)
+            .reset_index(drop=True)
+        )
+
+    def summary(self) -> str:
+        return (
+            f"SemanticShiftResult(targets={self.targets!r}, alignment={self.alignment})"
+        )
+
+
+@dataclass(frozen=True)
+class TemporalTrajectory:
+    """A time-indexed series for one or more target terms.
+
+    ``table`` has columns ``period``, ``term``, ``count``, ``relfreq``,
+    ``ci_lower``, ``ci_upper``.
+    """
+
+    table: pd.DataFrame
+    targets: list[str]
+    freq: str
+
+    def to_df(self) -> pd.DataFrame:
+        return self.table.copy()
+
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.table, path, **kw)
+
+    def plot(self, **kw: Any) -> alt.Chart:
+        """Return a line plot with Wilson CI bands per term."""
+        from .viz.trajectory import trajectory_with_ci
+
+        return trajectory_with_ci(self.table, **kw)
+
+    def changepoints(
+        self,
+        target: str | None = None,
+        method: str = "pelt",
+        penalty: float | None = None,
+    ) -> pd.DataFrame:
+        """Run changepoint detection on a target's relative-frequency series.
+
+        Requires the ``[temporal]`` extra (ruptures). When the
+        trajectory holds multiple targets, supply ``target`` to pick one;
+        a single-target trajectory uses it automatically.
+        """
+        from .temporal.changepoint import detect_changepoints
+
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"trajectory carries {len(self.targets)} targets; "
+                    "pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(f"target={target!r} not in trajectory targets {self.targets!r}")
+
+        sub = self.table[self.table["term"] == target].set_index("period")["relfreq"]
+        return detect_changepoints(sub, method=method, penalty=penalty)  # type: ignore[arg-type]
+
+    def changepoints_online(
+        self,
+        target: str | None = None,
+        *,
+        hazard: float = 0.01,
+        mu_0: float | None = None,
+        kappa_0: float = 1.0,
+        alpha_0: float = 1.0,
+        beta_0: float | None = None,
+        max_run_length: int | None = None,
+    ) -> Any:
+        """Bayesian *online* changepoint detection (Adams & MacKay 2007).
+
+        Where :meth:`changepoints` runs PELT offline (needs the full
+        series, returns MAP locations after the fact), this runs an
+        online forward pass: at each step it updates the posterior
+        distribution over the *run length* — the number of periods
+        since the last changepoint. The MAP run length collapsing to
+        a small value marks a changepoint.
+
+        Returns
+        -------
+        :class:`pycorpdiff.temporal.bocpd.BocpdResult`
+
+        Requires the ``[temporal]`` extra is *not* needed —
+        ``scipy.stats`` already in the base dependency set is enough.
+        """
+        from .temporal.bocpd import bocpd
+
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"trajectory carries {len(self.targets)} targets; "
+                    "pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(
+                f"target={target!r} not in trajectory targets {self.targets!r}"
+            )
+
+        sub = (
+            self.table[self.table["term"] == target]
+            .sort_values("period")
+            .set_index("period")["relfreq"]
+        )
+        return bocpd(
+            sub,
+            hazard=hazard,
+            mu_0=mu_0,
+            kappa_0=kappa_0,
+            alpha_0=alpha_0,
+            beta_0=beta_0,
+            max_run_length=max_run_length,
+        )
+
+    def burstiness(
+        self,
+        target: str | None = None,
+        *,
+        s: float = 2.0,
+        gamma: float = 1.0,
+        n_states: int = 5,
+    ) -> Any:
+        """Kleinberg burst-detection on a target's per-period rate.
+
+        Where :meth:`changepoints` answers "*when* did the rate change?"
+        (segmentation), burstiness answers "*when was the rate elevated
+        and by how much?*" (per-period intensity labelling). Returns a
+        :class:`pycorpdiff.temporal.burstiness.BurstinessResult` with a
+        per-period state Series and a per-burst summary table.
+
+        Parameters
+        ----------
+        target
+            One of the trajectory's targets. Required when the
+            trajectory carries multiple targets.
+        s
+            Burst factor: state *i* has rate ``p_0 * s ** i``. Default
+            ``2.0`` is Kleinberg's recommendation; raise it to demand
+            stronger spikes before tagging as bursts.
+        gamma
+            Transition-cost multiplier. Higher = more conservative
+            (fewer / shorter bursts). Default ``1.0``.
+        n_states
+            Maximum burst level (including state 0). Default ``5``;
+            real corpus data rarely populates beyond 2 or 3.
+        """
+        from .temporal.burstiness import burstiness_from_table
+
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"trajectory carries {len(self.targets)} targets; "
+                    "pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(
+                f"target={target!r} not in trajectory targets {self.targets!r}"
+            )
+        return burstiness_from_table(
+            self.table, target=target, s=s, gamma=gamma, n_states=n_states
+        )
+
+    def interrupted_time_series(
+        self,
+        event_date: str,
+        target: str | None = None,
+    ) -> pd.DataFrame:
+        """Fit a segmented-regression ITS model around ``event_date``.
+
+        Requires the ``[temporal]`` extra (statsmodels). Returns level
+        and slope-change estimates with confidence intervals.
+        """
+        from .temporal.its import interrupted_time_series
+
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"trajectory carries {len(self.targets)} targets; "
+                    "pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(f"target={target!r} not in trajectory targets {self.targets!r}")
+
+        sub = self.table[self.table["term"] == target].set_index("period")["relfreq"]
+        return interrupted_time_series(sub, event_date=event_date)
+
+    def causal_impact(
+        self,
+        event_date: str,
+        target: str | None = None,
+        *,
+        level: float = 0.95,
+        n_samples: int = 1000,
+        seed: int | None = 0,
+        model: str = "local linear trend",
+        min_pre_periods: int = 15,
+        min_post_periods: int = 8,
+        max_pre_post_ratio: float = 5.0,
+    ) -> Any:
+        """Counterfactual causal impact of an event on this trajectory.
+
+        Bayesian structural time-series (Brodersen et al. 2015) — fits a
+        local-linear-trend state-space model on the pre-event window
+        and projects forward as the counterfactual "what would have
+        happened without the event". Observed minus counterfactual is
+        the causal effect, with credible intervals from Monte Carlo
+        simulation against the joint state-space posterior.
+
+        Requires the ``[temporal]`` extra (statsmodels).
+
+        Parameters
+        ----------
+        event_date
+            Where to place the intervention.
+        target
+            Which term to analyse. Defaults to the trajectory's single
+            target when there's only one.
+        level
+            Credible-interval level. ``0.95`` → 95% CrI.
+        n_samples
+            Monte Carlo path count for the joint CrI. ``1000`` is the
+            conventional default.
+        seed
+            RNG seed for reproducibility.
+        model
+            Trend specification — usually ``"local linear trend"`` (the
+            default) or ``"local level"``.
+        min_pre_periods, min_post_periods, max_pre_post_ratio
+            Calibration safety rails (new in 0.1.0a21). The JSS
+            case-study §5.8c placebo sweep and §5.8e leave-one-year-out
+            tests surfaced empirical failure modes of BSTS counterfactual
+            analysis under (a) short pre-event windows, (b) short
+            post-event windows, and (c) highly asymmetric pre/post
+            splits. Defaults block calls that are obviously
+            under-powered; relax explicitly if you have a calibration
+            reason. See the underlying
+            :func:`pycorpdiff.temporal.causal_impact.causal_impact`
+            docstring for the rationale.
+
+        Returns
+        -------
+        :class:`pycorpdiff.temporal.causal_impact.CausalImpactResult`
+        """
+        from dataclasses import replace as _dc_replace
+
+        from .temporal.causal_impact import causal_impact
+
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"trajectory carries {len(self.targets)} targets; "
+                    "pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(
+                f"target={target!r} not in trajectory targets {self.targets!r}"
+            )
+
+        sub = (
+            self.table[self.table["term"] == target]
+            .sort_values("period")
+            .set_index("period")["relfreq"]
+        )
+        result = causal_impact(
+            sub,
+            event_date=event_date,
+            level=level,
+            n_samples=n_samples,
+            seed=seed,
+            model=model,
+            min_pre_periods=min_pre_periods,
+            min_post_periods=min_post_periods,
+            max_pre_post_ratio=max_pre_post_ratio,
+        )
+        return _dc_replace(result, target=target)
+
+    def forecast(
+        self,
+        horizon: int = 4,
+        *,
+        target: str | None = None,
+        level: float = 0.95,
+        method: str = "auto",
+        logit_transform: bool = True,
+    ) -> Any:
+        """Extend this trajectory ``horizon`` periods forward.
+
+        Wraps state-space exponential smoothing (Hyndman et al. 2008)
+        via statsmodels' ``ETSModel`` (for series of length ≥ 8) or
+        ``Holt`` linear-trend (for shorter histories). Rates are
+        forecast on the logit scale and back-transformed so prediction
+        intervals stay in ``[0, 1]``.
+
+        Parameters
+        ----------
+        horizon
+            Periods to project forward.
+        target
+            Restrict to a single term. ``None`` (default) forecasts
+            every term in the trajectory.
+        level
+            Prediction-interval level. ``0.95`` → 95% PI.
+        method
+            ``"auto"`` (default), ``"ets"``, or ``"holt"``.
+        logit_transform
+            Keep the PI in [0, 1] by working on the logit scale.
+
+        Returns
+        -------
+        :class:`pycorpdiff.temporal.forecast.ForecastResult`
+            Carries the history *and* forecast tables; ``.plot()``
+            renders the combined chart with a dashed continuation.
+
+        Requires the ``[temporal]`` extra (statsmodels).
+        """
+        from .temporal.forecast import (
+            ForecastResult,
+            forecast_trajectory,
+        )
+
+        if target is None:
+            chosen_targets = self.targets
+        else:
+            if target not in self.targets:
+                raise ValueError(
+                    f"target={target!r} not in trajectory targets {self.targets!r}"
+                )
+            chosen_targets = [target]
+
+        fc_table = forecast_trajectory(
+            self.table,
+            targets=chosen_targets,
+            horizon=horizon,
+            level=level,
+            method=method,  # type: ignore[arg-type]
+            logit_transform=logit_transform,
+        )
+        return ForecastResult(
+            history=self.table[self.table["term"].isin(chosen_targets)].copy(),
+            forecast=fc_table,
+            targets=list(chosen_targets),
+            freq=self.freq,
+            horizon=horizon,
+            level=level,
+            method=method,
+            params={
+                "logit_transform": logit_transform,
+            },
+        )
+
+    def summary(self) -> str:
+        return (
+            f"TemporalTrajectory(targets={self.targets!r}, freq={self.freq!r}, "
+            f"periods={self.table['period'].nunique() if 'period' in self.table else 0:,})"
+        )
+
+
+@dataclass(frozen=True)
+class ConcordanceResult:
+    """KWIC (keyword-in-context) lines for a target term."""
+
+    target: str
+    table: pd.DataFrame
+    window: int
+
+    def to_df(self) -> pd.DataFrame:
+        return self.table.copy()
+
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the underlying table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.table, path, **kw)
+
+    def summary(self) -> str:
+        return f"ConcordanceResult(target={self.target!r}, lines={len(self.table):,})"

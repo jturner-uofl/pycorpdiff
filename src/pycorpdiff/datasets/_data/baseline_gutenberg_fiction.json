@@ -1,0 +1,47 @@
+{
+  "name": "gutenberg_fiction",
+  "description": "Aggregated term frequencies from five public-domain Project Gutenberg English fiction texts (late-Georgian to Edwardian, 1813-1897). Tokenization: pycorpdiff.RegexTokenizer defaults (\\w+, lowercase, NFC). Hapax legomena (count < 2) removed.",
+  "license": "Public Domain (Project Gutenberg)",
+  "source_url": "https://www.gutenberg.org/",
+  "n_documents": 5,
+  "total_tokens": 502234,
+  "n_terms": 10944,
+  "min_count": 2,
+  "books": [
+    {
+      "gutenberg_id": 1342,
+      "title": "Pride and Prejudice",
+      "author": "Austen, Jane",
+      "year": 1813,
+      "tokens": 128913
+    },
+    {
+      "gutenberg_id": 11,
+      "title": "Alice's Adventures in Wonderland",
+      "author": "Carroll, Lewis",
+      "year": 1865,
+      "tokens": 27584
+    },
+    {
+      "gutenberg_id": 1661,
+      "title": "The Adventures of Sherlock Holmes",
+      "author": "Doyle, Arthur Conan",
+      "year": 1892,
+      "tokens": 106104
+    },
+    {
+      "gutenberg_id": 84,
+      "title": "Frankenstein",
+      "author": "Shelley, Mary",
+      "year": 1818,
+      "tokens": 75547
+    },
+    {
+      "gutenberg_id": 345,
+      "title": "Dracula",
+      "author": "Stoker, Bram",
+      "year": 1897,
+      "tokens": 164086
+    }
+  ]
+}

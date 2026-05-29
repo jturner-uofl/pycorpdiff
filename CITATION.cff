@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+message: >
+  If you use pycorpdiff in academic work, please cite this software
+  entry. GitHub renders a "Cite this repository" widget directly from
+  this file.
+title: "pycorpdiff: Comparative Corpus Analysis for Modern Python Workflows"
+version: 0.1.0a25
+date-released: 2026-05-27
+authors:
+  - family-names: Turner
+    given-names: Jason
+    email: jason.s.turner@gmail.com
+license: MIT
+repository-code: "https://github.com/jturner-uofl/pycorpdiff"
+keywords:
+  - corpus linguistics
+  - comparative corpus analysis
+  - keyness
+  - collocation
+  - semantic change
+  - diachronic nlp
+  - digital humanities
+  - computational social science
+  - reproducible research
+  - python
+abstract: >
+  pycorpdiff is a Python package for comparative and temporal corpus
+  analysis. It provides a coherent comparative layer over the
+  existing PyData and NLP stacks, unifying classical corpus
+  linguistics methods (keyness, collocations, dispersion) with
+  embedding-based semantic-shift analysis under a single, composable
+  API. The package targets corpus linguistics, digital humanities,
+  computational social science, and discourse analysis research,
+  emphasising interpretability, explainability, statistical rigour,
+  and reproducibility. A bundled synthetic UK-Hansard-style sample
+  ships for offline demonstration; real-data interfaces include
+  fetch_hansard and from_huggingface.
+identifiers:
+  - type: url
+    value: "https://github.com/jturner-uofl/pycorpdiff"
+    description: Project repository
+  - type: url
+    value: "https://pypi.org/project/pycorpdiff/"
+    description: PyPI release
