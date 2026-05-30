@@ -36,7 +36,9 @@ direct runtime dependencies are `numpy`, `pandas`, `scipy`, and
 `pyarrow`; everything else is opt-in via extras.
 
 > **Status: alpha (0.1.0a25).** Public API is stable for the features
-> described below; on PyPI as `pip install pycorpdiff`.
+> described below; on PyPI as `pip install pycorpdiff`. Alpha releases
+> are intentionally rapid (audit-driven), each shipping fixes and tests
+> behind the published version; dependency pins will tighten at beta.
 
 ## The three-layer architecture
 
@@ -83,7 +85,7 @@ for the full feature tour, or the cheat sheet below for one-line API previews.
 ```python
 # Compare verbs (returns Result objects; methods exposed vary by Result)
 pcd.compare(a, b).keyness()                                                   # default formula="rayson" (LL Wizard)
-pcd.compare(a, b).keyness(formula="dunning")                                  # full 4-cell G² (matches quanteda / NLTK)
+pcd.compare(a, b).keyness(formula="dunning")                                  # full 4-cell G² (Dunning 1993; same family as quanteda / NLTK, edge-case tolerance not certified)
 pcd.compare(a, b).keyness(ci="bootstrap", n_boot=999)                         # adds g2_ci_lower / g2_ci_upper columns
 pcd.compare(a, b).collocation_shift("immigrant")
 pcd.compare(a, b).semantic_shift("immigrant", embedder=pcd.SBERTEmbedder())   # [semantic]

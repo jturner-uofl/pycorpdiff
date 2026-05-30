@@ -85,10 +85,28 @@ def _table_to_json(
 class KeynessResult:
     """Per-term keyness scores for two corpora.
 
-    The ``table`` DataFrame has one row per shared vocabulary item with
-    columns including ``term``, ``count_a``, ``count_b``, ``score``,
-    ``effect_size``, ``p_value``, ``dispersion_a``, ``dispersion_b``,
-    and a boolean ``dispersion_flag``.
+    The ``table`` DataFrame (also returned by :meth:`to_df`) has one row
+    per shared vocabulary item with the following columns:
+
+    - ``term`` -- the surface form
+    - ``count_a``, ``count_b`` -- observed counts in each corpus
+    - ``expected_a``, ``expected_b`` -- expected counts under the
+      null of no association (pooled-rate × corpus size)
+    - ``g2`` -- signed log-likelihood G² (Dunning 1993 / Rayson &
+      Garside 2000, per the ``formula`` parameter), signed by
+      ``log_ratio`` direction (positive = A-distinctive)
+    - ``p_value`` -- raw p-value from the χ² distribution with df=1
+    - ``log_ratio`` -- log₂ ratio of normalised rates A vs B
+    - ``percent_diff`` -- relative rate difference, percent
+    - ``bayes_factor`` -- BIC-style approximation of the Bayes factor
+    - ``p_adjusted`` -- multiple-comparison-corrected p-value (default
+      Benjamini-Hochberg; controlled by ``multiple_comparisons=``)
+
+    Optional columns appear when their respective opt-ins are set:
+    bootstrap CI columns when ``ci='bootstrap'``;
+    ``dispersion_a/dispersion_b/dispersion_flag`` when
+    ``dispersion=True`` is passed to :meth:`Comparison.keyness`;
+    permutation p-values when ``permutation_n > 0``.
     """
 
     table: pd.DataFrame
