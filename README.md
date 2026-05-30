@@ -184,9 +184,31 @@ repository" widget directly from it.
 
 MIT — see [LICENSE](https://github.com/jturner-uofl/pycorpdiff/blob/main/LICENSE).
 
+## Case studies and demos (rendered)
+
+GitHub's in-browser notebook renderer is unreliable on larger notebooks
+with embedded SVG outputs. The links below point to the **pre-rendered
+HTML artefacts** (the canonical read versions) and to nbviewer fallbacks
+for the `.ipynb` source. Notebook sources still live under `examples/`
+for re-execution.
+
+- **JSS case study — lexicalising asylum in UK Parliament, 2010-2023.**
+  [📊 rendered HTML](https://htmlpreview.github.io/?https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/rendered/jss_case_study.html)
+  · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/jss_case_study.ipynb)
+  · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/jss_case_study.ipynb)
+- **Full feature tour (showcase).**
+  [📊 rendered HTML](https://htmlpreview.github.io/?https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/rendered/pycorpdiff_showcase.html)
+  · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)
+  · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)
+- **Tutorial.**
+  [📊 rendered HTML](https://htmlpreview.github.io/?https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/rendered/pycorpdiff_tutorial.html)
+  · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_tutorial.ipynb)
+- **Hansard demo.**
+  [📊 rendered HTML](https://htmlpreview.github.io/?https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/rendered/hansard_demo.html)
+  · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/hansard_demo.ipynb)
+
 ## Further reading
 
 - [`docs/design.md`](https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/design.md) — three-layer architecture
 - [`docs/statistical-methods.md`](https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/statistical-methods.md) — every metric's formula + citation
-- [`examples/pycorpdiff_showcase.ipynb`](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb) — full feature tour as a notebook
-- [`docs/rendered/`](https://github.com/jturner-uofl/pycorpdiff/tree/main/docs/rendered) — static HTML renders for offline viewing
+- [`docs/rendered/`](https://github.com/jturner-uofl/pycorpdiff/tree/main/docs/rendered) — catalogue of static HTML renders for offline viewing
