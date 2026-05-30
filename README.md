@@ -196,6 +196,19 @@ for re-execution.
   [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/jss_case_study.html)
   · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/jss_case_study.ipynb)
   · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/jss_case_study.ipynb)
+- **CBD case study — semantic shift of "CBD" on Twitter, 2011-2021.**
+  How the token shifted from *Central Business District* (Sydney/Melbourne
+  jobs and parking, plus Johannesburg/Cape Town) to *cannabidiol* (oil,
+  hemp, gummies, pet products) across ~3.6 M tweets, with a pre-registered
+  audit layer and an honest §7 falsification of the Farm-Bill-effect
+  prediction.
+  [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/cbd_case_study.html)
+  · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/cbd_case_study.ipynb)
+  · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/cbd_case_study.ipynb)
+  · *Note: the underlying 3.6 M-tweet parquet is not redistributed under
+  the original Twitter developer terms; the notebook's outputs are
+  derived aggregates only, and re-execution requires a local copy of
+  the source corpus.*
 - **Full feature tour (showcase).**
   [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/pycorpdiff_showcase.html)
   · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)
