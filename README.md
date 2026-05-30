@@ -193,18 +193,18 @@ for the `.ipynb` source. Notebook sources still live under `examples/`
 for re-execution.
 
 - **JSS case study — lexicalising asylum in UK Parliament, 2010-2023.**
-  [📊 rendered HTML](https://htmlpreview.github.io/?https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/rendered/jss_case_study.html)
+  [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/jss_case_study.html)
   · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/jss_case_study.ipynb)
   · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/jss_case_study.ipynb)
 - **Full feature tour (showcase).**
-  [📊 rendered HTML](https://htmlpreview.github.io/?https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/rendered/pycorpdiff_showcase.html)
+  [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/pycorpdiff_showcase.html)
   · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)
   · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)
 - **Tutorial.**
-  [📊 rendered HTML](https://htmlpreview.github.io/?https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/rendered/pycorpdiff_tutorial.html)
+  [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/pycorpdiff_tutorial.html)
   · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_tutorial.ipynb)
 - **Hansard demo.**
-  [📊 rendered HTML](https://htmlpreview.github.io/?https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/rendered/hansard_demo.html)
+  [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/hansard_demo.html)
   · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/hansard_demo.ipynb)
 
 ## Further reading
