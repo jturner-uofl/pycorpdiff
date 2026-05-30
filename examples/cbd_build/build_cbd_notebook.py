@@ -1620,59 +1620,153 @@ is the strongest evidence in the notebook that the audit pattern is
 working as designed.
 """))
 A(code(r"""
+# ----- Data-driven scoreboard -----
+# Every "Observed" cell is computed from the runtime objects produced by
+# the analytical sections above. Every "Verdict" is a Boolean expression
+# on those objects against a pre-specified threshold. Threshold values
+# are listed below as named constants so they cannot drift silently.
+#
+# (External auditor v1, finding 5.1: previous scoreboard had several
+# rows whose Observed and/or Verdict were literal strings disconnected
+# from runtime data. Fixed in this commit.)
+
+# --- pre-specified thresholds (drafted with §0b) ---
+TH_RHO_TRAJECTORY = 0.7          # §2 / §9.4 monotone-trend threshold
+TH_RHO_DECLINE = -0.5            # §6b decline threshold (sign-flipped)
+TH_TOP10_OVERLAP = 8             # §9.2 leverage threshold
+TH_MULTI_BURST_K = 2             # §9.5b multi-term burst-in-era threshold
+TH_GNS_CELLS = 7                 # §9.5d gamma×n_states overlap threshold (of 9)
+TH_SHUFFLED_NB_MEDIAN = 1        # §9.5c pre-reg: shuffled ~ 0 bursts
+DISTRICT_TERMS = {'sydney', 'melbourne', 'brisbane', 'perth', 'jobs',
+                  'parking', 'traffic', 'office', 'johannesburg',
+                  'pretoria', 'durban', 'auckland', 'mme'}
+CANNABIDIOL_TERMS = {'oil', 'hemp', 'gummies', 'vape', 'cbdoil', 'cbdvape',
+                     'cbdgummies', 'cbdedibles', 'cbdstore', 'buycbd', 'mg',
+                     'cbg', 'cbdcandy', 'cbdoils', 'hits'}
+
+# --- §3 evidence ---
+late_has_cannabidiol = sum(1 for t in late_nb if t.lower() in CANNABIDIOL_TERMS)
+early_has_cannabidiol = sum(1 for t in early_nb if t.lower() in CANNABIDIOL_TERMS)
+s3_pass = (late_has_cannabidiol >= 2) and (early_has_cannabidiol == 0) and (len(shared_nb) == 0)
+
+# --- §4 evidence (early/late keyness; sign convention: positive log_ratio = A=early-distinctive) ---
+_ek = ekey.to_df()
+_top10_early = set(_ek[_ek['log_ratio'] > 0].head(10)['term'].tolist())
+_top10_late = set(_ek[_ek['log_ratio'] < 0].head(10)['term'].tolist())
+s4_early_has_district = len(_top10_early & DISTRICT_TERMS)
+s4_late_has_cannabidiol = len(_top10_late & CANNABIDIOL_TERMS)
+s4_pass = (s4_early_has_district >= 2) and (s4_late_has_cannabidiol >= 2)
+
+# --- §5 evidence (before/after Farm Bill; sign convention: positive log_ratio = pre-Bill) ---
+_ba = ba.to_df()
+_top10_pre = set(_ba[_ba['log_ratio'] > 0].head(10)['term'].tolist())
+_top10_post = set(_ba[_ba['log_ratio'] < 0].head(10)['term'].tolist())
+s5_post_has_cannabidiol = len(_top10_post & CANNABIDIOL_TERMS)
+s5_pass = s5_post_has_cannabidiol >= 2  # post-Bill should turn commercial
+
+# --- §6 evidence ---
 b0 = bursts.to_df().iloc[0] if len(bursts.to_df()) else None
 burst_win = f"{b0['start']} -> {b0['end']}" if b0 is not None else 'none'
+s6_pass = (b0 is not None) and (str(b0['start']) >= '2014')
+
+# --- §7 evidence (CrI from impact.summary()) ---
+import re as _re_sb
+_imp_s = impact.summary()
+_m_ci = _re_sb.search(r'95% CrI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', _imp_s)
+_m_p = _re_sb.search(r'P\(no effect\):\s+([0-9.]+)', _imp_s)
+s7_ci_lo = float(_m_ci.group(1)) if _m_ci else float('nan')
+s7_ci_hi = float(_m_ci.group(2)) if _m_ci else float('nan')
+s7_p_no_effect = float(_m_p.group(1)) if _m_p else float('nan')
+s7_excludes_zero = (s7_ci_lo > 0) or (s7_ci_hi < 0)
+# Pre-registered: PASS if CrI excludes zero (Bill lifted rate beyond trend)
+# FAIL (pre-registered falsifier) if CrI straddles zero
+s7_verdict = ('PASS' if s7_excludes_zero
+              else 'FAIL (pre-registered falsifier; honestly recorded)')
+
+# --- §8 evidence (collocation shift; B side = late) ---
+_sh = shift.to_df().head(15)
+_late_collocates = set(_sh[_sh['shift'] < 0]['collocate'].tolist())
+s8_late_has_cannabidiol = len(_late_collocates & CANNABIDIOL_TERMS)
+s8_pass = s8_late_has_cannabidiol >= 2
+
+# --- §9.3 min_count sensitivity stability (re-compute condition from data) ---
+# `rows` is the §9.3 result list-of-dicts; build a DataFrame to access columns.
+_s93_df = pd.DataFrame(rows)
+_s93_early_sets = [set(s.strip() for s in row.split(','))
+                   for row in _s93_df['top-3 early-distinctive']]
+_s93_late_sets = [set(s.strip() for s in row.split(','))
+                  for row in _s93_df['top-3 late-distinctive']]
+s93_early_stable = all(s == _s93_early_sets[0] for s in _s93_early_sets)
+s93_late_stable = all(s == _s93_late_sets[0] for s in _s93_late_sets)
+s93_pass = s93_early_stable and s93_late_stable
+
+# --- §9.5 s-sensitivity: how many s values produce a cannabidiol-era burst? ---
+_s95 = pd.DataFrame(rows_s)
+s95_in_era = int(((_s95['n_bursts'] >= 1) &
+                  (_s95['first_window'].astype(str).str[:4] >= '2014')).sum())
+s95_pass = s95_in_era >= 3  # at least 3 of 4 s values
 
 scoreboard = pd.DataFrame([
     ('§2 Trajectory drifts away from 2011 baseline',
      f"rho={rho:+.2f}; distance peaks {sem['distance_from_baseline'].max():.3f} at 2019",
-     'PASS' if rho > 0.7 else 'PARTIAL'),
+     'PASS' if rho > TH_RHO_TRAJECTORY else 'PARTIAL'),
     ('§3 Late neighbours = cannabidiol; early =/= cannabidiol; ~0 overlap',
-     f'late top: {late_nb[:5]}; early top: {early_nb[:4]}; content overlap = {len(shared_nb)}',
-     'PASS'),
+     (f'late_top: {late_nb[:5]} (#cannabidiol={late_has_cannabidiol}); '
+      f'early_top: {early_nb[:4]} (#cannabidiol={early_has_cannabidiol}); '
+      f'shared={len(shared_nb)}'),
+     'PASS' if s3_pass else 'PARTIAL'),
     ('§4 Early-distinctive = district, late-distinctive = cannabidiol',
-     'sydney/melbourne/jobs vs buycbd/cbdedibles/cbdstore/hits',
-     'PASS'),
+     (f'early_top10 ∩ district={sorted(_top10_early & DISTRICT_TERMS)}; '
+      f'late_top10 ∩ cannabidiol={sorted(_top10_late & CANNABIDIOL_TERMS)}'),
+     'PASS' if s4_pass else 'PARTIAL'),
     ('§5 Post-Bill vocabulary turns commercial/product',
-     'see §5 keyness table',
-     'PASS'),
+     f'post_top10 ∩ cannabidiol={sorted(_top10_post & CANNABIDIOL_TERMS)}',
+     'PASS' if s5_pass else 'PARTIAL'),
     ('§6 Burst in cannabidiol era (window 2014 OR 2018Q4-2019)',
-     f'observed burst {burst_win} (overlaps 2018Q4-2019)',
-     'PASS'),
+     f'observed burst {burst_win} (cannabidiol-era: {b0 is not None and str(b0["start"]) >= "2014"})',
+     'PASS' if s6_pass else 'FAIL'),
     ('§6b District sense declines monotonically (PRE-REG: AU-only markers)',
      (f'PRE-REG AU: rho={rho_au:+.2f}, dominance {win_au[0]} -> {win_au[1]} | '
       f'POST-HOC multi-locale: rho={rho_multi:+.2f}, dominance {win_multi[0]} -> {win_multi[1]} | '
       'disjoint from §6 burst (2016Q4-2019Q4)' if win_au[0] is not None else
       f'PRE-REG AU: rho={rho_au:+.2f}, no dominance window'),
-     'PASS' if rho_au < -0.5 else 'PARTIAL'),
+     'PASS' if rho_au < TH_RHO_DECLINE else 'PARTIAL'),
     ('§7 Farm Bill raised commerce-marker rate (CrI excludes zero)',
-     f'CrI straddles zero; P(no effect)=0.16; boom led the Bill (§6)',
-     'FAIL (pre-registered falsifier; honestly recorded)'),
+     (f'avg_effect={_re_sb.search(r"avg effect:\s+([-+0-9.eE]+)", _imp_s).group(1)}; '
+      f'CrI=[{s7_ci_lo:+.4f}, {s7_ci_hi:+.4f}]; '
+      f'P(no effect)={s7_p_no_effect:.3f}; '
+      f'excludes_zero={s7_excludes_zero}; '
+      f'boom led the Bill (§6 onset {burst_win.split(" ")[0] if b0 is not None else "n/a"})'),
+     s7_verdict),
     ('§8 Health-claim / commerce collocates emerge late',
-     'late collocates: cbdoil, gummy, cbdedible, cbdvape, 1000mg, pets, ...',
-     'PASS'),
+     f'late_top15 ∩ cannabidiol={sorted(_late_collocates & CANNABIDIOL_TERMS)}',
+     'PASS' if s8_pass else 'PARTIAL'),
     ('AUDIT §9.1 Shuffled-label null collapses |G^2|',
      f'observed {obs_max:.0f} vs 95th-pct null {p95:.0f}: {obs_max/p95:.0f}x',
-     'PASS'),
+     'PASS' if obs_max / p95 > 10 else 'PARTIAL'),
     ('AUDIT §9.2 Top-10 account drop sensitivity',
-     (f'top-10 overlap = {overlap}/10; district/cannabidiol split intact, '
-      'but some hashtag-driven commerce terms (buycbd, cbdedibles) are account-driven'),
-     'PASS' if overlap >= 8 else 'PARTIAL (informative)'),
-    ('AUDIT §9.3 min_count sensitivity', 'top-3 early & late stable across {20,50,100,200}',
-     'PASS'),
+     (f'top-10 overlap = {overlap}/10; substantive district/cannabidiol split survives, '
+      f'commerce-spam terms partially account-driven'),
+     'PASS' if overlap >= TH_TOP10_OVERLAP else 'PARTIAL (informative)'),
+    ('AUDIT §9.3 min_count sensitivity',
+     (f'early-set stable across mc={list(_s93_df["min_count"])}: {s93_early_stable}; '
+      f'late-set stable: {s93_late_stable}'),
+     'PASS' if s93_pass else 'PARTIAL'),
     ('AUDIT §9.4 Spearman monotonic-trend test', f'rho = {rho:+.2f}, p = {p_rho:.2g}',
-     'PASS' if rho > 0.7 else 'PARTIAL'),
+     'PASS' if rho > TH_RHO_TRAJECTORY else 'PARTIAL'),
     ('AUDIT §9.5 Burstiness s-sensitivity',
-     'burst remains in cannabidiol era across s in {1.5,2.0,2.5}; collapses at s=3.0',
-     'PASS (mild s-sensitivity, story robust)'),
+     (f'{s95_in_era}/{len(_s95)} s-values produce a cannabidiol-era burst; '
+      f'windows: {dict(zip(_s95["s"], _s95["first_window"]))}'),
+     'PASS' if s95_pass else 'PARTIAL'),
     ('AUDIT §9.5b Multi-term burstiness (hemp/gummies/vape)',
      f'{n_in_era}/{len(multi_burst_df)} terms with first burst in cannabidiol era',
-     'PASS' if n_in_era >= 2 else 'PARTIAL'),
-    ('AUDIT §9.5c Permuted-time null for n_bursts',
-     (f'preregistered expectation (shuffled ~= 0 bursts) CONTRADICTED; '
-      f'observed {obs_n_bursts} sustained vs permuted median {int(np.median(perm_nb))} '
-      f'scattered; n_bursts was the wrong metric (see §9.5c prose)'),
-     'FAIL (preregistered direction wrong; honestly recorded)'),
+     'PASS' if n_in_era >= TH_MULTI_BURST_K else 'PARTIAL'),
+    ('AUDIT §9.5c Permuted-time null for n_bursts (PRE-REG: shuffled ~ 0)',
+     (f'observed={obs_n_bursts} sustained; permuted median={int(np.median(perm_nb))} '
+      f'scattered; pre-reg predicted shuffled<= {TH_SHUFFLED_NB_MEDIAN}: '
+      f'{int(np.median(perm_nb)) <= TH_SHUFFLED_NB_MEDIAN}'),
+     ('PASS' if int(np.median(perm_nb)) <= TH_SHUFFLED_NB_MEDIAN
+      else 'FAIL (preregistered direction wrong; honestly recorded)')),
     ('AUDIT §9.5d Burstiness gamma + n_states sensitivity',
      f'{n_overlap}/{len(gns_df)} (gamma, n_states) cells produce a burst overlapping 2016Q4-2019Q4',
      'PASS' if n_overlap >= 7 else 'PARTIAL'),
@@ -1849,13 +1943,43 @@ deeper look.
 # §10 verdict to land alongside the others — so we re-print scoreboard
 # with the new row appended at the end.)
 A(code(r"""
+# Strengthened PASS condition (audit v1 concern 6.4):
+# Previously: PASS if >=1 district-era topic AND >=1 cannabidiol-era topic
+# (trivially satisfied by any non-degenerate clustering over a 10-year span).
+# Now: PASS only if district-era topics CONTAIN district-sense vocabulary
+# AND cannabidiol-era topics CONTAIN cannabidiol-commerce vocabulary
+# in their top-6 c-TF-IDF words. Content-conditional, not just temporal.
+
+_BT_DISTRICT = {'sydney', 'melbourne', 'brisbane', 'perth', 'jobs',
+                'parking', 'traffic', 'office', 'johannesburg',
+                'pretoria', 'durban', 'auckland', 'cape', 'town'}
+_BT_CANNABIDIOL = {'oil', 'hemp', 'gummies', 'vape', 'cbdoil', 'cbdvape',
+                   'cbdgummies', 'cbdedibles', 'cbdstore', 'buycbd', 'mg',
+                   'cbg', 'cbdcandy', 'cbdoils', 'cannabidiol', 'cannabis',
+                   'products', 'thc', 'cannabinoids'}
+
+_bt_district_era_with_district_words = sum(
+    1 for r in topic_era_df.itertuples()
+    if r.era.startswith('2011-2014')
+    and len(set(w for w, _ in topic_model.get_topic(r.Topic)[:6]) & _BT_DISTRICT) >= 1)
+_bt_cbd_era_with_cbd_words = sum(
+    1 for r in topic_era_df.itertuples()
+    if r.era.startswith('2018-2021')
+    and len(set(w for w, _ in topic_model.get_topic(r.Topic)[:6]) & _BT_CANNABIDIOL) >= 1)
+_bt_strong_pass = (_bt_district_era_with_district_words >= 1
+                   and _bt_cbd_era_with_cbd_words >= 1)
+_bt_temporal_only_pass = (n_district_era >= 1 and n_cannabidiol_era >= 1)
+
 scoreboard_full = pd.concat([scoreboard, pd.DataFrame([{
-    'Check': '§10 BERTopic is consistent with the sense shift',
-    'Observed': (f'top-8 topics: {n_district_era} district-era + '
-                 f'{n_cannabidiol_era} cannabidiol-era median years; '
+    'Check': '§10 BERTopic content-conditional sense-shift test',
+    'Observed': (f'top-8: {n_district_era} district-era topics ({_bt_district_era_with_district_words} '
+                 f'contain district vocab in top-6), {n_cannabidiol_era} cannabidiol-era topics '
+                 f'({_bt_cbd_era_with_cbd_words} contain cannabidiol vocab in top-6); '
                  f'noise = {100*n_noise/len(bt_sample):.0f}%'),
-    'Verdict': ('PASS' if (n_district_era >= 1 and n_cannabidiol_era >= 1)
-                else 'PARTIAL'),
+    'Verdict': ('PASS (content-conditional)' if _bt_strong_pass
+                else ('PARTIAL (temporal split only; topics do not contain expected vocab)'
+                      if _bt_temporal_only_pass
+                      else 'FAIL (no temporal sense separation)')),
 }])], ignore_index=True)
 scoreboard_full
 """))
