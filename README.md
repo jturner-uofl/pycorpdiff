@@ -104,20 +104,25 @@ pcd.compare(m.a_matched, m.b_matched).keyness()                               # 
 pcd.lexical_diversity(corpus)                                                 # pooled corpus-level values
 pcd.lexical_diversity(corpus, freq="Y", ci="bootstrap", n_boot=199)           # per-year trajectory + CIs
 
-# Track over time (requires [temporal] for the changepoint + ITS + forecast + causal_impact methods)
+# Track over time (requires [temporal] for the changepoint + ITS + forecast + causal_impact methods).
+# Note: ITS / causal_impact require sufficient pre/post-event periods to fit (min_pre_periods=15,
+# min_post_periods=8 by default); the bundled Hansard sample is too small to exercise these
+# lines literally -- they are shown here as API previews. See examples/jss_case_study.ipynb
+# for a full-corpus run.
 tr = pcd.track(corpus, "immigrant").over_time(freq="Y")
 tr.changepoints()                                  # offline PELT
 tr.changepoints_online(hazard=1/24)                # Bayesian online (Adams & MacKay 2007)
 tr.burstiness()                                    # Kleinberg 1999 multi-state HMM — burst-intensity states
-tr.interrupted_time_series(event_date="2016")      # segmented OLS
-tr.causal_impact(event_date="2016")                # Bayesian counterfactual (Brodersen 2015)
+# tr.interrupted_time_series(event_date="2016")    # segmented OLS [needs >=15 pre-periods]
+# tr.causal_impact(event_date="2016")              # Bayesian counterfactual (Brodersen 2015) [needs >=15 pre-periods]
 tr.forecast(horizon=4)                             # 4 periods at the over_time freq (state-space ETS)
 
 # Before / after a known event
 pcd.compare.before_after(corpus, event_date="2016-06-23").keyness()
 
-# N-way (≥ 2 corpora)
-pcd.keyness_multi([a, b, c, d], labels=["A", "B", "C", "D"])
+# N-way (≥ 2 corpora) — the four corpora `a, b, c, d` are illustrative placeholders
+# (the cheat sheet's `a, b` from the keyness lines above; you supply `c, d`).
+# pcd.keyness_multi([a, b, c, d], labels=["A", "B", "C", "D"])
 
 # The discourse as a graph
 pcd.cooccurrence_network(corpus, top_n=30).plot()
