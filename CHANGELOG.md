@@ -25,7 +25,7 @@ results change.
   values (tooltips, ARIA labels) are unaffected; only the rendered
   tick text changes.
 
-### Hardened (JSS case study)
+### Hardened (asylum case study)
 
 - **Uniform, larger chart sizing.** All case-study charts are sized
   to a consistent ~1100 px width (up from a mix of 600-820 px). An
@@ -63,7 +63,7 @@ results change.
 
 ## [0.1.0a24]
 
-A package warning-noise fix plus two JSS case-study presentation
+A package warning-noise fix plus two asylum case-study presentation
 improvements. No analytical results change.
 
 ### Fixed (package surface)
@@ -81,7 +81,7 @@ improvements. No analytical results change.
   (leave-one-year-out, placebo sweeps) no longer produce a wall of
   red.
 
-### Hardened (JSS case study)
+### Hardened (asylum case study)
 
 - **§5.8 causal-impact cells suppress residual warning noise and
   report convergence honestly.** The cells now wrap fitting in
@@ -103,7 +103,7 @@ improvements. No analytical results change.
 ## [0.1.0a23]
 
 One substantive package feature (speaker-clustered bootstrap) plus
-four JSS case-study rigour items, in response to a fourth-round
+four asylum case-study rigour items, in response to a fourth-round
 reviewer audit. The package feature corrects a real understatement
 of CI width on hierarchical corpora.
 
@@ -123,7 +123,7 @@ of CI width on hierarchical corpora.
   ``test_cluster_col_recorded_in_params``,
   ``test_cluster_col_missing_column_raises``.
 
-### Hardened (JSS case study)
+### Hardened (asylum case study)
 
 - **§5.3 demonstrates the speaker-clustered bootstrap.** The headline
   Con-vs-Lab keyness now reports both IID and speaker-clustered CIs so
@@ -178,11 +178,11 @@ software, and belong to a separate computational-social-science paper:
 
 ## [0.1.0a22]
 
-Focused tightening pass on the JSS narrative-audit case study based
+Focused tightening pass on the narrative-audit case study based
 on reviewer-#3 feedback. Four notebook-level changes; no package
 surface changes.
 
-### Hardened (JSS case study)
+### Hardened (asylum case study)
 
 - **Version-string consistency.** Pinned-version prose was lagging
   behind the executed manifest (0.1.0a19 prose / 0.1.0a21 output);
@@ -223,14 +223,14 @@ surface changes.
 
 ## [0.1.0a21]
 
-Inferential-hardening pass on the JSS narrative-audit case study, in
+Inferential-hardening pass on the narrative-audit case study, in
 response to the second-round reviewer audit. Seven new sub-sections
 address corpus-conditioning, placebo-date sweeps, embedding stability,
 party-switcher leverage, chamber stratification, and leave-one-year-out
 robustness on the causal-impact section. No breaking changes to the
 package surface.
 
-### Hardened (JSS case study)
+### Hardened (asylum case study)
 
 - **§5.0 Scope and corpus conditioning.** New framing section
   immediately after §0c that names explicitly what the case study
@@ -293,7 +293,7 @@ package surface.
 ## [0.1.0a20]
 
 One substantive analytical addition driven by an audit finding in the
-JSS case study, plus the corresponding case-study fix. No breaking
+asylum case study, plus the corresponding case-study fix. No breaking
 changes.
 
 ### Added
@@ -306,7 +306,7 @@ changes.
   inference). The new option returns CIs with family-wise (1 − α)
   coverage across the whole vocabulary — slightly wider than per-term
   CIs, but valid to report on the top-ranked terms. Discovered via the
-  §5.3d Monte-Carlo coverage check on the JSS narrative-audit
+  §5.3d Monte-Carlo coverage check on the narrative-audit
   notebook, which showed per-term percentile CIs on top-ranked terms
   covered zero in only 63 % of known-null replicates (vs nominal
   95 %). With ``simultaneous_ci=True`` the coverage on the top term
@@ -314,7 +314,7 @@ changes.
   ``test_simultaneous_ci_widens_per_term_ci`` and
   ``test_simultaneous_ci_recorded_in_params``.
 
-### Hardened (JSS case study)
+### Hardened (asylum case study)
 
 - **§5.3 keyness now uses `simultaneous_ci=True`** so the headline CIs
   reported in the case-study table are valid for the top-ranked
@@ -334,10 +334,10 @@ changes.
 
 ## [0.1.0a19]
 
-Two visual-quality fixes on the JSS case study, one of them backed by
+Two visual-quality fixes on the asylum case study, one of them backed by
 a small package API addition. No breaking changes.
 
-### Fixed (JSS case study)
+### Fixed (asylum case study)
 
 - **§5.11 heatmap was rendering all-NaN** because the post-`reset_index`
   rates DataFrame was built with `pd.DataFrame({...}, index=term_series)`
@@ -361,7 +361,7 @@ a small package API addition. No breaking changes.
 ## [0.1.0a18]
 
 A data-quality bug fix on ``fetch_hansard`` and a substantially
-hardened JSS narrative-audit case study. No breaking changes.
+hardened narrative-audit case study. No breaking changes.
 
 ### Fixed
 
@@ -378,7 +378,7 @@ hardened JSS narrative-audit case study. No breaking changes.
   (``test_default_parser_strips_html_markup_from_text``,
   ``test_default_parser_handles_hansard_table_wrapper``).
 
-### Hardened (JSS case study)
+### Hardened (asylum case study)
 
 The ``examples/jss_case_study.ipynb`` notebook is substantially
 expanded for paper-grade rigour:
@@ -451,7 +451,7 @@ the public API; a few non-breaking additions to ``fetch_hansard``.
   ``party``, ``date``, ``debate_title``, ``hansard_id``.) The two new
   metadata columns enable Commons-vs-Lords filtering and
   per-member-id enrichment without re-fetching.
-- **JSS narrative-audit case study.** New example notebook
+- **narrative-audit case study.** New example notebook
   ``examples/jss_case_study.ipynb`` plus its data-prep helper
   ``examples/_cache/build_hansard_asylum.py`` and a cached parquet
   of 9,000 spoken contributions on *asylum* from UK Hansard

@@ -618,7 +618,7 @@ class TemporalTrajectory:
             Trend specification — usually ``"local linear trend"`` (the
             default) or ``"local level"``.
         min_pre_periods, min_post_periods, max_pre_post_ratio
-            Calibration safety rails (new in 0.1.0a21). The JSS
+            Calibration safety rails (new in 0.1.0a21). The asylum case study (examples/jss_case_study.ipynb)
             case-study §5.8c placebo sweep and §5.8e leave-one-year-out
             tests surfaced empirical failure modes of BSTS counterfactual
             analysis under (a) short pre-event windows, (b) short

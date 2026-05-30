@@ -155,7 +155,7 @@ def test_event_after_last_period_raises() -> None:
 @_quiet
 def test_min_pre_periods_default_blocks_underpowered_run() -> None:
     """Default min_pre_periods=15 blocks runs that would silently
-    under-power BSTS (the JSS §5.8e leverage finding)."""
+    under-power BSTS (the asylum case study §5.8e leverage finding)."""
     idx = pd.period_range("2005", periods=20, freq="Y")
     s = pd.Series(np.arange(20) * 0.01, index=idx)
     # Event at 2015 → pre=10, post=10. 10 < default min_pre_periods=15.
@@ -170,7 +170,7 @@ def test_min_pre_periods_default_blocks_underpowered_run() -> None:
 @_quiet
 def test_min_post_periods_blocks_short_tail() -> None:
     """Default min_post_periods=8 blocks runs that would fit BSTS
-    to a tiny tail (the JSS §5.8c placebo finding for end-of-series
+    to a tiny tail (the asylum case study §5.8c placebo finding for end-of-series
     events)."""
     idx = pd.period_range("2000", periods=24, freq="Y")
     s = pd.Series(np.arange(24) * 0.01, index=idx)

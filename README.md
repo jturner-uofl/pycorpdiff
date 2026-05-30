@@ -199,7 +199,7 @@ HTML artefacts** (the canonical read versions) and to nbviewer fallbacks
 for the `.ipynb` source. Notebook sources still live under `examples/`
 for re-execution.
 
-- **JSS case study — lexicalising asylum in UK Parliament, 2010-2023.**
+- **asylum case study — lexicalising asylum in UK Parliament, 2010-2023.**
   [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/jss_case_study.html)
   · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/jss_case_study.ipynb)
   · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/jss_case_study.ipynb)

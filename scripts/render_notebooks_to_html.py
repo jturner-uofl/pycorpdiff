@@ -52,7 +52,7 @@ TITLES = {
     "examples/pycorpdiff_showcase.ipynb": "pycorpdiff -- the showcase",
     "examples/pycorpdiff_tutorial.ipynb": "pycorpdiff -- the tutorial",
     "examples/hansard_demo.ipynb": "pycorpdiff -- the Hansard demo",
-    "examples/jss_case_study.ipynb": "pycorpdiff -- the JSS narrative-audit case study",
+    "examples/jss_case_study.ipynb": "pycorpdiff -- the narrative-audit case study",
 }
 OUTPUT_DIR = Path("docs/rendered")
 

@@ -139,7 +139,7 @@ def causal_impact(
     pre-event windows (under-fit prior trend), (2) too-short post-
     event windows (over-fit to a tiny tail), and (3) very asymmetric
     pre / post windows (the model effectively detects "where the
-    cutpoint sits in the series" rather than "the event"). The JSS
+    cutpoint sits in the series" rather than "the event"). The asylum case study (examples/jss_case_study.ipynb)
     case-study §5.8c placebo sweep + §5.8e leave-one-year-out tests
     surfaced both failure modes empirically. The defaults block
     obviously-under-powered calls; callers who know what they are
@@ -177,7 +177,7 @@ def causal_impact(
         Minimum number of post-event observations required. Default
         ``8``: below this, the average-effect statistic averages over
         too few periods to be meaningful, and the model can fit a
-        spurious step change to a tiny tail of data (see the JSS
+        spurious step change to a tiny tail of data (see the asylum case study (examples/jss_case_study.ipynb)
         case-study §5.8c, where placebo events with post-windows of
         5 quarters returned P(no effect) = 0.03 despite no real event).
     max_pre_post_ratio
@@ -238,7 +238,7 @@ def causal_impact(
             f"causal_impact pre-event window too short: got {n_pre} observations "
             f"(event_date={event_date!r}); need >= min_pre_periods={min_pre_periods}. "
             "BSTS counterfactual fit is unreliable below ~15 pre-event observations "
-            "(see JSS case-study §5.8e). Either choose an event with more pre-history "
+            "(see examples/jss_case_study.ipynb §5.8e). Either choose an event with more pre-history "
             "or lower min_pre_periods explicitly if you have a calibration reason."
         )
     if n_post < min_post_periods:
@@ -246,7 +246,7 @@ def causal_impact(
             f"causal_impact post-event window too short: got {n_post} observations "
             f"(event_date={event_date!r}); need >= min_post_periods={min_post_periods}. "
             "Average-effect estimates over very short post-event windows are dominated "
-            "by tail noise (see JSS case-study §5.8c, where 5-quarter post-windows "
+            "by tail noise (see examples/jss_case_study.ipynb §5.8c, where 5-quarter post-windows "
             "produced spurious 'effects' at placebo dates). Either choose an event "
             "earlier in the series or lower min_post_periods explicitly."
         )
@@ -256,7 +256,7 @@ def causal_impact(
             f"causal_impact pre/post asymmetry too large: pre={n_pre}, post={n_post}, "
             f"ratio={ratio:.1f} > max_pre_post_ratio={max_pre_post_ratio}. "
             "Very asymmetric windows let BSTS fit a spurious 'step change' to the "
-            "smaller side (see JSS case-study §5.8c). Pick an event closer to the "
+            "smaller side (see examples/jss_case_study.ipynb §5.8c). Pick an event closer to the "
             "middle of the series or relax max_pre_post_ratio."
         )
 
