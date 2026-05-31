@@ -1945,19 +1945,27 @@ s8_late_has_cannabidiol = len(_late_collocates & CANNABIDIOL_TERMS)
 s8_pass = s8_late_has_cannabidiol >= 2
 
 # --- §4a bootstrap-CI evidence ---
+# pycorpdiff >= 0.1.0a26 returns both per-term (g2_ci_lower/upper) AND
+# simultaneous (g2_ci_lower_simultaneous/upper_simultaneous) columns from
+# a single keyness(simultaneous_ci=True) call. Older versions returned
+# only one column pair under the unprefixed names; we assert here so a
+# downgrade fails loudly rather than silently degrading the scoreboard.
 _ek_ci_for_sb = ekey_ci.to_df()
 _ek_ci_for_sb = _ek_ci_for_sb[_ek_ci_for_sb['p_adjusted'].notna()]
+for _required in ('g2_ci_lower', 'g2_ci_upper',
+                  'g2_ci_lower_simultaneous', 'g2_ci_upper_simultaneous'):
+    assert _required in _ek_ci_for_sb.columns, (
+        f'§4a scoreboard requires pycorpdiff >= 0.1.0a26 for {_required}; '
+        f'installed {pcd.__version__} returned columns {list(_ek_ci_for_sb.columns)}'
+    )
 s4a_ci_excludes_zero = int(((_ek_ci_for_sb['g2_ci_lower'] > 0) | (_ek_ci_for_sb['g2_ci_upper'] < 0)).sum())
 s4a_total = len(_ek_ci_for_sb)
 s4a_top10_ci_excl = int(((_ek_ci_for_sb.head(10)['g2_ci_lower'] > 0) |
                          (_ek_ci_for_sb.head(10)['g2_ci_upper'] < 0)).sum())
-if 'g2_ci_lower_simultaneous' in _ek_ci_for_sb.columns:
-    s4a_sim_excludes_zero = int(((_ek_ci_for_sb['g2_ci_lower_simultaneous'] > 0) |
-                                 (_ek_ci_for_sb['g2_ci_upper_simultaneous'] < 0)).sum())
-    s4a_top10_sim_excl = int(((_ek_ci_for_sb.head(10)['g2_ci_lower_simultaneous'] > 0) |
-                              (_ek_ci_for_sb.head(10)['g2_ci_upper_simultaneous'] < 0)).sum())
-else:
-    s4a_sim_excludes_zero = s4a_top10_sim_excl = -1
+s4a_sim_excludes_zero = int(((_ek_ci_for_sb['g2_ci_lower_simultaneous'] > 0) |
+                             (_ek_ci_for_sb['g2_ci_upper_simultaneous'] < 0)).sum())
+s4a_top10_sim_excl = int(((_ek_ci_for_sb.head(10)['g2_ci_lower_simultaneous'] > 0) |
+                          (_ek_ci_for_sb.head(10)['g2_ci_upper_simultaneous'] < 0)).sum())
 
 # --- §4b clustered-bootstrap evidence ---
 _ek_cl_for_sb = ekey_cluster.to_df()

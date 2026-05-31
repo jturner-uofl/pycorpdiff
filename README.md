@@ -35,7 +35,7 @@ points — one-line adapters, no plugin registry. The base install's
 direct runtime dependencies are `numpy`, `pandas`, `scipy`, and
 `pyarrow`; everything else is opt-in via extras.
 
-> **Status: alpha (0.1.0a25).** Public API is stable for the features
+> **Status: alpha (0.1.0a26).** Public API is stable for the features
 > described below; on PyPI as `pip install pycorpdiff`. Alpha releases
 > are intentionally rapid (audit-driven), each shipping fixes and tests
 > behind the published version; dependency pins will tighten at beta.

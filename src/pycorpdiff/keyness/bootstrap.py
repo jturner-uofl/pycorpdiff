@@ -111,12 +111,18 @@ def bootstrap_g2_ci(
     Returns
     -------
     pandas.DataFrame
-        Indexed by term, with columns ``g2_ci_lower`` and
-        ``g2_ci_upper``. Under the default ``simultaneous=False``,
-        these are the empirical α/2 and 1 - α/2 quantiles of each
-        term's signed-G² bootstrap distribution. Under
-        ``simultaneous=True``, they are the centred bounds of the
-        studentized-max simultaneous CI.
+        Indexed by term. Always contains ``g2_ci_lower`` and
+        ``g2_ci_upper`` — the empirical α/2 and 1 - α/2 quantiles of
+        each term's signed-G² bootstrap distribution (per-term
+        percentile CI). When ``simultaneous=True``, additionally
+        contains ``g2_ci_lower_simultaneous`` and
+        ``g2_ci_upper_simultaneous`` — the centred bounds of the
+        Westfall-Young studentized-max simultaneous CI with
+        family-wise (1 - α) coverage across the vocabulary. The
+        simultaneous bounds are wider than per-term and are what to
+        report for the *top-ranked* row of a sorted keyness table;
+        per-term bounds are what to report for any single term
+        named before observing the data.
 
     Raises
     ------
@@ -195,11 +201,18 @@ def bootstrap_g2_ci(
 
     alpha = 1.0 - ci_level
 
-    if not simultaneous:
-        # Per-term percentile CI (calibrated for any fixed term)
-        lower = np.quantile(bootstrap_dist, alpha / 2.0, axis=0)
-        upper = np.quantile(bootstrap_dist, 1.0 - alpha / 2.0, axis=0)
-    else:
+    # Per-term percentile CI (always returned). Calibrated for any
+    # single term named in advance; anti-conservative for the
+    # top-ranked row of a sorted keyness table.
+    per_term_lower = np.quantile(bootstrap_dist, alpha / 2.0, axis=0)
+    per_term_upper = np.quantile(bootstrap_dist, 1.0 - alpha / 2.0, axis=0)
+
+    out: dict[str, np.ndarray] = {
+        "g2_ci_lower": per_term_lower,
+        "g2_ci_upper": per_term_upper,
+    }
+
+    if simultaneous:
         # Westfall-Young studentized-max simultaneous CI.
         # For each bootstrap replicate, compute the per-term residual
         # (G²_{t,b} - mean_t) scaled by the per-term bootstrap SD,
@@ -207,20 +220,19 @@ def bootstrap_g2_ci(
         # terms. The (1 - α) quantile of those maxes is the critical
         # value q. Each term's simultaneous CI is then
         # mean_t ± q · sd_t, which has family-wise (1 - α) coverage
-        # across all terms (Westfall & Young 1993).
+        # across all terms (Westfall & Young 1993). When K = 1 (single
+        # term), the max-T distribution degenerates to the per-term
+        # distribution and the simultaneous CI equals the per-term CI.
         means = bootstrap_dist.mean(axis=0)
         sds = bootstrap_dist.std(axis=0, ddof=1)
         sds_safe = np.where(sds > 0, sds, 1.0)
         z = (bootstrap_dist - means[None, :]) / sds_safe[None, :]
         max_abs_z = np.abs(z).max(axis=1)
         q_crit = float(np.quantile(max_abs_z, ci_level))
-        lower = means - q_crit * sds_safe
-        upper = means + q_crit * sds_safe
+        out["g2_ci_lower_simultaneous"] = means - q_crit * sds_safe
+        out["g2_ci_upper_simultaneous"] = means + q_crit * sds_safe
 
-    return pd.DataFrame(
-        {"g2_ci_lower": lower, "g2_ci_upper": upper},
-        index=all_terms,
-    )
+    return pd.DataFrame(out, index=all_terms)
 
 
 def _cluster_positions(

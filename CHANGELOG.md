@@ -4,6 +4,41 @@ All notable changes to `pycorpdiff` are documented in this file. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.0a26]
+
+Bug-fix release surfaced by the CBD case-study iteration-2 external
+audit. The simultaneous-CI return contract was wrong: under
+`simultaneous_ci=True`, pycorpdiff replaced the per-term percentile
+CI columns with the simultaneous bounds, returning only one pair
+under the same column names. Code that asked for both perspectives
+in one call (read top-ranked rows with simultaneous CIs *and* report
+per-term CIs for pre-specified terms) silently lost the per-term
+inference because the column names did not change.
+
+### Changed (BREAKING — alpha contract)
+
+- **`Comparison.keyness(simultaneous_ci=True)` now returns both
+  per-term AND simultaneous CI columns.** New column contract:
+  - `simultaneous_ci=False` (default): only `g2_ci_lower` /
+    `g2_ci_upper` are produced — per-term percentile bounds, as
+    before.
+  - `simultaneous_ci=True`: per-term columns `g2_ci_lower` /
+    `g2_ci_upper` remain populated, *and* new columns
+    `g2_ci_lower_simultaneous` / `g2_ci_upper_simultaneous` carry
+    the Westfall-Young studentized-max bounds.
+
+  Old behaviour put the simultaneous bounds in `g2_ci_lower` /
+  `g2_ci_upper` when `simultaneous_ci=True`, masking the per-term
+  bounds. Downstream code that read `g2_ci_lower` after passing
+  `simultaneous_ci=True` to get simultaneous bounds will need to
+  rename to `g2_ci_lower_simultaneous`. The default
+  (`simultaneous_ci=False`) is unchanged.
+
+  Existing test `test_simultaneous_ci_widens_per_term_ci` updated
+  to read both column pairs off a single `simultaneous_ci=True`
+  call. New test `test_simultaneous_ci_returns_both_column_pairs`
+  asserts the new contract.
+
 ## [0.1.0a25]
 
 Chart-rendering polish on the visualisation layer. No analytical

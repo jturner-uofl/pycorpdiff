@@ -126,16 +126,21 @@ class Comparison:
             Confidence level in (0, 1) when ``ci="bootstrap"``.
             Default 0.95.
         simultaneous_ci
-            When ``ci="bootstrap"``: if ``False`` (default), per-term
-            percentile CIs (calibrated for any single fixed term);
-            if ``True``, Westfall-Young studentized-max simultaneous
-            CIs with family-wise (1 - α) coverage across the entire
-            vocabulary. Use ``simultaneous_ci=True`` when reporting
-            CIs on top-ranked terms (post-selection inference);
-            otherwise per-term CIs are anti-conservative on the
-            top of a sorted keyness table. See
-            ``docs/statistical-methods.md`` § "Simultaneous CIs"
-            for the derivation.
+            When ``ci="bootstrap"``: if ``False`` (default), only
+            the per-term percentile CI columns ``g2_ci_lower`` /
+            ``g2_ci_upper`` are returned (calibrated for any single
+            fixed term, anti-conservative on top-ranked rows of a
+            sorted keyness table). If ``True``, **additionally**
+            returns ``g2_ci_lower_simultaneous`` /
+            ``g2_ci_upper_simultaneous`` — Westfall-Young
+            studentized-max CIs with family-wise (1 - α) coverage
+            across the entire vocabulary; these are wider than
+            per-term and are the correct bounds to report for the
+            top-ranked rows of a sorted keyness table. The per-term
+            columns remain populated when ``simultaneous_ci=True``
+            so both inferential perspectives are available from a
+            single call. See ``docs/statistical-methods.md`` §
+            "Simultaneous CIs" for the derivation.
         cluster_col
             When ``ci="bootstrap"``: names a metadata column (e.g.
             ``"speaker"`` / ``"member"``) defining clusters of
@@ -235,6 +240,13 @@ class Comparison:
             )
             table["g2_ci_lower"] = ci_table["g2_ci_lower"].reindex(table.index)
             table["g2_ci_upper"] = ci_table["g2_ci_upper"].reindex(table.index)
+            if "g2_ci_lower_simultaneous" in ci_table.columns:
+                table["g2_ci_lower_simultaneous"] = (
+                    ci_table["g2_ci_lower_simultaneous"].reindex(table.index)
+                )
+                table["g2_ci_upper_simultaneous"] = (
+                    ci_table["g2_ci_upper_simultaneous"].reindex(table.index)
+                )
         elif ci != "none":
             raise ValueError(
                 f"ci must be 'none' or 'bootstrap'; got {ci!r}"

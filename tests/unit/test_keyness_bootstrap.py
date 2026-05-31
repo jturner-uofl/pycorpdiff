@@ -209,13 +209,20 @@ def test_bootstrap_default_params_are_none_when_ci_off() -> None:
     assert result.params["bootstrap_seed"] is None
 
 
-def test_simultaneous_ci_widens_per_term_ci() -> None:
-    """Simultaneous CIs are at least as wide as per-term CIs.
+def test_simultaneous_ci_returns_both_column_pairs() -> None:
+    """``simultaneous_ci=True`` returns per-term AND simultaneous columns.
 
-    Studentized-max CIs have family-wise coverage across the whole
-    vocabulary, so their width is bounded below by the per-term
-    percentile CI width. Equal width only when n_boot is small and
-    the max-z quantile happens to coincide with the per-term quantile.
+    The API contract (0.1.0a26 onwards) is:
+      * ``simultaneous_ci=False``: returns ``g2_ci_lower`` and
+        ``g2_ci_upper`` only (the per-term percentile CI).
+      * ``simultaneous_ci=True``: returns the per-term columns
+        unchanged AND adds ``g2_ci_lower_simultaneous`` /
+        ``g2_ci_upper_simultaneous`` (the Westfall-Young
+        studentized-max simultaneous CI).
+
+    This way a single call gives both inferential perspectives so
+    the user can report per-term CIs for any pre-specified term and
+    simultaneous CIs for the top-ranked rows of a sorted table.
     """
     a, b = _strong_signal_corpora()
     result_per_term = pcd.compare(a, b).keyness(
@@ -226,11 +233,38 @@ def test_simultaneous_ci_widens_per_term_ci() -> None:
         min_count=1, ci="bootstrap", n_boot=199, bootstrap_seed=0,
         simultaneous_ci=True,
     )
+    # simultaneous_ci=False: only per-term columns present
+    assert "g2_ci_lower" in result_per_term.table.columns
+    assert "g2_ci_upper" in result_per_term.table.columns
+    assert "g2_ci_lower_simultaneous" not in result_per_term.table.columns
+    assert "g2_ci_upper_simultaneous" not in result_per_term.table.columns
+    # simultaneous_ci=True: both pairs present
+    assert "g2_ci_lower" in result_simul.table.columns
+    assert "g2_ci_upper" in result_simul.table.columns
+    assert "g2_ci_lower_simultaneous" in result_simul.table.columns
+    assert "g2_ci_upper_simultaneous" in result_simul.table.columns
+
+
+def test_simultaneous_ci_widens_per_term_ci() -> None:
+    """Simultaneous CIs are at least as wide as per-term CIs.
+
+    Studentized-max CIs have family-wise coverage across the whole
+    vocabulary, so their width is bounded below by the per-term
+    percentile CI width. Both columns are returned from a single
+    ``simultaneous_ci=True`` call (0.1.0a26 contract); width
+    comparison reads them off the same table.
+    """
+    a, b = _strong_signal_corpora()
+    result = pcd.compare(a, b).keyness(
+        min_count=1, ci="bootstrap", n_boot=199, bootstrap_seed=0,
+        simultaneous_ci=True,
+    )
     per_term_width = (
-        result_per_term.table["g2_ci_upper"] - result_per_term.table["g2_ci_lower"]
+        result.table["g2_ci_upper"] - result.table["g2_ci_lower"]
     )
     simul_width = (
-        result_simul.table["g2_ci_upper"] - result_simul.table["g2_ci_lower"]
+        result.table["g2_ci_upper_simultaneous"]
+        - result.table["g2_ci_lower_simultaneous"]
     )
     # Mean simultaneous width should be strictly greater than per-term
     # (max-z quantile is > per-term 97.5 percentile by construction
