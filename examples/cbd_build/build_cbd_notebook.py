@@ -213,7 +213,7 @@ prereg = pd.DataFrame([
      'state >= 1 in 2014 OR 2018Q4-2019'),
     ('7 Causal impact at 2018-12-20 Farm Bill',
      'Farm Bill raised the cannabidiol-commerce-marker rate',
-     'causal_impact CrI excludes zero OR PELT changepoint near 2018Q4'),
+     'causal_impact CI excludes zero OR PELT changepoint near 2018Q4'),
     ('8 Misinformation collocation shift',
      'Health-claim collocates of "cbd" emerge over time',
      'late collocates include cure / cancer / pain / anxiety / miracle'),
@@ -986,7 +986,9 @@ A(md(r"""
 *Empirical question:* did the 2018-12-20 Farm Bill raise the
 cannabidiol-commerce-marker rate beyond its prior trend?
 
-Bayesian structural time-series counterfactual (Brodersen et al. 2015).
+state-space counterfactual (MLE-fit local-linear-trend; the Brodersen
+et al. 2015 *framework* with frequentist inference — no Bayesian prior
+or MCMC. See `pycorpdiff.temporal.causal_impact` module docstring).
 With 127 months of history the pre-event window is well above the
 stability threshold.
 """))
@@ -1001,14 +1003,14 @@ impact.plot(width=1100, height_per_panel=240)
 """))
 A(md(r"""
 **Validation.** If the Farm Bill accelerated the commercial framing, the
-post-event rate of *oil* should exceed the BSTS counterfactual with a
-credible interval excluding zero. But § 6 already places the *oil* burst
+post-event rate of *oil* should exceed the state-space counterfactual with a
+interval excluding zero. But § 6 already places the *oil* burst
 onset *before* the Bill, so the prior expectation is mixed: much of the
 commercial framing may have been priced in by the time the law passed,
 and the structural model cannot credit the Bill for a rise already
 underway.
 
-**Falsifier (and likely outcome).** A credible interval straddling zero,
+**Falsifier (and likely outcome).** A interval straddling zero,
 or a negative point estimate, means the Bill left no rate increase
 *beyond the trend already in motion*. Given the early burst onset, that
 is the expected reading — the boom **led** the legislation. This is the
@@ -1056,9 +1058,9 @@ Each subsection stress-tests one section above with a method designed
 to break it: a shuffled-label null for keyness, a top-user leverage
 check, parameter-sensitivity sweeps, a placebo-date sweep for the
 causal-impact test, and — most importantly — a **synthetic-signal
-injection** for § 7 that proves the BSTS detector actually fires when
-there *is* an effect, so the § 7 null is credible rather than a dead
-test.
+injection** for § 7 that proves the causal_impact detector actually fires when
+there *is* an effect, so the § 7 null is informative rather than a
+dead test.
 
 The audit verdicts are tabled in § 9.8 alongside the pre-registered
 predictions from § 0b.
@@ -1155,19 +1157,33 @@ list above with caution before headlining it in §4.
 
 # ----- 9.1c Coverage MC under known null -----
 A(md(r"""
-### 9.1c Empirical coverage of the bootstrap CI under a known null
+### 9.1c Approximate-null coverage of the bootstrap CI under a heterogeneous-pool re-split
 
-A bootstrap CI is honest only if, when applied to two corpora that
-were independently drawn from the *same* distribution, the 95 % CI
-covers the true value (zero) approximately 95 % of the time. We
-construct that null by pooling early + late and re-splitting at random
-B_mc times; for each split we rerun the keyness with bootstrap CIs,
-and tally what fraction of *individual-term* CIs cover zero. Under a
-correctly-calibrated 95 % CI, this fraction should approach 0.95 from
-below.
+A bootstrap CI is honest only if, when applied to two corpora drawn
+from the *same* distribution, the 95 % CI covers the true value
+(zero) approximately 95 % of the time. A clean test of that property
+would re-split a *homogeneous* pool (e.g., two random halves of a
+single year) — what we do here is the cheaper proxy: we pool early
+(2011-12) + late (2019-20) and re-split labels at random B_mc times.
+For each split we rerun the keyness with bootstrap CIs and tally
+what fraction of *individual-term* CIs cover zero.
+
+**Honest caveat (added 0.1.0a27, iter-3 audit finding G.12).** Because
+the early and late cohorts differ in their underlying distribution
+(the entire study is about that contrast), random label permutation
+on the pooled corpus is **not** a homogeneous null. Per-term G²
+statistics still have expected value zero across permutations
+(label-symmetry holds), but the *variance* under this null is
+governed by between-cohort heterogeneity, not by intra-cohort
+sampling variability. A coverage figure near 0.95 therefore says
+"the bootstrap CI is approximately calibrated on this specific
+heterogeneous mixture under random label permutation" — not the
+stronger "the bootstrap CI is calibrated for inference within either
+cohort". A homogeneous-pool design (single-year random halves) is
+deferred to a later iteration.
 
 Subsample (~3000 docs per side) + small B_boot = 99 + B_mc = 20 keeps
-this tractable; finer bisection is deferred.
+this tractable.
 """))
 A(code(r"""
 import time as _time_cov
@@ -1545,7 +1561,7 @@ concentrate:
 The primary § 7 finding remains the row at 2018-12-20; the other rows
 are sensitivity analyses, reported as-found. If all candidates return a
 null, the § 7 "boom-led-the-Bill" reading is strengthened: no plausible
-respecification of the event date recovers a credible interval
+respecification of the event date recovers a interval
 excluding zero.
 """))
 A(code(r"""
@@ -1566,7 +1582,7 @@ with warnings.catch_warnings():
                                           level=0.95, seed=0)
             s = ci_r.summary()
             m_avg = re.search(r'avg effect:\s+([-+0-9.eE]+)', s)
-            m_ci = re.search(r'95% CrI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', s)
+            m_ci = re.search(r'95% CI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', s)
             m_p = re.search(r'P\(no effect\):\s+([0-9.]+)', s)
             ci_lo = float(m_ci.group(1)) if m_ci else float('nan')
             ci_hi = float(m_ci.group(2)) if m_ci else float('nan')
@@ -1577,23 +1593,23 @@ with warnings.catch_warnings():
                 'ci_lower': ci_lo,
                 'ci_upper': ci_hi,
                 'p_no_effect': float(m_p.group(1)) if m_p else float('nan'),
-                'CrI_excludes_zero': bool((ci_lo > 0) or (ci_hi < 0)),
+                'CI_excludes_zero': bool((ci_lo > 0) or (ci_hi < 0)),
             })
         except Exception as e:
             rows_real.append({
                 'event_date': d, 'description': label,
                 'avg_effect': float('nan'), 'ci_lower': float('nan'),
                 'ci_upper': float('nan'), 'p_no_effect': float('nan'),
-                'CrI_excludes_zero': False,
+                'CI_excludes_zero': False,
             })
             print(f'  {d} ({label}): skipped ({type(e).__name__}: {e})')
 real_df = pd.DataFrame(rows_real)
-n_real_sig = int(real_df['CrI_excludes_zero'].sum())
-print(f'\nCandidate effective dates with CrI excluding zero: {n_real_sig} / {len(real_df)}')
+n_real_sig = int(real_df['CI_excludes_zero'].sum())
+print(f'\nCandidate effective dates with CI excluding zero: {n_real_sig} / {len(real_df)}')
 real_df
 """))
 A(md(r"""
-**Verdict.** If 0 / 5 candidate dates produce a credible interval
+**Verdict.** If 0 / 5 candidate dates produce a interval
 excluding zero, no plausible event-date specification recovers a
 detectable post-event lift; § 7's null is robust to which "effective
 date" is used. Non-zero hits would prompt a substantive re-reading and
@@ -1607,7 +1623,7 @@ A(md(r"""
 § 7 returned a null at the real Farm Bill date. A worry would be that
 the detector returns a null at *every* date — i.e., it is dead. We try
 nine placebo dates spaced across the pre-event window. None should
-produce a credible interval excluding zero.
+produce a interval excluding zero.
 """))
 A(code(r"""
 import re
@@ -1623,7 +1639,7 @@ with warnings.catch_warnings():
                                           level=0.95, seed=0)
             s = ci_p.summary()
             m_avg = re.search(r'avg effect:\s+([-+0-9.eE]+)', s)
-            m_ci = re.search(r'95% CrI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', s)
+            m_ci = re.search(r'95% CI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', s)
             m_p = re.search(r'P\(no effect\):\s+([0-9.]+)', s)
             ci_lo = float(m_ci.group(1)) if m_ci else float('nan')
             ci_hi = float(m_ci.group(2)) if m_ci else float('nan')
@@ -1634,17 +1650,17 @@ with warnings.catch_warnings():
                 'ci_lower': ci_lo,
                 'ci_upper': ci_hi,
                 'p_no_effect': float(m_p.group(1)) if m_p else float('nan'),
-                'CrI_excludes_zero': bool(excludes_zero),
+                'CI_excludes_zero': bool(excludes_zero),
             })
         except Exception as e:
             rows_p.append({'placebo_date': d, 'avg_effect': float('nan'),
                            'ci_lower': float('nan'), 'ci_upper': float('nan'),
                            'p_no_effect': float('nan'),
-                           'CrI_excludes_zero': False})
+                           'CI_excludes_zero': False})
             print(f'  {d}: skipped ({type(e).__name__})')
 placebo_df = pd.DataFrame(rows_p)
-n_sig = int(placebo_df['CrI_excludes_zero'].sum())
-print(f'\nPlacebos with CrI excluding zero: {n_sig} / {len(placebo_df)}')
+n_sig = int(placebo_df['CI_excludes_zero'].sum())
+print(f'\nPlacebos with CI excluding zero: {n_sig} / {len(placebo_df)}')
 placebo_df
 """))
 A(md(r"""
@@ -1672,7 +1688,7 @@ with warnings.catch_warnings():
                                       level=0.95, seed=0)
             s = ci_m.summary()
             m_avg = re.search(r'avg effect:\s+([-+0-9.eE]+)', s)
-            m_ci = re.search(r'95% CrI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', s)
+            m_ci = re.search(r'95% CI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', s)
             m_p = re.search(r'P\(no effect\):\s+([0-9.]+)', s)
             ci_lo = float(m_ci.group(1)) if m_ci else float('nan')
             ci_hi = float(m_ci.group(2)) if m_ci else float('nan')
@@ -1682,24 +1698,24 @@ with warnings.catch_warnings():
                 'ci_lower': ci_lo,
                 'ci_upper': ci_hi,
                 'p_no_effect': float(m_p.group(1)) if m_p else float('nan'),
-                'CrI_excludes_zero': bool((ci_lo > 0) or (ci_hi < 0)),
+                'CI_excludes_zero': bool((ci_lo > 0) or (ci_hi < 0)),
             })
         except Exception as e:
             multi_ci_rows.append({
                 'term': term, 'avg_effect': float('nan'),
                 'ci_lower': float('nan'), 'ci_upper': float('nan'),
-                'p_no_effect': float('nan'), 'CrI_excludes_zero': False,
+                'p_no_effect': float('nan'), 'CI_excludes_zero': False,
             })
             print(f'  {term}: skipped ({type(e).__name__}: {e})')
 multi_ci_df = pd.DataFrame(multi_ci_rows)
-n_multi_sig = int(multi_ci_df['CrI_excludes_zero'].sum())
-print(f'\nTerms with CrI excluding zero at 2018-12-20: {n_multi_sig}/{len(multi_ci_df)}')
+n_multi_sig = int(multi_ci_df['CI_excludes_zero'].sum())
+print(f'\nTerms with CI excluding zero at 2018-12-20: {n_multi_sig}/{len(multi_ci_df)}')
 multi_ci_df
 """))
 A(md(r"""
 **Verdict.** If `hemp` and `gummies` also return null at the Bill date,
 the boom-led-the-Bill reading generalises beyond the `oil` target. If
-either shows a credible interval excluding zero, the substantive
+either shows a interval excluding zero, the substantive
 interpretation needs reconciling: maybe the Bill *did* lift one rate
 beyond trend but not another.
 """))
@@ -1725,7 +1741,7 @@ with warnings.catch_warnings():
                                               level=0.95, seed=0)
             s = ci_donor.summary()
             m_avg = re.search(r'avg effect:\s+([-+0-9.eE]+)', s)
-            m_ci = re.search(r'95% CrI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', s)
+            m_ci = re.search(r'95% CI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', s)
             m_p = re.search(r'P\(no effect\):\s+([0-9.]+)', s)
             ci_lo = float(m_ci.group(1)) if m_ci else float('nan')
             ci_hi = float(m_ci.group(2)) if m_ci else float('nan')
@@ -1735,22 +1751,22 @@ with warnings.catch_warnings():
                 'ci_lower': ci_lo,
                 'ci_upper': ci_hi,
                 'p_no_effect': float(m_p.group(1)) if m_p else float('nan'),
-                'CrI_excludes_zero': bool((ci_lo > 0) or (ci_hi < 0)),
+                'CI_excludes_zero': bool((ci_lo > 0) or (ci_hi < 0)),
             })
         except Exception as e:
             donor_rows.append({
                 'term': term, 'avg_effect': float('nan'),
                 'ci_lower': float('nan'), 'ci_upper': float('nan'),
-                'p_no_effect': float('nan'), 'CrI_excludes_zero': False,
+                'p_no_effect': float('nan'), 'CI_excludes_zero': False,
             })
             print(f'  {term}: skipped ({type(e).__name__}: {e})')
 donor_df = pd.DataFrame(donor_rows)
-n_donor_sig = int(donor_df['CrI_excludes_zero'].sum())
-print(f'\nDonor-control terms with CrI excluding zero: {n_donor_sig}/{len(donor_df)}')
+n_donor_sig = int(donor_df['CI_excludes_zero'].sum())
+print(f'\nDonor-control terms with CI excluding zero: {n_donor_sig}/{len(donor_df)}')
 donor_df
 """))
 A(md(r"""
-**Verdict.** 0/3 donor-control terms with a credible interval excluding
+**Verdict.** 0/3 donor-control terms with a interval excluding
 zero means the detector behaves correctly on null-effect targets — it
 doesn't spuriously fire at the Bill date for content terms unrelated
 to CBD legalisation. A donor hit would prompt an investigation of
@@ -1765,7 +1781,7 @@ A(md(r"""
 This is the critical check for § 7's null. We take the per-month rate
 series and **sweep** an additive post-event bump across a range of
 magnitudes (0.5 × / 1 × / 2 × / 4 × the pre-event mean rate). For each
-magnitude we refit causal_impact and read whether the 95 % credible
+magnitude we refit causal_impact and read whether the 95 % MC
 interval excludes zero. The smallest bump that does is the minimum
 detectable effect (MDE) in this corpus at this event date.
 
@@ -1776,7 +1792,7 @@ What this tells us about the § 7 null:
   modest post-Bill lift.
 - If the MDE is **large** (e.g., ≥ 2 × pre-mean), the § 7 null *bounds*
   any post-Bill lift to *below* that magnitude rather than ruling out
-  every effect: BSTS's projection of the pre-trend forward is steep, so
+  every effect: the state-space projection of the pre-trend forward is steep, so
   modest additive bumps get absorbed by the counterfactual.
 
 Either reading is reported honestly.
@@ -1811,7 +1827,7 @@ with warnings.catch_warnings():
                                  level=0.95, seed=0)
         s = ci_b.summary()
         m_avg = re.search(r'avg effect:\s+([-+0-9.eE]+)', s)
-        m_ci = re.search(r'95% CrI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', s)
+        m_ci = re.search(r'95% CI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', s)
         m_p = re.search(r'P\(no effect\):\s+([0-9.]+)', s)
         ci_lo = float(m_ci.group(1)) if m_ci else float('nan')
         ci_hi = float(m_ci.group(2)) if m_ci else float('nan')
@@ -1819,8 +1835,8 @@ with warnings.catch_warnings():
             'bump_x_pre_mean': bump_rel,
             'bump_absolute': bump,
             'avg_effect': float(m_avg.group(1)) if m_avg else float('nan'),
-            'CrI_lower': ci_lo,
-            'CrI_upper': ci_hi,
+            'CI_lower': ci_lo,
+            'CI_upper': ci_hi,
             'excludes_zero': bool((ci_lo > 0) or (ci_hi < 0)),
             'P_no_effect': float(m_p.group(1)) if m_p else float('nan'),
         })
@@ -1834,8 +1850,8 @@ if len(detectable):
     if len(not_detectable):
         lower = float(not_detectable['bump_x_pre_mean'].max())
         print(f'\nMDE bracketed: ({lower:g}, {mde_x:g}] x pre-mean. ')
-        print(f'  - {lower:g} x pre-mean ({lower*100:.0f}% of {pre_mean:.4f}): NOT detected (CrI straddles 0)')
-        print(f'  - {mde_x:g} x pre-mean ({mde_x*100:.0f}% of {pre_mean:.4f}): detected (CrI excludes 0)')
+        print(f'  - {lower:g} x pre-mean ({lower*100:.0f}% of {pre_mean:.4f}): NOT detected (CI straddles 0)')
+        print(f'  - {mde_x:g} x pre-mean ({mde_x*100:.0f}% of {pre_mean:.4f}): detected (CI excludes 0)')
         print('Actual MDE lies somewhere in this interval; finer bisection not performed here.')
     else:
         print(f'\nSmallest tested bump that excludes 0: {mde_x:g} x pre-mean. '
@@ -1844,14 +1860,14 @@ else:
     mde_x = None
     lower = 4.0
     print('\nNo tested bump magnitude (up to 4x pre-mean) was detected. MDE > 4x pre-mean — '
-          'BSTS projection of the steep pre-trend absorbs moderate bumps.')
+          'state-space projection of the steep pre-trend absorbs moderate bumps.')
 print('\n--- ORIGINAL series (§7), for comparison ---')
 print(impact.summary())
 mde_df
 """))
 A(md(r"""
 **Verdict.** If the synthetic-bumped run reports a positive average
-effect with the credible interval excluding zero (and a low P(no
+effect with the interval excluding zero (and a low P(no
 effect)), the detector is responsive — and the original-series null at
 the Bill date is a genuine no-effect finding consistent with § 6's
 2016Q4 burst onset.
@@ -1924,17 +1940,17 @@ b0 = bursts.to_df().iloc[0] if len(bursts.to_df()) else None
 burst_win = f"{b0['start']} -> {b0['end']}" if b0 is not None else 'none'
 s6_pass = (b0 is not None) and (str(b0['start']) >= '2014')
 
-# --- §7 evidence (CrI from impact.summary()) ---
+# --- §7 evidence (CI from impact.summary()) ---
 import re as _re_sb
 _imp_s = impact.summary()
-_m_ci = _re_sb.search(r'95% CrI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', _imp_s)
+_m_ci = _re_sb.search(r'95% CI \[\s*([-+0-9.eE]+),\s*([-+0-9.eE]+)\]', _imp_s)
 _m_p = _re_sb.search(r'P\(no effect\):\s+([0-9.]+)', _imp_s)
 s7_ci_lo = float(_m_ci.group(1)) if _m_ci else float('nan')
 s7_ci_hi = float(_m_ci.group(2)) if _m_ci else float('nan')
 s7_p_no_effect = float(_m_p.group(1)) if _m_p else float('nan')
 s7_excludes_zero = (s7_ci_lo > 0) or (s7_ci_hi < 0)
-# Pre-registered: PASS if CrI excludes zero (Bill lifted rate beyond trend)
-# FAIL (pre-registered falsifier) if CrI straddles zero
+# Pre-registered: PASS if CI excludes zero (Bill lifted rate beyond trend)
+# FAIL (pre-registered falsifier) if CI straddles zero
 s7_verdict = ('PASS' if s7_excludes_zero
               else 'FAIL (pre-registered falsifier; honestly recorded)')
 
@@ -2041,9 +2057,9 @@ scoreboard = pd.DataFrame([
       'disjoint from §6 burst (2016Q4-2019Q4)' if win_au[0] is not None else
       f'PRE-REG AU: rho={rho_au:+.2f}, no dominance window'),
      'PASS' if rho_au < TH_RHO_DECLINE else 'PARTIAL'),
-    ('§7 Farm Bill raised commerce-marker rate (CrI excludes zero)',
+    ('§7 Farm Bill raised commerce-marker rate (CI excludes zero)',
      (f'avg_effect={_re_sb.search(r"avg effect:\s+([-+0-9.eE]+)", _imp_s).group(1)}; '
-      f'CrI=[{s7_ci_lo:+.4f}, {s7_ci_hi:+.4f}]; '
+      f'CI=[{s7_ci_lo:+.4f}, {s7_ci_hi:+.4f}]; '
       f'P(no effect)={s7_p_no_effect:.3f}; '
       f'excludes_zero={s7_excludes_zero}; '
       f'boom led the Bill (§6 onset {burst_win.split(" ")[0] if b0 is not None else "n/a"})'),
@@ -2058,7 +2074,7 @@ scoreboard = pd.DataFrame([
      (f'{s91b_disagree} disagreements / {s91b_either} either-flagged '
       f'(disagreement ratio = {s91b_disagree_ratio:.3f})'),
      'PASS' if s91b_disagree_ratio <= TH_S91B_DISAGREE else 'PARTIAL (BH-asymptotic and bootstrap-CI test different things for low-count terms)'),
-    ('AUDIT §9.1c Empirical bootstrap-CI coverage under known null',
+    ('AUDIT §9.1c Approximate-null bootstrap-CI coverage under heterogeneous-pool re-split',
      (f'median coverage = {s91c_coverage_median:.3f} (nominal 0.95; '
       f'acceptable band {TH_S91C_COV_LO:.2f}-{TH_S91C_COV_HI:.2f})'),
      'PASS' if s91c_in_band else 'PARTIAL (calibration band miss)'),
@@ -2089,23 +2105,23 @@ scoreboard = pd.DataFrame([
      f'{n_overlap}/{len(gns_df)} (gamma, n_states) cells produce a burst overlapping 2016Q4-2019Q4',
      'PASS' if n_overlap >= 7 else 'PARTIAL'),
     ('AUDIT §9.6a Event-date specification sensitivity',
-     f'{n_real_sig}/{len(real_df)} candidate effective dates with CrI excluding zero',
+     f'{n_real_sig}/{len(real_df)} candidate effective dates with CI excluding zero',
      'PASS' if n_real_sig == 0 else 'CHECK (re-read §7)'),
-    ('AUDIT §9.6 Placebo date sweep', f'{n_sig}/9 placebos with CrI excluding zero',
+    ('AUDIT §9.6 Placebo date sweep', f'{n_sig}/9 placebos with CI excluding zero',
      'PASS' if n_sig == 0 else 'CHECK'),
     ('AUDIT §9.6b Multi-term causal_impact (hemp/gummies)',
-     f'{n_multi_sig}/{len(multi_ci_df)} terms with CrI excluding zero at 2018-12-20',
+     f'{n_multi_sig}/{len(multi_ci_df)} terms with CI excluding zero at 2018-12-20',
      'PASS' if n_multi_sig == 0 else 'CHECK (re-read §7 substantively)'),
     ('AUDIT §9.6c Donor-series check on non-CBD control terms',
-     f'{n_donor_sig}/{len(donor_df)} control terms with CrI excluding zero',
+     f'{n_donor_sig}/{len(donor_df)} control terms with CI excluding zero',
      'PASS' if n_donor_sig == 0 else 'CHECK (detector may be over-sensitive)'),
     ('AUDIT §9.7 Synthetic-injection MDE for §7',
      ((f'MDE bracketed in ({float(not_detectable["bump_x_pre_mean"].max()):g}, {mde_x:g}] x pre-mean'
        if (mde_x is not None and len(not_detectable))
-       else (f'MDE = {mde_x:g} x pre-mean (smallest bump tested with CrI excluding 0)'
+       else (f'MDE = {mde_x:g} x pre-mean (smallest bump tested with CI excluding 0)'
              if mde_x is not None
              else 'MDE > 4 x pre-mean — counterfactual absorbs bumps up to 4x'))),
-     ('PASS - §7 null is credible'
+     ('PASS - §7 null is informative'
       if mde_x is not None and mde_x <= 1.0
       else ('PARTIAL - §7 null bounds (does not rule out a lift inside the MDE bracket); '
             'detector responsive only to lifts at the upper end of the bracket'))),

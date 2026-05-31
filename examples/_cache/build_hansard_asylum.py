@@ -1,6 +1,7 @@
 """Fetch UK Hansard contributions matching 'asylum', 2014-2023, with party enrichment.
 
-This is the data-prep step for the JSS narrative-audit case study.
+This is the data-prep step for the asylum case study
+(``examples/jss_case_study.ipynb``).
 The Hansard search API returns spoken contributions; the Members API
 provides party affiliation per MemberId. Output is a parquet cached
 alongside the case-study notebook so analytical iterations don't

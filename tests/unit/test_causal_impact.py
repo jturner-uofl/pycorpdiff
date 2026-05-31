@@ -91,30 +91,30 @@ def test_engineered_step_recovers_known_effect() -> None:
 def test_engineered_step_significant_p() -> None:
     """An 8-period +0.04 step on flat zero is unmissably non-null."""
     ci = causal_impact(_engineered_series(), event_date="2020", n_samples=500)
-    assert ci.metrics["posterior_prob_no_effect"] < 0.05
+    assert ci.metrics["p_no_effect_mc"] < 0.05
 
 
 @_quiet
 def test_null_series_yields_high_p() -> None:
-    """A series with NO effect should have a fat posterior on zero —
-    P(no effect) should NOT be tiny."""
+    """A series with NO effect should produce an MC distribution centred
+    near zero — the avg_effect interval should contain zero."""
     rng = np.random.default_rng(0)
     idx = pd.period_range("2000", periods=30, freq="Y")
     s = pd.Series(0.05 + rng.normal(0, 0.01, 30), index=idx)
     ci = causal_impact(s, event_date="2015", n_samples=500)
     # Effect should be roughly centred on zero.
     assert abs(ci.metrics["avg_effect"]) < 0.02
-    # And the CrI should contain zero.
+    # And the interval should contain zero.
     assert ci.metrics["avg_effect_lower"] <= 0.0 <= ci.metrics["avg_effect_upper"]
 
 
 @_quiet
-def test_credible_intervals_contain_point_estimates() -> None:
+def test_intervals_contain_point_estimates() -> None:
     ci = causal_impact(_engineered_series(), event_date="2020", n_samples=300)
-    # Counterfactual CI brackets counterfactual point.
+    # Counterfactual interval brackets counterfactual point.
     assert (ci.table["counterfactual_lower"] <= ci.table["counterfactual"]).all()
     assert (ci.table["counterfactual"] <= ci.table["counterfactual_upper"]).all()
-    # Pointwise / cumulative CrIs bracket their means.
+    # Pointwise / cumulative intervals bracket their means.
     assert (ci.table["pointwise_lower"] <= ci.table["pointwise_effect"] + 1e-9).all()
     assert (ci.table["pointwise_effect"] - 1e-9 <= ci.table["pointwise_upper"]).all()
     assert (ci.table["cumulative_lower"] <= ci.table["cumulative_effect"] + 1e-9).all()

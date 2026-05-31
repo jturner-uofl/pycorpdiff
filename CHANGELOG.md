@@ -4,6 +4,71 @@ All notable changes to `pycorpdiff` are documented in this file. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.0a27]
+
+Iter-3 audit fix bundle. The package math is solid (G² Dunning/Rayson
+match a hand-derivation to 1e-13; BH q-values match exactly; bootstrap
+CIs replicate to 1e-14; the iter-2 four-column simultaneous-CI contract
+holds). The *naming* and *interpretation* layers were where the iter-3
+findings landed. All three MAJOR findings and both MINORs are
+addressed here.
+
+### Fixed (package surface) — BREAKING in alpha contract
+
+- **`causal_impact` is now honestly named.** Iter-3 finding G.10
+  determined that the engine is
+  `statsmodels.tsa.UnobservedComponents` (Kalman-filter MLE) — a
+  frequentist state-space model, **not** a Bayesian BSTS. All prose
+  ("Bayesian state-space", "credible intervals", "joint posterior")
+  has been rewritten:
+  - module / function / class / parameter docstrings now describe an
+    MLE-fit local-linear-trend state-space model with Wald-type
+    asymptotic intervals and MLE-conditional MC paths;
+  - the Brodersen (2015) citation is retained as a framework
+    reference with an explicit disclaimer that pycorpdiff is the
+    no-control, frequentist simplification (not the spike-and-slab
+    Bayesian variant);
+  - `metrics["posterior_prob_no_effect"]` renamed to
+    `metrics["p_no_effect_mc"]` (the value semantics — a two-sided
+    MC p-value-style summary — are unchanged; only the name);
+  - `summary()` output: `95% CrI [...]` → `95% CI [...]`,
+    `P(no effect): ...` line gains a clarifying suffix
+    `(MC, MLE-conditional; not a Bayesian posterior)`.
+  - Existing callers reading `metrics["posterior_prob_no_effect"]`
+    need to rename to `metrics["p_no_effect_mc"]`. The `summary()`
+    method falls back to the old key for backward compatibility.
+
+- **BH and Bonferroni are now NaN-safe.** Iter-3 finding H.1: a
+  single ``NaN`` p-value silently propagated to *every* adjusted
+  output position. New contract: ``NaN`` inputs pass through to
+  ``NaN`` outputs; ``m`` (the test count) is the number of non-NaN
+  inputs. Two new tests in `test_correction.py`.
+
+### Hardened (case studies)
+
+- CBD case-study §7, §9.6, §9.6a, §9.6b, §9.6c prose rewritten to
+  match the renamed semantics (BSTS → state-space, CrI → CI,
+  credible → interval) — no analytical numbers change.
+- CBD §9.1c (iter-3 finding G.12) section heading and prose
+  rewritten to acknowledge the pool-heterogeneity caveat: the
+  "known null" framing was incorrect because the pool concatenates
+  2011-12 + 2019-20 cohorts; the test is now described as
+  "approximate-null coverage under heterogeneous-pool re-split"
+  with explicit interpretation of what coverage near 0.95 does and
+  does not certify.
+- Asylum §0c (iter-3 finding A.3) prose rewritten: typed
+  references are precise to ~12 decimal digits (worst observed
+  abs-error 1.77e-11), not 15. The `< 1e-10` assertion still
+  passes comfortably.
+- `examples/_cache/build_hansard_asylum.py` (iter-3 finding A.7):
+  surviving "JSS narrative-audit case study" prose mention replaced
+  with "asylum case study (examples/jss_case_study.ipynb)".
+
+### Tests
+
+611 unit tests pass (was 607; +4 NaN-safety tests for BH /
+Bonferroni). All causal_impact tests updated to the new metric key.
+
 ## [0.1.0a26]
 
 Bug-fix release surfaced by the CBD case-study iteration-2 external

@@ -4,8 +4,8 @@ message: >
   entry. GitHub renders a "Cite this repository" widget directly from
   this file.
 title: "pycorpdiff: Comparative Corpus Analysis for Modern Python Workflows"
-version: 0.1.0a26
-date-released: 2026-05-30
+version: 0.1.0a27
+date-released: 2026-05-31
 authors:
   - family-names: Turner
     given-names: Jason
