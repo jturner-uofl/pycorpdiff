@@ -607,8 +607,133 @@ Business District sense (Australian cities, jobs, real estate); late-
 distinctive terms should name cannabidiol (oil, hemp, dosage,
 products). The split should be near-total.
 
-**Falsifier.** Mixed senses on either side, or business-district terms
+**Falsifier.** Mirrored senses on either side, or business-district terms
 surfacing as *late*-distinctive, would undercut the sense-change claim.
+"""))
+
+# ===================== 4a. Bootstrap CIs on §4 keyness =====================
+A(md(r"""
+### 4a. Bootstrap confidence intervals on § 4 keyness
+
+§ 4 reports point-estimate G². For inferential weight beyond a single
+p-value, we add **per-term percentile CIs** (B = 499 doc-resamples,
+seed 0) and **Westfall-Young simultaneous max-T CIs** (which control
+the family-wise error rate across all tested terms — much wider than
+per-term, by design). A term with a per-term CI excluding zero is
+individually significant; one with a *simultaneous* CI excluding zero
+is robust to the multiple-testing correction across the entire
+~9,500-term keyness table.
+"""))
+A(code(r"""
+ekey_ci = pcd.compare(early_s, late_s).keyness(
+    min_count=20, formula='dunning', stop_words=TWITTER_STOP,
+    multiple_comparisons='bh',
+    ci='bootstrap', n_boot=499, simultaneous_ci=True,
+    bootstrap_seed=0,
+)
+_ek_ci_df = ekey_ci.to_df()
+print(ekey_ci.summary())
+_cols = ['term', 'count_a', 'count_b', 'g2',
+         'g2_ci_lower', 'g2_ci_upper',
+         'g2_ci_lower_simultaneous', 'g2_ci_upper_simultaneous']
+_present = [c for c in _cols if c in _ek_ci_df.columns]
+_ek_ci_df.head(15)[_present]
+"""))
+A(code(r"""
+# Per-term + simultaneous CIs on the top-15 by |G^2|.
+import altair as _alt_4a
+_top = _ek_ci_df.head(15).copy()
+_top['abs_g2'] = _top['g2'].abs()
+_top = _top.sort_values('abs_g2', ascending=False)
+# Stack two error layers: per-term (narrow), simultaneous (wide).
+_base = _alt_4a.Chart(_top).encode(
+    y=_alt_4a.Y('term:N', sort='-x', title=None),
+)
+_pt = _base.mark_rule(strokeWidth=3, color='#264653').encode(
+    x=_alt_4a.X('g2_ci_lower:Q', title='G² with CI (per-term inner, simultaneous outer)'),
+    x2='g2_ci_upper:Q',
+)
+_sim = _base.mark_rule(strokeWidth=1, color='#a8dadc', opacity=0.7).encode(
+    x='g2_ci_lower_simultaneous:Q',
+    x2='g2_ci_upper_simultaneous:Q',
+) if 'g2_ci_lower_simultaneous' in _top.columns else _base.mark_text(text='')
+_pt_mark = _base.mark_point(filled=True, size=80, color='#e76f51').encode(x='g2:Q')
+(_sim + _pt + _pt_mark).properties(width=1100, height=420,
+    title='Top-15 |G²| with bootstrap CIs (inner dark = per-term percentile, outer light = simultaneous max-T)')
+"""))
+A(md(r"""
+**Verdict.** Any term whose **per-term** CI excludes zero is at minimum
+individually significant; one whose **simultaneous** max-T CI excludes
+zero is significant *after* controlling family-wise error across the
+entire keyness table. The simultaneous CIs are very conservative; we
+expect only the largest-G² terms (e.g., `sydney`, `melbourne`, `oil`,
+`hemp`, `buycbd`) to survive that bar.
+
+**Falsifier.** A top-rank term whose per-term CI crosses zero would
+undermine its appearance on the §4 chart — the BH-adjusted p-value
+alone would be claiming significance that the doc-resampling
+distribution does not support.
+"""))
+
+# ===================== 4b. Clustered bootstrap by username =====================
+A(md(r"""
+### 4b. Clustered bootstrap by username
+
+§ 9.2 showed that 6.2 % of the sample comes from the 10 most-prolific
+accounts, and that 4 of the top-10 keyness terms drop out when those
+accounts are dropped. A standard doc-bootstrap treats each tweet as an
+independent observation; if the same account writes many tweets, this
+*understates* the true sampling variance. A **cluster-bootstrap on
+username** resamples *accounts* with replacement (then all their tweets)
+and so honours the within-account correlation.
+
+If the clustered CIs are dramatically wider than the doc-bootstrap CIs,
+the §4 effect is partly account-driven and the conservative reading is
+the clustered version.
+"""))
+A(code(r"""
+ekey_cluster = pcd.compare(early_s, late_s).keyness(
+    min_count=20, formula='dunning', stop_words=TWITTER_STOP,
+    multiple_comparisons='bh',
+    ci='bootstrap', n_boot=299, cluster_col='username',
+    bootstrap_seed=0,
+)
+_ek_cl_df = ekey_cluster.to_df()
+print(ekey_cluster.summary())
+_cols_cl = ['term', 'count_a', 'count_b', 'g2', 'g2_ci_lower', 'g2_ci_upper']
+_present_cl = [c for c in _cols_cl if c in _ek_cl_df.columns]
+_ek_cl_df.head(15)[_present_cl]
+"""))
+A(code(r"""
+# Compare clustered-bootstrap CI widths to doc-bootstrap CI widths on the
+# same top-15 terms. Clustered should be >= doc-bootstrap; if clustered
+# is much wider, the §4 evidence is partly within-account artefact.
+_doc_widths = (ekey_ci.to_df().head(15)
+               .assign(width=lambda d: d['g2_ci_upper'] - d['g2_ci_lower'])
+               [['term', 'width']].rename(columns={'width': 'doc_bootstrap_width'}))
+_cl_widths = (ekey_cluster.to_df().head(15)
+              .assign(width=lambda d: d['g2_ci_upper'] - d['g2_ci_lower'])
+              [['term', 'width']].rename(columns={'width': 'clustered_width'}))
+_w = _doc_widths.merge(_cl_widths, on='term', how='inner')
+_w['width_ratio'] = (_w['clustered_width'] / _w['doc_bootstrap_width']).round(2)
+print(f"\nCI width ratio (clustered / doc-bootstrap):")
+print(f"  median: {_w['width_ratio'].median():.2f}")
+print(f"  min: {_w['width_ratio'].min():.2f} | max: {_w['width_ratio'].max():.2f}")
+print(f"  ratio > 1 means clustered is wider (within-user correlation present)")
+_w
+"""))
+A(md(r"""
+**Verdict.** A width-ratio median > 1 (clustered wider than IID) is the
+expected sign that account-level correlation is non-trivial. A ratio
+near 1 means tweets within an account behave essentially independently
+for the §4 contrast. A ratio < 1 is a sanity-check failure: clustering
+should not *reduce* uncertainty under any standard CSS interpretation.
+
+**Falsifier.** Clustered CIs that straddle zero for terms whose
+doc-bootstrap CI did not (i.e., terms whose individual significance
+relied on treating same-account tweets as independent) would indicate
+the §4 effect is partly an account-pseudo-replication artefact rather
+than a population-level discourse signal.
 """))
 
 # ===================== 5. Before/after the 2018 Farm Bill =====================
@@ -982,6 +1107,130 @@ A(md(r"""
 **Verdict.** A ratio in the tens or hundreds confirms the observed
 keyness signal is far above what shuffled labels produce — the
 early-vs-late sense split is not a partition artefact.
+"""))
+
+# ----- 9.1b BH alignment with §4a bootstrap CIs -----
+A(md(r"""
+### 9.1b BH-significance ⊆ CI-excludes-zero alignment
+
+Two inferential statements on the §4 keyness table should agree on the
+*direction*: a term flagged BH-significant (p_adjusted < 0.05) should
+also have a per-term bootstrap CI excluding zero. The two procedures
+control different errors (BH = FDR vs bootstrap percentile = sampling
+distribution of G²), so perfect agreement is not required, but
+substantial disagreement would mean one of the two tools is misreading
+the data.
+"""))
+A(code(r"""
+_kn_df = ekey_ci.to_df()
+_kn_df = _kn_df[_kn_df['p_adjusted'].notna()].copy()
+_bh_sig = _kn_df['p_adjusted'] < 0.05
+_ci_excludes = (_kn_df['g2_ci_lower'] > 0) | (_kn_df['g2_ci_upper'] < 0)
+_both = _bh_sig & _ci_excludes
+_bh_only = _bh_sig & ~_ci_excludes
+_ci_only = ~_bh_sig & _ci_excludes
+print(f'BH-significant (p_adj < 0.05):                 {int(_bh_sig.sum())}')
+print(f'CI excludes 0 (per-term bootstrap):            {int(_ci_excludes.sum())}')
+print(f'Both flagged:                                  {int(_both.sum())}')
+print(f'BH-significant but CI straddles zero:          {int(_bh_only.sum())}')
+print(f'CI excludes 0 but not BH-significant:          {int(_ci_only.sum())}')
+_n_disagree = int(_bh_only.sum() + _ci_only.sum())
+_n_either = int((_bh_sig | _ci_excludes).sum())
+print(f'\nDisagreement / either-flagged ratio: {_n_disagree/max(1,_n_either):.3f}')
+if _bh_only.sum():
+    print('\n10 BH-sig but CI-straddling-zero terms (treat with caution):')
+    print(_kn_df[_bh_only].head(10)[['term', 'count_a', 'count_b', 'g2',
+                                      'g2_ci_lower', 'g2_ci_upper', 'p_adjusted']].to_string(index=False))
+"""))
+A(md(r"""
+**Verdict.** Disagreement-ratio tolerance was pre-specified at 0.20 in
+the §9.8 scoreboard (TH_S91B_DISAGREE). An observed ratio above 0.20
+flags that BH (asymptotic χ²(1) on G²) and the bootstrap percentile
+CI are not telling the same story across the bulk of the table — most
+commonly because the asymptotic χ² approximation over-rejects for
+low-count terms where the bootstrap distribution of G² is itself
+heavy-tailed. Treat any term in the "BH-sig but CI straddles zero"
+list above with caution before headlining it in §4.
+"""))
+
+# ----- 9.1c Coverage MC under known null -----
+A(md(r"""
+### 9.1c Empirical coverage of the bootstrap CI under a known null
+
+A bootstrap CI is honest only if, when applied to two corpora that
+were independently drawn from the *same* distribution, the 95 % CI
+covers the true value (zero) approximately 95 % of the time. We
+construct that null by pooling early + late and re-splitting at random
+B_mc times; for each split we rerun the keyness with bootstrap CIs,
+and tally what fraction of *individual-term* CIs cover zero. Under a
+correctly-calibrated 95 % CI, this fraction should approach 0.95 from
+below.
+
+Subsample (~3000 docs per side) + small B_boot = 99 + B_mc = 20 keeps
+this tractable; finer bisection is deferred.
+"""))
+A(code(r"""
+import time as _time_cov
+rng_cov = np.random.default_rng(0)
+SUBSAMPLE_PER_SIDE = 3000
+B_MC = 20
+B_BOOT_INNER = 99
+# Pre-specified acceptable coverage band (re-asserted in §9.8 scoreboard
+# under the same names; defined here so the §9.1c print can reference them
+# without depending on cell order at re-execution).
+TH_S91C_COV_LO = 0.90
+TH_S91C_COV_HI = 1.00
+
+# Pool early + late candidates for the null re-split
+_cov_pool = pd.concat([
+    sample[sample['year'].isin([2011, 2012])],
+    sample[sample['year'].isin([2019, 2020])],
+], ignore_index=True)
+print(f'Coverage MC: pool {len(_cov_pool):,} docs; per-side subsample {SUBSAMPLE_PER_SIDE}; B_mc={B_MC}; B_boot={B_BOOT_INNER}')
+
+coverage_fracs = []
+_t0_cov = _time_cov.time()
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    for it in range(B_MC):
+        # Random subsample of 2 * SUBSAMPLE_PER_SIDE docs from the pool
+        idx = rng_cov.choice(len(_cov_pool), size=2 * SUBSAMPLE_PER_SIDE, replace=False)
+        sub = _cov_pool.iloc[idx]
+        # Random A/B label assignment within the subsample
+        perm = rng_cov.permutation(len(sub))
+        a_cov = pcd.from_dataframe(sub.iloc[perm[:SUBSAMPLE_PER_SIDE]],
+                                   text_col='text', meta_cols=('year_month',))
+        b_cov = pcd.from_dataframe(sub.iloc[perm[SUBSAMPLE_PER_SIDE:]],
+                                   text_col='text', meta_cols=('year_month',))
+        try:
+            kn = pcd.compare(a_cov, b_cov).keyness(
+                min_count=10, formula='dunning', stop_words=TWITTER_STOP,
+                ci='bootstrap', n_boot=B_BOOT_INNER, bootstrap_seed=int(it))
+            _df = kn.to_df()
+            n_terms = len(_df)
+            if n_terms == 0:
+                continue
+            n_covers_zero = int(((_df['g2_ci_lower'] <= 0) & (_df['g2_ci_upper'] >= 0)).sum())
+            coverage_fracs.append(n_covers_zero / n_terms)
+        except Exception as e:
+            print(f'  iter {it}: skipped ({type(e).__name__}: {str(e)[:80]})')
+print(f'\nWalltime: {_time_cov.time() - _t0_cov:.0f}s')
+print(f'Coverage fractions across {len(coverage_fracs)} MC iterations:')
+print(f'  median: {np.median(coverage_fracs):.3f}')
+print(f'  mean:   {np.mean(coverage_fracs):.3f}')
+print(f'  range:  [{min(coverage_fracs):.3f}, {max(coverage_fracs):.3f}]')
+print(f'Nominal 95% target:  0.950 (acceptable band: {TH_S91C_COV_LO:.2f} - {TH_S91C_COV_HI:.2f})')
+"""))
+A(md(r"""
+**Verdict.** Median coverage in [0.90, 1.00] is calibrated; a median
+< 0.85 indicates the per-term bootstrap CI is **too narrow** (false-
+positive-prone under the null); > 0.99 means it is **too wide** (loses
+power). Either calls for revisiting the resampling design.
+
+**Honest caveat.** This is a tiny MC at subsample scale; the result is
+a sanity-band, not a definitive coverage estimate. A full coverage
+study would require B_mc ≥ 200 at full sample scale (~4 hrs in this
+environment) and is deferred.
 """))
 
 # ----- 9.2 Top-K user leverage -----
@@ -1637,6 +1886,12 @@ TH_TOP10_OVERLAP = 8             # §9.2 leverage threshold
 TH_MULTI_BURST_K = 2             # §9.5b multi-term burst-in-era threshold
 TH_GNS_CELLS = 7                 # §9.5d gamma×n_states overlap threshold (of 9)
 TH_SHUFFLED_NB_MEDIAN = 1        # §9.5c pre-reg: shuffled ~ 0 bursts
+# Phase 2 thresholds (pre-specified before computing §4a/§4b/§9.1b/§9.1c outputs)
+TH_S4A_TOP10_CI_EXCL = 8         # §4a: top-10 bootstrap CIs that should exclude 0
+TH_S4B_WIDTH_RATIO = 1.0         # §4b: clustered/doc CI-width ratio should be >=1
+TH_S91B_DISAGREE = 0.20          # §9.1b: tolerated BH-vs-CI disagreement ratio
+# (TH_S91C_COV_LO / TH_S91C_COV_HI are defined in §9.1c cell preamble so the
+# print statement there can reference them; available as notebook globals here.)
 DISTRICT_TERMS = {'sydney', 'melbourne', 'brisbane', 'perth', 'jobs',
                   'parking', 'traffic', 'office', 'johannesburg',
                   'pretoria', 'durban', 'auckland', 'mme'}
@@ -1689,6 +1944,44 @@ _late_collocates = set(_sh[_sh['shift'] < 0]['collocate'].tolist())
 s8_late_has_cannabidiol = len(_late_collocates & CANNABIDIOL_TERMS)
 s8_pass = s8_late_has_cannabidiol >= 2
 
+# --- §4a bootstrap-CI evidence ---
+_ek_ci_for_sb = ekey_ci.to_df()
+_ek_ci_for_sb = _ek_ci_for_sb[_ek_ci_for_sb['p_adjusted'].notna()]
+s4a_ci_excludes_zero = int(((_ek_ci_for_sb['g2_ci_lower'] > 0) | (_ek_ci_for_sb['g2_ci_upper'] < 0)).sum())
+s4a_total = len(_ek_ci_for_sb)
+s4a_top10_ci_excl = int(((_ek_ci_for_sb.head(10)['g2_ci_lower'] > 0) |
+                         (_ek_ci_for_sb.head(10)['g2_ci_upper'] < 0)).sum())
+if 'g2_ci_lower_simultaneous' in _ek_ci_for_sb.columns:
+    s4a_sim_excludes_zero = int(((_ek_ci_for_sb['g2_ci_lower_simultaneous'] > 0) |
+                                 (_ek_ci_for_sb['g2_ci_upper_simultaneous'] < 0)).sum())
+    s4a_top10_sim_excl = int(((_ek_ci_for_sb.head(10)['g2_ci_lower_simultaneous'] > 0) |
+                              (_ek_ci_for_sb.head(10)['g2_ci_upper_simultaneous'] < 0)).sum())
+else:
+    s4a_sim_excludes_zero = s4a_top10_sim_excl = -1
+
+# --- §4b clustered-bootstrap evidence ---
+_ek_cl_for_sb = ekey_cluster.to_df()
+_doc_med_width = float((ekey_ci.to_df().head(15)
+                        .assign(w=lambda d: d['g2_ci_upper'] - d['g2_ci_lower'])
+                        ['w'].median()))
+_cl_med_width = float((_ek_cl_for_sb.head(15)
+                       .assign(w=lambda d: d['g2_ci_upper'] - d['g2_ci_lower'])
+                       ['w'].median()))
+s4b_width_ratio = _cl_med_width / max(_doc_med_width, 1e-9)
+
+# --- §9.1b BH-vs-CI alignment ---
+_bh_align_df = ekey_ci.to_df()
+_bh_align_df = _bh_align_df[_bh_align_df['p_adjusted'].notna()]
+_s91b_bh = (_bh_align_df['p_adjusted'] < 0.05)
+_s91b_ci = ((_bh_align_df['g2_ci_lower'] > 0) | (_bh_align_df['g2_ci_upper'] < 0))
+s91b_disagree = int(((_s91b_bh & ~_s91b_ci) | (~_s91b_bh & _s91b_ci)).sum())
+s91b_either = int((_s91b_bh | _s91b_ci).sum())
+s91b_disagree_ratio = s91b_disagree / max(1, s91b_either)
+
+# --- §9.1c coverage MC median ---
+s91c_coverage_median = float(np.median(coverage_fracs)) if coverage_fracs else float('nan')
+s91c_in_band = (TH_S91C_COV_LO <= s91c_coverage_median <= TH_S91C_COV_HI) if not np.isnan(s91c_coverage_median) else False
+
 # --- §9.3 min_count sensitivity stability (re-compute condition from data) ---
 # `rows` is the §9.3 result list-of-dicts; build a DataFrame to access columns.
 _s93_df = pd.DataFrame(rows)
@@ -1719,6 +2012,15 @@ scoreboard = pd.DataFrame([
      (f'early_top10 ∩ district={sorted(_top10_early & DISTRICT_TERMS)}; '
       f'late_top10 ∩ cannabidiol={sorted(_top10_late & CANNABIDIOL_TERMS)}'),
      'PASS' if s4_pass else 'PARTIAL'),
+    ('§4a Bootstrap CIs on §4 keyness (per-term + simultaneous max-T)',
+     (f'{s4a_ci_excludes_zero}/{s4a_total} terms with per-term CI excluding 0; '
+      f'top-10 per-term CI excluding 0: {s4a_top10_ci_excl}/10; '
+      f'top-10 simultaneous max-T CI excluding 0: {s4a_top10_sim_excl}/10'),
+     'PASS' if s4a_top10_ci_excl >= TH_S4A_TOP10_CI_EXCL else 'PARTIAL'),
+    ('§4b Clustered bootstrap by username (within-account correlation)',
+     (f'median CI-width ratio clustered/doc-bootstrap (top-15): {s4b_width_ratio:.2f} '
+      f'(>1 means within-account correlation is present; expected sign)'),
+     'PASS' if s4b_width_ratio >= TH_S4B_WIDTH_RATIO else 'PARTIAL (clustering reduced width — investigate)'),
     ('§5 Post-Bill vocabulary turns commercial/product',
      f'post_top10 ∩ cannabidiol={sorted(_top10_post & CANNABIDIOL_TERMS)}',
      'PASS' if s5_pass else 'PARTIAL'),
@@ -1744,6 +2046,14 @@ scoreboard = pd.DataFrame([
     ('AUDIT §9.1 Shuffled-label null collapses |G^2|',
      f'observed {obs_max:.0f} vs 95th-pct null {p95:.0f}: {obs_max/p95:.0f}x',
      'PASS' if obs_max / p95 > 10 else 'PARTIAL'),
+    ('AUDIT §9.1b BH-vs-bootstrap-CI alignment',
+     (f'{s91b_disagree} disagreements / {s91b_either} either-flagged '
+      f'(disagreement ratio = {s91b_disagree_ratio:.3f})'),
+     'PASS' if s91b_disagree_ratio <= TH_S91B_DISAGREE else 'PARTIAL (BH-asymptotic and bootstrap-CI test different things for low-count terms)'),
+    ('AUDIT §9.1c Empirical bootstrap-CI coverage under known null',
+     (f'median coverage = {s91c_coverage_median:.3f} (nominal 0.95; '
+      f'acceptable band {TH_S91C_COV_LO:.2f}-{TH_S91C_COV_HI:.2f})'),
+     'PASS' if s91c_in_band else 'PARTIAL (calibration band miss)'),
     ('AUDIT §9.2 Top-10 account drop sensitivity',
      (f'top-10 overlap = {overlap}/10; substantive district/cannabidiol split survives, '
       f'commerce-spam terms partially account-driven'),
