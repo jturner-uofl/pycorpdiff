@@ -376,8 +376,11 @@ TIER2_INVENTORY: dict[str, tuple[list[str], int, int]] = {
 # This is descriptive empirical history. No endorsement of these terms.
 
 TIER3_INVENTORY: dict[str, tuple[list[str], int, int]] = {
-    # --- Slur forms of clinical terms ---
-    "T3_retarded_slur":     (["retarded", '"retards"', '"retard"'],                                    1950, 2024),
+    # --- Morpheme `retard*` (NOT the slur — see notebook §6.5.1 audit-resolved
+    # disambiguation; this label measures the verb/adjective morpheme across
+    # all senses, dominated by scientific process-verb uses). Renamed from
+    # T3_retarded_slur after the iter-1 audit refutation. ---
+    "T3_retarded_morpheme": (["retarded", '"retards"', '"retard"'],                                    1950, 2024),
 
     # --- 19th-c racial anthropology / colonial tropical medicine ---
     "T3_hottentot":         (["Hottentot", "Hottentots", '"Hottentot Venus"', '"Hottentot apron"'],   1950, 2024),
