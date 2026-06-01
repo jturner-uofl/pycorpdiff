@@ -216,6 +216,23 @@ for re-execution.
   the original Twitter developer terms; the notebook's outputs are
   derived aggregates only, and re-execution requires a local copy of
   the source corpus.*
+- **PubMed terminology case study — five documented diagnostic-name shifts in medical literature, 1950-2024.**
+  Same pre-registered audit pattern applied to scientific discourse:
+  *mongolism→Down syndrome* (WHO 1965 anchor), *shell shock→PTSD*
+  (DSM-III 1980), *MPD→DID* (DSM-IV 1994), *mental retardation→
+  intellectual disability* (Rosa's Law 2010 / DSM-5 2013), plus an
+  honest negative finding — the AAS-recommended
+  *"committed suicide"→"died by suicide"* phrasing change has not
+  penetrated PubMed at all (0 records). Includes a methodology
+  footnote on four non-obvious NCBI E-utilities gotchas surfaced
+  while building the corpus.
+  [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/pubmed_case_study.html)
+  · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/pubmed_case_study.ipynb)
+  · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pubmed_case_study.ipynb)
+  · [build pipeline](https://github.com/jturner-uofl/pycorpdiff/tree/main/examples/pubmed_build)
+  · *Note: PubMed data is US-government public domain and redistributable;
+  the abstract parquets are reproducibly fetched via the build pipeline
+  rather than committed to git (corpus is ~109 MB).*
 - **Full feature tour (showcase).**
   [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/pycorpdiff_showcase.html)
   · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)

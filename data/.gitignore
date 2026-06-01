@@ -1,0 +1,6 @@
+# PubMed abstract parquets are reproducibly built from build/fetch_pubmed_abstracts.py
+# (NLM E-utilities, US-government public-domain data). Skipping git tracking
+# keeps the repo lean; users re-fetch with one command. Per-pair counts CSV
+# (pubmed_full_counts.csv) IS tracked since it's tiny and is the reproducibility
+# anchor for verifying re-fetches.
+pubmed_abstracts/
