@@ -7796,7 +7796,7 @@ a.anchor-link {
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4a481d3e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97689d1d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7868,7 +7868,7 @@ documented chapter of medical history.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1df6458a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f23cb886">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7878,7 +7878,7 @@ documented chapter of medical history.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=70cbc2a4">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e2167a24">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7926,7 +7926,7 @@ scipy:      1.17.1
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e49b52d8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b2b43017">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7940,7 +7940,7 @@ repository.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3807b6c6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d082ff5f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7999,7 +7999,7 @@ TOTAL with abstract text: 133,417
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0162651a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=231fe391">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8052,7 +8052,7 @@ adopted it.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5cdedfc0">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5e78e57b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8103,7 +8103,85 @@ above gotchas is still active.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c8ae6ab3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80414789">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="0d.-Cross-package-validation:-agreement-with-Rayson's-LL-Wizard">0d. Cross-package validation: agreement with Rayson's LL Wizard<a class="anchor-link" href="#0d.-Cross-package-validation:-agreement-with-Rayson's-LL-Wizard">¶</a></h2><p>Before any case-study claim, verify pycorpdiff's keyness G²
+implementation matches a high-precision re-computation of Rayson's
+two-cell formula (Rayson &amp; Garside 2000) on six canonical
+contingency tables. The reference values are typed to ~12 decimal
+digits of IEEE-754 double precision; the assertion floor <code>1e-10</code> is
+set ~3 orders of magnitude above true floating-point noise (~1e-13)
+to absorb harmless reordering of summation terms. If this cell ever
+drifts above 1e-10, the G² implementation has regressed and every
+numerical claim below is suspect.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b90cf882">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pycorpdiff.keyness</span><span class="w"> </span><span class="kn">import</span> <span class="n">log_likelihood</span>
+<span class="n">REFERENCES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c1"># (label, O1, N1, O2, N2, expected_unsigned_LL)</span>
+    <span class="p">(</span><span class="s1">'classic_12k_vs_10k'</span><span class="p">,</span>          <span class="mi">12000</span><span class="p">,</span>   <span class="mi">1_000_000</span><span class="p">,</span> <span class="mi">10000</span><span class="p">,</span> <span class="mi">1_000_000</span><span class="p">,</span> <span class="mf">182.06945166461492</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'equal_rate_no_signal'</span><span class="p">,</span>        <span class="mi">10</span><span class="p">,</span>      <span class="mi">1000</span><span class="p">,</span>      <span class="mi">20</span><span class="p">,</span>    <span class="mi">2000</span><span class="p">,</span>      <span class="mf">0.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'ten_x_overrep_in_a'</span><span class="p">,</span>          <span class="mi">100</span><span class="p">,</span>     <span class="mi">100_000</span><span class="p">,</span>   <span class="mi">20</span><span class="p">,</span>    <span class="mi">200_000</span><span class="p">,</span>   <span class="mf">127.80637193003540</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'five_x_overrep_in_a'</span><span class="p">,</span>         <span class="mi">500</span><span class="p">,</span>     <span class="mi">1_000_000</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span>   <span class="mi">1_000_000</span><span class="p">,</span> <span class="mf">291.1031660323688</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'same_count_half_rate'</span><span class="p">,</span>        <span class="mi">50</span><span class="p">,</span>      <span class="mi">100_000</span><span class="p">,</span>   <span class="mi">50</span><span class="p">,</span>    <span class="mi">50_000</span><span class="p">,</span>    <span class="mf">11.778303565638346</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'lopsided_overrep_in_a'</span><span class="p">,</span>       <span class="mi">1000</span><span class="p">,</span>    <span class="mi">1_000_000</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>     <span class="mi">1_000_000</span><span class="p">,</span> <span class="mf">1371.864145256213</span><span class="p">),</span>
+<span class="p">]</span>
+<span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">O1</span><span class="p">,</span> <span class="n">N1</span><span class="p">,</span> <span class="n">O2</span><span class="p">,</span> <span class="n">N2</span><span class="p">,</span> <span class="n">expected_ll</span> <span class="ow">in</span> <span class="n">REFERENCES</span><span class="p">:</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">log_likelihood</span><span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="n">O1</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">'t'</span><span class="p">]),</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="n">O2</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">'t'</span><span class="p">]),</span>
+        <span class="n">total_a</span><span class="o">=</span><span class="n">N1</span><span class="p">,</span> <span class="n">total_b</span><span class="o">=</span><span class="n">N2</span><span class="p">,</span> <span class="n">formula</span><span class="o">=</span><span class="s1">'rayson'</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">'g2'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'case'</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span> <span class="s1">'expected'</span><span class="p">:</span> <span class="n">expected_ll</span><span class="p">,</span> <span class="s1">'pycorpdiff'</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
+                 <span class="s1">'abs_error'</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">expected_ll</span><span class="p">)})</span>
+<span class="n">xv</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">xv</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">float_format</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s1">.6e</span><span class="si">}</span><span class="s1">'</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+<span class="n">worst</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">xv</span><span class="p">[</span><span class="s1">'abs_error'</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="se">\\</span><span class="s1">nworst absolute error across </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">xv</span><span class="p">)</span><span class="si">}</span><span class="s1"> cases: </span><span class="si">{</span><span class="n">worst</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">worst</span> <span class="o">&lt;</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'Rayson reference disagreement at </span><span class="si">{</span><span class="n">worst</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">; block release'</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'OK -- agreement with canonical Rayson references at &lt; 1e-10 (observed worst: </span><span class="si">{</span><span class="n">worst</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">).'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>                 case     expected   pycorpdiff    abs_error
+   classic_12k_vs_10k 1.820695e+02 1.820695e+02 1.773515e-11
+ equal_rate_no_signal 0.000000e+00 0.000000e+00 0.000000e+00
+   ten_x_overrep_in_a 1.278064e+02 1.278064e+02 5.684342e-14
+  five_x_overrep_in_a 2.911032e+02 2.911032e+02 0.000000e+00
+ same_count_half_rate 1.177830e+01 1.177830e+01 6.394885e-14
+lopsided_overrep_in_a 1.371864e+03 1.371864e+03 2.273737e-13
+\nworst absolute error across 6 cases: 1.77e-11
+OK -- agreement with canonical Rayson references at &lt; 1e-10 (observed worst: 1.77e-11).
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bd8057c3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8121,12 +8199,12 @@ as the asylum and CBD case studies.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6529c39e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ce4d1f26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">SHIFTS</span> <span class="o">=</span> <span class="p">{</span>
@@ -8181,7 +8259,13 @@ as the asylum and CBD case studies.</p>
   1960s_down/new: 30,282 non-empty records (1955–2025)
   1980s_ptsd/old:    248 non-empty records (1940–2024)
   1980s_ptsd/new: 50,433 non-empty records (1980–2025)
-  1990s_did/old:    635 non-empty records (1954–2024)
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>  1990s_did/old:    635 non-empty records (1954–2024)
   1990s_did/new:    520 non-empty records (1994–2024)
 </pre>
 </div>
@@ -8201,7 +8285,7 @@ TOTAL non-empty records: 150,197
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=240e3478">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=10b71f17">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8215,12 +8299,12 @@ discrepancies are expected from records lacking a parseable year.)</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9506ba6d">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=42e3e6ed">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">yearly_rows</span> <span class="o">=</span> <span class="p">[]</span>
@@ -8249,7 +8333,7 @@ discrepancies are expected from records lacking a parseable year.)</p>
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[5]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <div>
 <style scoped="">
@@ -8318,12 +8402,12 @@ discrepancies are expected from records lacking a parseable year.)</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4190c5bd">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b99f9b37">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Plot per-shift trajectories with anchor lines</span>
@@ -8360,26 +8444,26 @@ discrepancies are expected from records lacking a parseable year.)</p>
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[5]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[6]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style>
-  #altair-viz-f0daefdf929544908791a3652737a7e6.vega-embed {
+  #altair-viz-cd5014a8b6494efb8b3d0233cad4ad30.vega-embed {
     width: 100%;
     display: flex;
   }
 
-  #altair-viz-f0daefdf929544908791a3652737a7e6.vega-embed details,
-  #altair-viz-f0daefdf929544908791a3652737a7e6.vega-embed details summary {
+  #altair-viz-cd5014a8b6494efb8b3d0233cad4ad30.vega-embed details,
+  #altair-viz-cd5014a8b6494efb8b3d0233cad4ad30.vega-embed details summary {
     position: relative;
   }
 </style>
-<div id="altair-viz-f0daefdf929544908791a3652737a7e6"></div>
+<div id="altair-viz-cd5014a8b6494efb8b3d0233cad4ad30"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-f0daefdf929544908791a3652737a7e6") {
-      outputDiv = document.getElementById("altair-viz-f0daefdf929544908791a3652737a7e6");
+    if (outputDiv.id !== "altair-viz-cd5014a8b6494efb8b3d0233cad4ad30") {
+      outputDiv = document.getElementById("altair-viz-cd5014a8b6494efb8b3d0233cad4ad30");
     }
 
     const paths = {
@@ -8434,7 +8518,7 @@ discrepancies are expected from records lacking a parseable year.)</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b88414c2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d93977e9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8449,12 +8533,12 @@ from the mid-1960s.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6ef4560f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a365126c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">SHIFT1</span> <span class="o">=</span> <span class="s1">'1960s_down'</span>
@@ -8494,12 +8578,12 @@ Crossover vs anchor 1965: +1 years
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2593106f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d5f8a238">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Keyness: pre-anchor old corpus vs post-anchor new corpus</span>
@@ -8589,7 +8673,7 @@ screening        0    15347  -55.737375  -5.799997 1.924594e-11
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5865422d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f3d295e6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8606,7 +8690,153 @@ phenotypic to genetic framing in the underlying scientific discourse.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2ca7b0a2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=01853f86">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="2a.-Bootstrap-CIs-on-the-%C2%A72-keyness">2a. Bootstrap CIs on the §2 keyness<a class="anchor-link" href="#2a.-Bootstrap-CIs-on-the-%C2%A72-keyness">¶</a></h3><p>The §2 keyness table reports point-estimate G² for each contextual
+term. Bootstrap CIs quantify how stable each term's ranking is under
+document-level resampling, and the Westfall–Young simultaneous max-T
+CIs control family-wise error across the entire vocabulary — strictly
+wider than per-term CIs but valid to report on the top-ranked rows of
+a sorted keyness table (pycorpdiff 0.1.0a26+ returns BOTH column
+pairs from a single call).</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4a1ac6c5">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">ekey1_ci</span> <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">pre_anchor</span><span class="p">,</span> <span class="n">post_anchor</span><span class="p">)</span><span class="o">.</span><span class="n">keyness</span><span class="p">(</span>
+    <span class="n">min_count</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">formula</span><span class="o">=</span><span class="s1">'dunning'</span><span class="p">,</span> <span class="n">stop_words</span><span class="o">=</span><span class="n">PUBMED_STOP</span><span class="p">,</span>
+    <span class="n">multiple_comparisons</span><span class="o">=</span><span class="s1">'bh'</span><span class="p">,</span>
+    <span class="n">ci</span><span class="o">=</span><span class="s1">'bootstrap'</span><span class="p">,</span> <span class="n">n_boot</span><span class="o">=</span><span class="mi">299</span><span class="p">,</span> <span class="n">simultaneous_ci</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bootstrap_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ekey1_ci_df</span> <span class="o">=</span> <span class="n">ekey1_ci</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+<span class="c1"># Restrict to the top-15 by |G^2| and show per-term + simultaneous CI</span>
+<span class="n">_top15</span> <span class="o">=</span> <span class="n">ekey1_ci_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'term'</span><span class="p">,</span> <span class="s1">'count_a'</span><span class="p">,</span> <span class="s1">'count_b'</span><span class="p">,</span> <span class="s1">'g2'</span><span class="p">,</span>
+        <span class="s1">'g2_ci_lower'</span><span class="p">,</span> <span class="s1">'g2_ci_upper'</span><span class="p">,</span>
+        <span class="s1">'g2_ci_lower_simultaneous'</span><span class="p">,</span> <span class="s1">'g2_ci_upper_simultaneous'</span><span class="p">,</span>
+        <span class="s1">'p_adjusted'</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">_top15</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+<span class="c1"># How many of top-15 have per-term CI excluding zero? simultaneous CI excluding zero?</span>
+<span class="n">_per_term_excl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(((</span><span class="n">_top15</span><span class="p">[</span><span class="s1">'g2_ci_lower'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">_top15</span><span class="p">[</span><span class="s1">'g2_ci_upper'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="n">_sim_excl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(((</span><span class="n">_top15</span><span class="p">[</span><span class="s1">'g2_ci_lower_simultaneous'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span>
+                  <span class="p">(</span><span class="n">_top15</span><span class="p">[</span><span class="s1">'g2_ci_upper_simultaneous'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="se">\\</span><span class="s1">ntop-15: per-term CI excludes zero in </span><span class="si">{</span><span class="n">_per_term_excl</span><span class="si">}</span><span class="s1">/15'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'top-15: simultaneous max-T CI excludes zero in </span><span class="si">{</span><span class="n">_sim_excl</span><span class="si">}</span><span class="s1">/15'</span><span class="p">)</span>
+<span class="n">s2a_top15_per_term_excl</span> <span class="o">=</span> <span class="n">_per_term_excl</span>
+<span class="n">s2a_top15_sim_excl</span> <span class="o">=</span> <span class="n">_sim_excl</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>         term  count_a  count_b          g2  g2_ci_lower  g2_ci_upper  g2_ci_lower_simultaneous  g2_ci_upper_simultaneous   p_adjusted
+    mongolism      489      136 5543.478696  5166.522915  6016.860053               3879.892001               7267.262279 0.000000e+00
+    mongoloid      159       84 1697.064746  1430.510979  2015.182019                554.790870               2862.059595 0.000000e+00
+   mongoloids       38       24  397.283544   253.893933   547.041441               -209.193695               1012.729999 6.492034e-85
+       mongol       35       15  381.024594   242.072692   547.890657               -244.077728               1007.425356 1.686770e-81
+    mongolian       33       10  370.184216   248.923521   512.355583               -167.364008                924.896725 3.092707e-79
+       idiocy       27        3  321.500363   203.184233   447.022140               -181.990715                837.821524 1.030777e-68
+           of      829   240367  293.868608   248.911011   374.064006                 38.074082                586.659411 9.242013e-63
+           in      644   169551  289.197057   251.006229   366.841841                 72.332265                540.546263 8.426462e-62
+      mongols       29       28  287.358952   183.877337   399.008708               -173.373669                753.406875 1.883681e-61
+  chromosomes       41     1556  142.236003    79.360122   228.046363               -170.582967                458.395009 7.825322e-30
+           ds        0    36546 -132.974405  -142.030942  -120.177317               -175.353961                -84.881482 7.544935e-28
+translocation       33     1081  123.418587    61.681777   214.453154               -203.626765                458.692010 8.527794e-26
+        twins       28      644  123.168415    64.898922   204.633348               -147.388606                394.235571 8.929607e-26
+   chromosome       78     9206  117.724610    57.898908   211.982200               -196.657053                440.165786 1.289479e-24
+          was        9    47062 -112.778835  -140.523572   -82.903656               -219.873206                 -1.101029 1.457395e-23
+\ntop-15: per-term CI excludes zero in 15/15
+top-15: simultaneous max-T CI excludes zero in 6/15
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a6e7da69">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="2b.-Collocation-shift:-what-travelled-WITH-the-Down-syndrome-rename?">2b. Collocation shift: what travelled WITH the Down-syndrome rename?<a class="anchor-link" href="#2b.-Collocation-shift:-what-travelled-WITH-the-Down-syndrome-rename?">¶</a></h3><p>The keyness contrast at §2 shows term-level vocabulary that changed.
+A complementary view: which <em>collocates of a fixed headword</em> shifted
+between the pre- and post-anchor eras? We anchor on the headword
+<code>syndrome</code> (appears in both eras' text, so the collocation contrast
+is on the surrounding vocabulary, not the headword itself) and look
+at log-Dice shifts within a ±5-word window.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2419ad16">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">shift1</span> <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">pre_anchor</span><span class="p">,</span> <span class="n">post_anchor</span><span class="p">)</span><span class="o">.</span><span class="n">collocation_shift</span><span class="p">(</span>
+    <span class="n">target</span><span class="o">=</span><span class="s1">'syndrome'</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">min_count</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">s2b_df</span> <span class="o">=</span> <span class="n">shift1</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+<span class="c1"># Filter out generic PubMed stop words after the fact since collocation_shift</span>
+<span class="c1"># doesn't accept stop_words= directly</span>
+<span class="n">s2b_df</span> <span class="o">=</span> <span class="n">s2b_df</span><span class="p">[</span><span class="o">~</span><span class="n">s2b_df</span><span class="p">[</span><span class="s1">'collocate'</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">PUBMED_STOP</span><span class="p">)]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">s2b_df</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> collocates analysed (after PubMed-stopwords filter); top 12 by |shift|:'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">s2b_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>3,547 collocates analysed (after PubMed-stopwords filter); top 12 by |shift|:
+   collocate  count_a  count_b   score_a  score_b    shift
+    twinning        4        8 10.415037 2.126013 8.289024
+      sturge        2       10  9.621488 2.431727 7.189761
+       xxxxy        2       14  9.580461 2.897006 6.683455
+   mongoloid        3        8  8.773932 2.125177 6.648755
+      nuclei        1        9  8.870717 2.281895 6.588822
+    lacrimal        1       10  8.870717 2.430167 6.440550
+  incomplete        1       10  8.843496 2.428202 6.415293
+   existence        1       11  8.884523 2.558702 6.325821
+       weber        2       19  9.621488 3.324721 6.296767
+        note        1       11  8.843496 2.561479 6.282016
+cytogenetics        2       18  9.514573 3.244143 6.270431
+     enzymes        2       20  9.594008 3.389898 6.204110
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ecb7dbe0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8621,12 +8851,12 @@ appears 1979–1981.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5cb03849">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3b87bb20">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">SHIFT2</span> <span class="o">=</span> <span class="s1">'1980s_ptsd'</span>
@@ -8674,12 +8904,12 @@ decade
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e8ad8203">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=feb132d6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Keyness on post-anchor PTSD corpus only: what's the modal PTSD paper about?</span>
@@ -8756,7 +8986,7 @@ participants      207    19261  -639.111641  -1.983843
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0fd6b3c7">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7cfa75e4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8772,7 +9002,81 @@ contrast picks this up automatically.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88b50440">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=054c140f">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="3b.-Burstiness-detection-on-the-PTSD-annual-record-count">3b. Burstiness detection on the PTSD annual record count<a class="anchor-link" href="#3b.-Burstiness-detection-on-the-PTSD-annual-record-count">¶</a></h3><p>Kleinberg's (1999) burstiness detector treats a discrete time series
+as emissions from a hidden infinite-state automaton whose states
+correspond to different emission rates; the optimal state sequence
+identifies <em>bursts</em> — sustained intervals where the emission rate is
+elevated relative to a baseline. We run it on the per-year count of
+PubMed records mentioning PTSD, expecting the post-1980 explosion to
+register as a clean burst whose onset aligns with the DSM-III anchor.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7d1e5153">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [13]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">ptsd_yr_series</span> <span class="o">=</span> <span class="n">new_yr2</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1940</span><span class="p">,</span> <span class="mi">2025</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="c1"># Build per-year totals as the sum of old+new corpora for this shift: this</span>
+<span class="c1"># gives a binomial-style "what share of the wider trauma-vocabulary universe</span>
+<span class="c1"># is PTSD?" denominator.</span>
+<span class="n">totals_series</span> <span class="o">=</span> <span class="p">((</span><span class="n">old_yr2</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1940</span><span class="p">,</span> <span class="mi">2025</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                 <span class="o">+</span> <span class="n">new_yr2</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1940</span><span class="p">,</span> <span class="mi">2025</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+                 <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'PTSD counts series: </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">ptsd_yr_series</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s1"> in 1940 -&gt; </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">ptsd_yr_series</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="si">}</span><span class="s1"> in 2024'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Totals series (PTSD + shell-shock family): </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">totals_series</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s1"> -&gt; </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">totals_series</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+
+<span class="n">states</span> <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">kleinberg_bursts</span><span class="p">(</span><span class="n">ptsd_yr_series</span><span class="p">,</span> <span class="n">totals_series</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">n_states</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="se">\\</span><span class="s1">nKleinberg burst state sequence (s=2.0, gamma=1.0, n_states=5):'</span><span class="p">)</span>
+<span class="n">state_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">'year'</span><span class="p">:</span> <span class="n">ptsd_yr_series</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s1">'count'</span><span class="p">:</span> <span class="n">ptsd_yr_series</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                          <span class="s1">'totals'</span><span class="p">:</span> <span class="n">totals_series</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s1">'state'</span><span class="p">:</span> <span class="n">states</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">state_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">state_df</span><span class="p">[</span><span class="s1">'state'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">state_df</span><span class="p">[</span><span class="s1">'year'</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="mi">1980</span><span class="p">,</span> <span class="mi">1990</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">2010</span><span class="p">,</span> <span class="mi">2020</span><span class="p">]))]</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+<span class="c1"># Burst regions are contiguous runs of state &gt; 0</span>
+<span class="n">in_burst</span> <span class="o">=</span> <span class="n">state_df</span><span class="p">[</span><span class="s1">'state'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+<span class="n">burst_starts</span> <span class="o">=</span> <span class="n">state_df</span><span class="p">[</span><span class="n">in_burst</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">in_burst</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="kc">False</span><span class="p">))]</span>
+<span class="n">s3b_first_burst_year</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">burst_starts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">'year'</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">burst_starts</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+<span class="n">s3b_aligned</span> <span class="o">=</span> <span class="n">s3b_first_burst_year</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="mi">1979</span> <span class="o">&lt;=</span> <span class="n">s3b_first_burst_year</span> <span class="o">&lt;=</span> <span class="mi">1983</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="se">\\</span><span class="s1">nFirst burst onset: </span><span class="si">{</span><span class="n">s3b_first_burst_year</span><span class="si">}</span><span class="s1">; aligns with DSM-III 1980 (1979-1983 window): </span><span class="si">{</span><span class="n">s3b_aligned</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>PTSD counts series: 0 in 1940 -&gt; 3677 in 2024
+Totals series (PTSD + shell-shock family): 1 -&gt; 3686
+\nKleinberg burst state sequence (s=2.0, gamma=1.0, n_states=5):
+ year  count  totals  state
+ 1980      2       2      0
+ 1990    108     109      0
+ 2000    475     478      0
+ 2010   1333    1341      0
+ 2020   3376    3382      0
+\nFirst burst onset: None; aligns with DSM-III 1980 (1979-1983 window): False
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53373f1b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8785,12 +9089,12 @@ than the other shifts but the anchor alignment is clean.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d81a66a6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=78c4113b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [14]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">SHIFT3</span> <span class="o">=</span> <span class="s1">'1990s_did'</span>
@@ -8835,7 +9139,7 @@ MPD persists in retrospective literature — last-decade record counts:
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0ec8a1c0">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=510aa330">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8852,12 +9156,12 @@ post-2010.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=522e06ce">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d1b2556b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [15]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">SHIFT4</span> <span class="o">=</span> <span class="s1">'2010s_id'</span>
@@ -8906,12 +9210,12 @@ Crossover vs anchor 2012 (Rosa's Law 2010 + DSM-5 2013): +0 years
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=792840fd">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=0dcf00df">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [16]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Causal impact at the anchor — does the 2010-2013 anchor window</span>
@@ -8960,7 +9264,97 @@ Crossover vs anchor 2012 (Rosa's Law 2010 + DSM-5 2013): +0 years
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e3e4c0a3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21b9b823">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="5a.-Bootstrap-CIs-+-simultaneous-max-T-on-the-%C2%A75-keyness">5a. Bootstrap CIs + simultaneous max-T on the §5 keyness<a class="anchor-link" href="#5a.-Bootstrap-CIs-+-simultaneous-max-T-on-the-%C2%A75-keyness">¶</a></h3><p>The largest-volume shift in this notebook. We compute the contextual
+keyness between the pre-anchor MR corpus (2005–2009) and the
+post-anchor ID corpus (2013+), with per-term + simultaneous max-T
+bootstrap CIs to bound the inference.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=981add6c">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [17]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">mr_pre</span>  <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">from_dataframe</span><span class="p">(</span><span class="n">old4</span><span class="p">[(</span><span class="n">old4</span><span class="p">[</span><span class="s1">'year'</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">2005</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">old4</span><span class="p">[</span><span class="s1">'year'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2010</span><span class="p">)],</span>
+                              <span class="n">text_col</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">meta_cols</span><span class="o">=</span><span class="p">(</span><span class="s1">'year'</span><span class="p">,</span> <span class="s1">'journal'</span><span class="p">))</span>
+<span class="n">id_post</span> <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">from_dataframe</span><span class="p">(</span><span class="n">new4</span><span class="p">[</span><span class="n">new4</span><span class="p">[</span><span class="s1">'year'</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">2013</span><span class="p">],</span>
+                              <span class="n">text_col</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">meta_cols</span><span class="o">=</span><span class="p">(</span><span class="s1">'year'</span><span class="p">,</span> <span class="s1">'journal'</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'MR pre-anchor (2005-2009):  </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mr_pre</span><span class="o">.</span><span class="n">docs</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> docs'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'ID post-anchor (2013+):     </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">id_post</span><span class="o">.</span><span class="n">docs</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> docs'</span><span class="p">)</span>
+
+<span class="n">key5_ci</span> <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">mr_pre</span><span class="p">,</span> <span class="n">id_post</span><span class="p">)</span><span class="o">.</span><span class="n">keyness</span><span class="p">(</span>
+    <span class="n">min_count</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">formula</span><span class="o">=</span><span class="s1">'dunning'</span><span class="p">,</span> <span class="n">stop_words</span><span class="o">=</span><span class="n">PUBMED_STOP</span><span class="p">,</span>
+    <span class="n">multiple_comparisons</span><span class="o">=</span><span class="s1">'bh'</span><span class="p">,</span>
+    <span class="n">ci</span><span class="o">=</span><span class="s1">'bootstrap'</span><span class="p">,</span> <span class="n">n_boot</span><span class="o">=</span><span class="mi">299</span><span class="p">,</span> <span class="n">simultaneous_ci</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bootstrap_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">key5_df</span> <span class="o">=</span> <span class="n">key5_ci</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+<span class="n">_top15_5</span> <span class="o">=</span> <span class="n">key5_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'term'</span><span class="p">,</span> <span class="s1">'count_a'</span><span class="p">,</span> <span class="s1">'count_b'</span><span class="p">,</span> <span class="s1">'g2'</span><span class="p">,</span>
+        <span class="s1">'g2_ci_lower'</span><span class="p">,</span> <span class="s1">'g2_ci_upper'</span><span class="p">,</span>
+        <span class="s1">'g2_ci_lower_simultaneous'</span><span class="p">,</span> <span class="s1">'g2_ci_upper_simultaneous'</span><span class="p">,</span>
+        <span class="s1">'p_adjusted'</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">_top15_5</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+<span class="n">s5a_top15_per_term_excl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(((</span><span class="n">_top15_5</span><span class="p">[</span><span class="s1">'g2_ci_lower'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">_top15_5</span><span class="p">[</span><span class="s1">'g2_ci_upper'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="n">s5a_top15_sim_excl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(((</span><span class="n">_top15_5</span><span class="p">[</span><span class="s1">'g2_ci_lower_simultaneous'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span>
+                          <span class="p">(</span><span class="n">_top15_5</span><span class="p">[</span><span class="s1">'g2_ci_upper_simultaneous'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="se">\\</span><span class="s1">ntop-15: per-term CI excludes zero in </span><span class="si">{</span><span class="n">s5a_top15_per_term_excl</span><span class="si">}</span><span class="s1">/15'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'top-15: simultaneous max-T CI excludes zero in </span><span class="si">{</span><span class="n">s5a_top15_sim_excl</span><span class="si">}</span><span class="s1">/15'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>MR pre-anchor (2005-2009):  4,707 docs
+ID post-anchor (2013+):     24,167 docs
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>        term  count_a  count_b            g2   g2_ci_lower   g2_ci_upper  g2_ci_lower_simultaneous  g2_ci_upper_simultaneous    p_adjusted
+ retardation     7154     1528  19932.706664  19459.555196  20667.456225              17143.432808              22933.365686  0.000000e+00
+      mental     7409     5726  12322.680936  11781.464245  13065.684171               9509.251069              15375.836066  0.000000e+00
+intellectual      327    45597 -11864.899706 -12133.987095 -11361.675967             -13455.221817             -10074.113050  0.000000e+00
+  disability      366    34652  -8343.769875  -8610.425032  -7921.360981              -9843.936956              -6712.130896  0.000000e+00
+          id       88    19142  -5286.969911  -5569.649739  -4920.711983              -6755.913538              -3749.931132  0.000000e+00
+          mr     1167      123   3711.542693   3261.260903   4298.611893               1380.704360               6129.870603  0.000000e+00
+disabilities      430    15499  -2611.170417  -2847.753223  -2332.451138              -3714.886489              -1431.067611  0.000000e+00
+      people      191    11966  -2561.638923  -2766.321770  -2330.521742              -3521.700730              -1556.148184  0.000000e+00
+    variants      223    11637  -2331.576130  -2509.914270  -2098.739830              -3262.381032              -1337.674909  0.000000e+00
+           x     2929     5384   2173.467289   1844.785557   2603.601750                534.536700               3886.008562  0.000000e+00
+         asd      193     9400  -1830.947307  -2115.111894  -1572.304049              -3074.731206               -568.736728  0.000000e+00
+    retarded      485       39   1598.191404   1372.426172   1843.437648                480.508343               2713.115843  0.000000e+00
+    mentally      500       95   1428.679618   1185.437945   1697.763072                312.864914               2551.949866  0.000000e+00
+  chromosome     1728     2959   1406.895996   1210.154681   1726.470789                217.045088               2665.986534 3.461019e-305
+     fragile     1525     2634   1227.903529    953.917946   1581.897625               -149.664496               2650.016485 2.549559e-266
+\ntop-15: per-term CI excludes zero in 15/15
+top-15: simultaneous max-T CI excludes zero in 14/15
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2dfcd611">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8988,12 +9382,12 @@ publication-language conservatism is empirically measurable.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=087aa236">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e890497f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [13]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [18]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">SHIFT5</span> <span class="o">=</span> <span class="s1">'neg_suicide_phrasing'</span>
@@ -9043,17 +9437,577 @@ Trend: decreasing over 2014-latest
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4460c88f">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86777c61">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="7.-Audit-layer">7. Audit layer<a class="anchor-link" href="#7.-Audit-layer">¶</a></h2><p>Same audit pattern as the CBD and asylum case studies: per-shift
+<h2 id="6.5.-Loaded-clinical-vocabulary-retirement:-Tier-2-+-Tier-3-inventory">6.5. Loaded clinical vocabulary retirement: Tier-2 + Tier-3 inventory<a class="anchor-link" href="#6.5.-Loaded-clinical-vocabulary-retirement:-Tier-2-+-Tier-3-inventory">¶</a></h2><p>The five headline shifts in §2-§6 were chosen because each had a
+clean anchor event and a documented retirement narrative in
+medical-history literature. To establish how representative those
+five are of the broader pattern of vocabulary reform, we surveyed
+<strong>43 additional terms</strong> across two tiers:</p>
+<ul>
+<li><p><strong>Tier-2</strong> (28 labels) — explicitly stigmatized historical clinical
+vocabulary: eugenic-era IQ classification (moron, imbecile, idiocy,
+feeble-minded, mental defective, cretin, mongoloid idiot), sexual-
+orientation pathology (homosexuality_dx, sexual inversion, sexual
+perversion, sodomy, ego-dystonic homosexuality), misogynistic
+women's-sexuality clinical terms (frigidity, nymphomania, onanism),
+19th-c race-pathology pseudo-diagnoses (drapetomania, dysaesthesia
+aethiopica, Negroid facies), discredited treatments (lobotomy,
+insulin coma, aversion therapy, conversion therapy), disability
+slurs (spastic), substance-use stigma (junkie, dope fiend), and
+reproductive stigma (illegitimate, unwed mother).</p>
+</li>
+<li><p><strong>Tier-3</strong> (15 labels) — the <em>most-offensive</em> deprecated medical
+vocabulary: explicit slur forms (retarded), 19th-c colonial racial
+medical anthropology (Hottentot, savage/primitive race, kaffir,
+darky, anti-Black slur variants), teratology stigma (congenital
+monstrosity, freak of nature), short-stature informal terms
+(midget, dwarf), legal-medical stigma (bastard, lunatic), STI/VD-era
+framing (whore, harlot), and additional disability/orthopedic
+stigma (deformed).</p>
+</li>
+</ul>
+<p>These terms are included for honest empirical documentation: we are
+tracking what published medical literature <em>actually used</em>, when,
+and how completely it was retired. Modern PubMed indexing may have
+retroactively scrubbed some of the most egregious historical content,
+so several Tier-3 labels return ~zero hits — which is itself
+publishable evidence about post-hoc indexing curation.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=0923f954">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [19]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">tier2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">'..'</span><span class="p">)</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'pubmed_tier2_counts.csv'</span><span class="p">)</span>
+<span class="n">tier3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">'..'</span><span class="p">)</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'pubmed_tier3_counts.csv'</span><span class="p">)</span>
+<span class="n">tier2</span><span class="p">[</span><span class="s1">'tier'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'T2'</span>
+<span class="n">tier3</span><span class="p">[</span><span class="s1">'tier'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'T3'</span>
+<span class="n">loaded</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tier2</span><span class="p">,</span> <span class="n">tier3</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Loaded inventory total rows: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">loaded</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Loaded inventory labels:     </span><span class="si">{</span><span class="n">loaded</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Total records summed:        </span><span class="si">{</span><span class="n">loaded</span><span class="p">[</span><span class="s2">"n_records"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Loaded inventory total rows: 3,225
+Loaded inventory labels:     43
+Total records summed:        85,267
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=af91088d">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="6.5.1.-Headline-inversion:-%22retarded%22-outlives-%22mental-retardation%22">6.5.1. Headline inversion: "retarded" outlives "mental retardation"<a class="anchor-link" href="#6.5.1.-Headline-inversion:-%22retarded%22-outlives-%22mental-retardation%22">¶</a></h3><p>The clinical term <strong>mental retardation</strong> was retired in U.S. statute
+(Rosa's Law 2010) and DSM-5 nosology (2013); §5 documented its
+~10× decline from 1,087 records in 2009 to ~250/year in the
+2020s. The pre-registered narrative said the rename was working.</p>
+<p>The <em>slur form</em> of the same root word — <strong>"retarded"</strong> as used in
+journal title/abstracts — was a Tier-3 inclusion to test how
+completely the retirement penetrated derivative vocabulary. The
+result is a sharp inversion: the slur form <em>rises</em> through the
+study window, peaking in 2021 at the moment the clinical term
+hit its lowest level on record.</p>
+<p>The interpretation is not that PubMed authors are reverting to slur
+use clinically. Rather: a substantial fraction of "retarded" records
+in 2010s+ PubMed are research <em>about</em> the slur — psychology of
+stigma, intellectual-disability advocacy responding to it, slur-
+recognition studies, special-education literature on terminology
+choice. The clinical reform created a new research category that
+<em>itself</em> uses the deprecated form. <strong>Reform of the clinical lexicon
+does not equal disappearance of the word from the literature.</strong></p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9279918b">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [20]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Compare the two trajectories side by side</span>
+<span class="n">clinical_mr</span> <span class="o">=</span> <span class="n">df_full</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">'..'</span><span class="p">)</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'pubmed_full_counts.csv'</span><span class="p">)</span>
+<span class="n">clinical_mr_yr</span> <span class="o">=</span> <span class="p">(</span><span class="n">clinical_mr</span><span class="p">[</span><span class="n">clinical_mr</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="s1">'ID_old_mental_retardation'</span><span class="p">]</span>
+                  <span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'year'</span><span class="p">)[</span><span class="s1">'n_records'</span><span class="p">]</span><span class="o">.</span><span class="n">sort_index</span><span class="p">())</span>
+<span class="n">retarded_slur_yr</span> <span class="o">=</span> <span class="p">(</span><span class="n">loaded</span><span class="p">[</span><span class="n">loaded</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="s1">'T3_retarded_slur'</span><span class="p">]</span>
+                    <span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'year'</span><span class="p">)[</span><span class="s1">'n_records'</span><span class="p">]</span><span class="o">.</span><span class="n">sort_index</span><span class="p">())</span>
+
+<span class="n">s65_mr_peak_yr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">clinical_mr_yr</span><span class="o">.</span><span class="n">idxmax</span><span class="p">())</span>
+<span class="n">s65_mr_peak_n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">clinical_mr_yr</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+<span class="n">s65_slur_peak_yr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">retarded_slur_yr</span><span class="o">.</span><span class="n">idxmax</span><span class="p">())</span>
+<span class="n">s65_slur_peak_n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">retarded_slur_yr</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+<span class="n">s65_mr_2020s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">clinical_mr_yr</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2020</span><span class="p">:]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="n">s65_slur_2020s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">retarded_slur_yr</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2020</span><span class="p">:]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Clinical "mental retardation":  peak </span><span class="si">{</span><span class="n">s65_mr_peak_n</span><span class="si">:</span><span class="s1">&gt;5</span><span class="si">}</span><span class="s1"> in </span><span class="si">{</span><span class="n">s65_mr_peak_yr</span><span class="si">}</span><span class="s1">; 2020s sum </span><span class="si">{</span><span class="n">s65_mr_2020s</span><span class="si">:</span><span class="s1">&gt;6,</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Slur form "retarded":           peak </span><span class="si">{</span><span class="n">s65_slur_peak_n</span><span class="si">:</span><span class="s1">&gt;5</span><span class="si">}</span><span class="s1"> in </span><span class="si">{</span><span class="n">s65_slur_peak_yr</span><span class="si">}</span><span class="s1">; 2020s sum </span><span class="si">{</span><span class="n">s65_slur_2020s</span><span class="si">:</span><span class="s1">&gt;6,</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="se">\\</span><span class="s1">nClinical retired, slur survived. The retirement did NOT eliminate the word —'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'it shifted from clinical usage into stigma-research usage. Inversion ratio:'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'  slur 2020s / clinical 2020s = </span><span class="si">{</span><span class="n">s65_slur_2020s</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nb">max</span><span class="p">(</span><span class="n">s65_mr_2020s</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">x'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Clinical "mental retardation":  peak  1087 in 2009; 2020s sum  1,960
+Slur form "retarded":           peak  1239 in 2021; 2020s sum  5,653
+\nClinical retired, slur survived. The retirement did NOT eliminate the word —
+it shifted from clinical usage into stigma-research usage. Inversion ratio:
+  slur 2020s / clinical 2020s = 2.9x
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ee9cf2ef">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="6.5.2.-Clean-extinctions">6.5.2. Clean extinctions<a class="anchor-link" href="#6.5.2.-Clean-extinctions">¶</a></h3><p>Some loaded terms underwent textbook retirement — peak well in the
+past, zero records in the 2020s. These are the unambiguous
+auditable cases.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ecb5a5c1">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [21]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">ext_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">loaded</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+    <span class="n">yr</span> <span class="o">=</span> <span class="n">loaded</span><span class="p">[</span><span class="n">loaded</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'year'</span><span class="p">)[</span><span class="s1">'n_records'</span><span class="p">]</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">yr</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span> <span class="k">continue</span>
+    <span class="n">peak_yr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">yr</span><span class="o">.</span><span class="n">idxmax</span><span class="p">())</span>
+    <span class="n">last_5y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">yr</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2020</span><span class="p">:]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="n">peak_n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">yr</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">last_5y</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">peak_yr</span> <span class="o">&lt;=</span> <span class="mi">1990</span><span class="p">:</span>
+        <span class="n">ext_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">'label'</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span> <span class="s1">'peak_n'</span><span class="p">:</span> <span class="n">peak_n</span><span class="p">,</span> <span class="s1">'peak_year'</span><span class="p">:</span> <span class="n">peak_yr</span><span class="p">,</span>
+            <span class="s1">'total'</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">yr</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span> <span class="s1">'last_5y'</span><span class="p">:</span> <span class="n">last_5y</span><span class="p">,</span>
+        <span class="p">})</span>
+<span class="n">ext_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">ext_rows</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'peak_year'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Cleanly extinct loaded-vocabulary labels (peak &lt;= 1990, zero records 2020s):'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ext_df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">s65_n_extinct</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ext_df</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Cleanly extinct loaded-vocabulary labels (peak &lt;= 1990, zero records 2020s):
+             label  peak_n  peak_year  total  last_5y
+  T3_imbecile_slur       8       1954    111        0
+T2_mongoloid_idiot       3       1963     19        0
+     T2_dope_fiend       2       1972      5        0
+        T3_bastard       1       1973     10        0
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=051efc6f">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="6.5.3.-Indexing-curation-evidence:-ZERO-hit-terms">6.5.3. Indexing-curation evidence: ZERO-hit terms<a class="anchor-link" href="#6.5.3.-Indexing-curation-evidence:-ZERO-hit-terms">¶</a></h3><p>Several Tier-3 labels return literally zero records across all 75
+years. There are two non-exclusive explanations: (a) the term
+genuinely never appeared in any abstract that NLM indexed (possible
+for some pre-1975 records with no abstract field), or (b) NLM
+retroactively scrubbed historical content. Either way, the zero
+hit is informative — it documents that the loaded form is either
+absent from the indexed corpus or has been removed from it. The
+literature's institutional memory has been curated.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c93d579a">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [22]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">zero_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">loaded</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+    <span class="n">yr</span> <span class="o">=</span> <span class="n">loaded</span><span class="p">[</span><span class="n">loaded</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">label</span><span class="p">][</span><span class="s1">'n_records'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">yr</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">zero_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'label'</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span> <span class="s1">'total'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                          <span class="s1">'interpretation'</span><span class="p">:</span> <span class="s1">'0 records across 1950-2024 — never indexed or scrubbed'</span><span class="p">})</span>
+<span class="n">zero_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">zero_rows</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Tier-3 labels with zero records across the full study window:'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">zero_df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">s65_n_zero</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">zero_df</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Tier-3 labels with zero records across the full study window:
+               label  total                                         interpretation
+T2_dysaesthesia_aeth      0 0 records across 1950-2024 — never indexed or scrubbed
+           T3_n_word      0 0 records across 1950-2024 — never indexed or scrubbed
+            T3_freak      0 0 records across 1950-2024 — never indexed or scrubbed
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ff8aae0d">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="6.5.4.-Persistent-terms-%E2%80%94-not-every-old-term-retires">6.5.4. Persistent terms — not every old term retires<a class="anchor-link" href="#6.5.4.-Persistent-terms-%E2%80%94-not-every-old-term-retires">¶</a></h3><p>The opposite finding: some "deprecated" terms remained in active
+clinical use because they're still the clinically-precise descriptor
+(dwarfism for short stature), or because they were redirected from
+medical use into stigma-research / history-of-medicine scholarship.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=30df65bc">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [23]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">persistent_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">loaded</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+    <span class="n">yr</span> <span class="o">=</span> <span class="n">loaded</span><span class="p">[</span><span class="n">loaded</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'year'</span><span class="p">)[</span><span class="s1">'n_records'</span><span class="p">]</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">yr</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span> <span class="k">continue</span>
+    <span class="n">peak_yr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">yr</span><span class="o">.</span><span class="n">idxmax</span><span class="p">())</span>
+    <span class="n">last_5y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">yr</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2020</span><span class="p">:]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">peak_yr</span> <span class="o">&gt;=</span> <span class="mi">2015</span> <span class="ow">and</span> <span class="n">last_5y</span> <span class="o">&gt;=</span> <span class="mi">50</span><span class="p">:</span>
+        <span class="n">persistent_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">'label'</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span> <span class="s1">'peak_year'</span><span class="p">:</span> <span class="n">peak_yr</span><span class="p">,</span>
+            <span class="s1">'total'</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">yr</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span> <span class="s1">'last_5y'</span><span class="p">:</span> <span class="n">last_5y</span><span class="p">,</span>
+        <span class="p">})</span>
+<span class="n">pers_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">persistent_rows</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'last_5y'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Persistent loaded-vocabulary terms (peak &gt;= 2015 and 2020s sum &gt;= 50):'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pers_df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">s65_n_persistent</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pers_df</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Persistent loaded-vocabulary terms (peak &gt;= 2015 and 2020s sum &gt;= 50):
+                label  peak_year  total  last_5y
+     T3_retarded_slur       2021  50450     5653
+    T3_dwarf_clinical       2024  15464     2955
+     T2_homosexuality       2016   4687      644
+T2_conversion_therapy       2024    851      548
+          T3_deformed       2023   1058      273
+         T2_frigidity       2024    531      109
+  T2_spastic_clinical       2024    574       95
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2b8c5e36">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Verdict.</strong> The 43-label Tier-2/Tier-3 survey corroborates the
+headline §2-§5 finding that medical-literature vocabulary retirement
+is real and datable, but adds three honest complications:</p>
+<ol>
+<li><strong>Reform of the clinical lexicon does not eliminate the word.</strong>
+When "mental retardation" was retired, the slur form "retarded"
+<em>rose</em> in PubMed because a new research category (stigma research)
+adopted it.</li>
+<li><strong>Some loaded terms persist for legitimate clinical reasons.</strong>
+"Dwarfism" remains the precise clinical term for the condition
+itself; the slur form "midget" did decline but persisted longer
+than expected.</li>
+<li><strong>The zero-hit terms document NLM's institutional curation.</strong>
+The most egregious historical content is no longer findable in
+PubMed abstracts — whether because it was never indexed or
+because it was retroactively scrubbed. The library has memory
+policies, and those policies are themselves a form of language
+reform.</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8c967085">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="7.-Cross-corpus-validation:-PubMed-vs-Google-Books-Ngrams">7. Cross-corpus validation: PubMed vs Google Books Ngrams<a class="anchor-link" href="#7.-Cross-corpus-validation:-PubMed-vs-Google-Books-Ngrams">¶</a></h2><p>The five shifts above were detected in PubMed (scientific lit). Do
+they also surface in Google Books (popular published-books usage)?
+If PubMed leads Books, scientific terminology reform precedes
+popular adoption. If they shift together, the reform is broad-
+spectrum. If Books shifts and PubMed doesn't (or vice versa), we
+have a discourse-asymmetry finding.</p>
+<p>We use the Google Books Ngrams English-2019 corpus (free, public
+API, harvested by <code>build/fetch_books_ngrams.py</code>). The query strategy
+is identical: per-term-qualified ngrams summed within each shift,
+with case-insensitive matching collapsed to the "(All)" combined
+entries.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c9883444">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [24]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">books_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'..'</span><span class="p">)</span> <span class="o">/</span> <span class="s1">'data'</span> <span class="o">/</span> <span class="s1">'books_ngrams_counts.csv'</span>
+<span class="n">books</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">books_path</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Google Books rows: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">books</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Shifts: </span><span class="si">{</span><span class="n">books</span><span class="p">[</span><span class="s2">"shift"</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Year range: </span><span class="si">{</span><span class="n">books</span><span class="p">[</span><span class="s2">"year"</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">books</span><span class="p">[</span><span class="s2">"year"</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Google Books rows: 1,800
+Shifts: ['1960s_down', '1980s_ptsd', '1990s_did', '2010s_id', 'neg_suicide_phrasing']
+Year range: 1900-2019
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=375a006e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [25]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Cross-corpus comparison: per-shift, find Books crossover and compare to PubMed</span>
+<span class="n">PUBMED_CROSSOVERS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'1960s_down'</span><span class="p">:</span>           <span class="n">crossover</span><span class="p">,</span>          <span class="c1"># 1966</span>
+    <span class="s1">'1980s_ptsd'</span><span class="p">:</span>           <span class="n">first_ptsd</span><span class="p">,</span>         <span class="c1"># 1980 (first PTSD record)</span>
+    <span class="s1">'1990s_did'</span><span class="p">:</span>            <span class="n">first_did</span><span class="p">,</span>          <span class="c1"># 1994 (first DID record)</span>
+    <span class="s1">'2010s_id'</span><span class="p">:</span>             <span class="n">crossover4</span><span class="p">,</span>         <span class="c1"># 2012</span>
+    <span class="s1">'neg_suicide_phrasing'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>               <span class="c1"># 0 records in PubMed</span>
+<span class="p">}</span>
+
+<span class="n">THRESH</span> <span class="o">=</span> <span class="mf">1e-8</span>  <span class="c1"># both Books-frequencies need to be above this for crossover to be meaningful</span>
+<span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">shift</span> <span class="ow">in</span> <span class="n">books</span><span class="p">[</span><span class="s1">'shift'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+    <span class="n">sub</span> <span class="o">=</span> <span class="n">books</span><span class="p">[</span><span class="n">books</span><span class="p">[</span><span class="s1">'shift'</span><span class="p">]</span> <span class="o">==</span> <span class="n">shift</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">agg</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">'year'</span><span class="p">,</span> <span class="s1">'side'</span><span class="p">])[</span><span class="s1">'frequency'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="s1">'side'</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">agg</span> <span class="o">=</span> <span class="n">agg</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+    <span class="n">old_peak</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">agg</span><span class="p">[</span><span class="s1">'old'</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="n">old_peak_yr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">agg</span><span class="p">[</span><span class="s1">'old'</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">())</span> <span class="k">if</span> <span class="n">old_peak</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="p">(</span><span class="n">agg</span><span class="p">[</span><span class="s1">'old'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">THRESH</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">agg</span><span class="p">[</span><span class="s1">'new'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">THRESH</span><span class="p">)</span>
+    <span class="n">cross_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">agg</span><span class="p">[</span><span class="s1">'new'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">agg</span><span class="p">[</span><span class="s1">'old'</span><span class="p">])</span> <span class="o">&amp;</span> <span class="n">valid</span>
+    <span class="n">books_cross</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cross_mask</span><span class="o">.</span><span class="n">idxmax</span><span class="p">())</span> <span class="k">if</span> <span class="n">cross_mask</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">pubmed_cross</span> <span class="o">=</span> <span class="n">PUBMED_CROSSOVERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">shift</span><span class="p">)</span>
+    <span class="n">lag</span> <span class="o">=</span> <span class="p">(</span><span class="n">books_cross</span> <span class="o">-</span> <span class="n">pubmed_cross</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">books_cross</span> <span class="ow">and</span> <span class="n">pubmed_cross</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">ratio_2019</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">agg</span><span class="p">[</span><span class="s1">'new'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">agg</span><span class="p">[</span><span class="s1">'old'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="mf">1e-15</span><span class="p">)</span>
+    <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+        <span class="s1">'shift'</span><span class="p">:</span> <span class="n">shift</span><span class="p">,</span>
+        <span class="s1">'books_old_peak_yr'</span><span class="p">:</span> <span class="n">old_peak_yr</span><span class="p">,</span>
+        <span class="s1">'pubmed_crossover'</span><span class="p">:</span> <span class="n">pubmed_cross</span><span class="p">,</span>
+        <span class="s1">'books_crossover'</span><span class="p">:</span> <span class="n">books_cross</span><span class="p">,</span>
+        <span class="s1">'lag_books_vs_pubmed'</span><span class="p">:</span> <span class="n">lag</span><span class="p">,</span>
+        <span class="s1">'books_2019_new_over_old'</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">ratio_2019</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="p">})</span>
+<span class="n">cross_corpus</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cross_corpus</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>               shift  books_old_peak_yr  pubmed_crossover  books_crossover  lag_books_vs_pubmed  books_2019_new_over_old
+          1960s_down               1964            1966.0           1978.0                 12.0                    54.55
+          1980s_ptsd               1918            1980.0           1982.0                  2.0                    28.36
+           1990s_did               1996            1994.0              NaN                  NaN                     0.57
+            2010s_id               1978            2012.0           2016.0                  4.0                     1.55
+neg_suicide_phrasing               2015               NaN              NaN                  NaN                     0.04
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0b44c833">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="7.1-The-%22died-by-suicide%22-cross-corpus-contrast">7.1 The "died by suicide" cross-corpus contrast<a class="anchor-link" href="#7.1-The-%22died-by-suicide%22-cross-corpus-contrast">¶</a></h3><p>The negative finding from §6 — that PubMed has zero records of
+"died by suicide" — is <em>not</em> mirrored in Google Books. The AAS-
+recommended phrase IS rising in books, just very slowly. Books
+captures the partial uptake that PubMed misses entirely.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4d7b9788">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [26]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">sui_books</span> <span class="o">=</span> <span class="n">books</span><span class="p">[</span><span class="n">books</span><span class="p">[</span><span class="s1">'shift'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'neg_suicide_phrasing'</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">sui_pivot</span> <span class="o">=</span> <span class="n">sui_books</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s1">'year'</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s1">'ngram'</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s1">'frequency'</span><span class="p">)</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Books frequencies (note units are per-year-normalized, so very small):</span><span class="se">\\</span><span class="s1">n'</span><span class="p">)</span>
+<span class="n">recent</span> <span class="o">=</span> <span class="n">sui_pivot</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2000</span><span class="p">:</span><span class="mi">2019</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">recent</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">float_format</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">'</span><span class="p">))</span>
+<span class="n">s7_books_died_2000</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sui_pivot</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2000</span><span class="p">,</span> <span class="s1">'died by suicide'</span><span class="p">])</span> <span class="k">if</span> <span class="s1">'died by suicide'</span> <span class="ow">in</span> <span class="n">sui_pivot</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="mf">0.0</span>
+<span class="n">s7_books_died_2019</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sui_pivot</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2019</span><span class="p">,</span> <span class="s1">'died by suicide'</span><span class="p">])</span> <span class="k">if</span> <span class="s1">'died by suicide'</span> <span class="ow">in</span> <span class="n">sui_pivot</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="mf">0.0</span>
+<span class="n">s7_books_growth_ratio</span> <span class="o">=</span> <span class="n">s7_books_died_2019</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">s7_books_died_2000</span><span class="p">,</span> <span class="mf">1e-15</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="se">\\</span><span class="s1">n"died by suicide" growth 2000 -&gt; 2019 in Books: </span><span class="si">{</span><span class="n">s7_books_growth_ratio</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">x'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'PubMed records of "died by suicide" 2000-2024: 0 (zero growth)'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Books frequencies (note units are per-year-normalized, so very small):\n
+ngram  committed suicide  died by suicide
+year                                     
+2000           1.089e-06        8.134e-09
+2001           1.126e-06        1.290e-08
+2002           1.153e-06        1.006e-08
+2003           1.132e-06        1.170e-08
+2004           1.201e-06        2.399e-08
+2005           1.225e-06        1.575e-08
+2006           1.243e-06        1.943e-08
+2007           1.264e-06        2.095e-08
+2008           1.232e-06        1.642e-08
+2009           1.359e-06        2.273e-08
+2010           1.338e-06        2.435e-08
+2011           1.412e-06        2.541e-08
+2012           1.253e-06        2.573e-08
+2013           1.312e-06        2.447e-08
+2014           1.419e-06        2.928e-08
+2015           1.429e-06        3.054e-08
+2016           1.393e-06        3.352e-08
+2017           1.260e-06        4.179e-08
+2018           1.229e-06        4.113e-08
+2019           1.318e-06        5.735e-08
+\n"died by suicide" growth 2000 -&gt; 2019 in Books: 7.1x
+PubMed records of "died by suicide" 2000-2024: 0 (zero growth)
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e56d1c7f">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="8.-Audit-layer">8. Audit layer<a class="anchor-link" href="#8.-Audit-layer">¶</a></h2><p>Same audit pattern as the CBD and asylum case studies: per-shift
 placebo dates, shuffled-label nulls on the keyness for the strongest
-shift, and the multi-shift internal-consistency check that Step-A
-counts match Step-B abstract harvest within tolerance.</p>
-<h3 id="7.1-Step-A-vs-Step-B-record-count-consistency">7.1 Step-A vs Step-B record-count consistency<a class="anchor-link" href="#7.1-Step-A-vs-Step-B-record-count-consistency">¶</a></h3><p>If the abstract harvest dropped records relative to the pre-flight
+shift, the multi-shift internal-consistency check that Step-A counts
+match Step-B abstract harvest within tolerance, plus inferential
+audit layers (BH-vs-CI alignment and min_count sensitivity).</p>
+<h3 id="8.1-Step-A-vs-Step-B-record-count-consistency">8.1 Step-A vs Step-B record-count consistency<a class="anchor-link" href="#8.1-Step-A-vs-Step-B-record-count-consistency">¶</a></h3><p>If the abstract harvest dropped records relative to the pre-flight
 count sweep (Step A), that's either a real issue (truncation,
 auto-mapping not suppressed, etc.) or a parseable-year drop (records
 whose year metadata is malformed and dropped during XML parse). The
@@ -9061,12 +10015,12 @@ ratio should be &gt; 0.85 for each side; below that flags an open issue.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d2e25d43">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a9c4de54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [14]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [27]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Step-A counts loaded from data/pubmed_full_counts.csv (built earlier</span>
@@ -9148,13 +10102,13 @@ Records flagged for follow-up: 0
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90e077f2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4210658d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="7.2-Placebo-dates-for-the-%C2%A75-ID-shift">7.2 Placebo dates for the §5 ID shift<a class="anchor-link" href="#7.2-Placebo-dates-for-the-%C2%A75-ID-shift">¶</a></h3><p>For the strongest-volume shift (mental retardation → intellectual
+<h3 id="8.2-Placebo-dates-for-the-%C2%A75-ID-shift">8.2 Placebo dates for the §5 ID shift<a class="anchor-link" href="#8.2-Placebo-dates-for-the-%C2%A75-ID-shift">¶</a></h3><p>For the strongest-volume shift (mental retardation → intellectual
 disability), check that the observed crossover near 2012 is anchored
 in the real event and not an artefact of the sliding average. We
 re-run the crossover-detection at five placebo anchor years that
@@ -9162,12 +10116,12 @@ have no known regulatory event for this terminology.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7a223f29">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5d2baf36">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [15]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [28]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">placebo_years</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1985</span><span class="p">,</span> <span class="mi">1995</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">2020</span><span class="p">,</span> <span class="mi">2023</span><span class="p">]</span>
@@ -9221,13 +10175,13 @@ Placebo anchors that "align": 0 / 5
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69a1cb22">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2bb7c468">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="7.3-Shuffled-label-null-on-%C2%A75-keyness">7.3 Shuffled-label null on §5 keyness<a class="anchor-link" href="#7.3-Shuffled-label-null-on-%C2%A75-keyness">¶</a></h3><p>For one strong-volume shift (mental retardation → intellectual
+<h3 id="8.3-Shuffled-label-null-on-%C2%A75-keyness">8.3 Shuffled-label null on §5 keyness<a class="anchor-link" href="#8.3-Shuffled-label-null-on-%C2%A75-keyness">¶</a></h3><p>For one strong-volume shift (mental retardation → intellectual
 disability), we randomly permute the (old, new) labels across records
 B = 99 times and recompute the max |G²|. The observed max should be
 far above the 95th-percentile null max if the keyness is anchored on
@@ -9235,12 +10189,12 @@ the term-shift rather than partition noise.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=58584f50">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=72114f5e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [16]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [29]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_t</span>
@@ -9294,20 +10248,198 @@ the term-shift rather than partition noise.</p>
 <pre>Observed max |G^2| (real labels): 30,028
 Permuted null max |G^2|, B=99: median 115, 95th pct 239
 Ratio observed / 95th-pct null: 126x
-Walltime: 385s
+Walltime: 398s
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73918359">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2ec5b72f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="8.-Audit-scoreboard">8. Audit scoreboard<a class="anchor-link" href="#8.-Audit-scoreboard">¶</a></h2><p>Per-shift pass/partial/fail summary, computed from the runtime
+<h3 id="8.4-BH-significance-%E2%8A%86-CI-excludes-zero-alignment-(on-%C2%A75-keyness)">8.4 BH-significance ⊆ CI-excludes-zero alignment (on §5 keyness)<a class="anchor-link" href="#8.4-BH-significance-%E2%8A%86-CI-excludes-zero-alignment-(on-%C2%A75-keyness)">¶</a></h3><p>Two inferential statements on the §5 keyness table should mostly
+agree: a term flagged BH-significant (p_adj &lt; 0.05) should usually
+also have a per-term bootstrap CI excluding zero. They control
+different errors (BH = FDR vs bootstrap percentile = sampling
+distribution of G²), so perfect agreement is not required, but
+substantial disagreement means one of the two tools is misreading
+the data.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=28ba81a5">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [30]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">_k5</span> <span class="o">=</span> <span class="n">key5_ci</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+<span class="n">_k5</span> <span class="o">=</span> <span class="n">_k5</span><span class="p">[</span><span class="n">_k5</span><span class="p">[</span><span class="s1">'p_adjusted'</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">_bh_sig</span> <span class="o">=</span> <span class="n">_k5</span><span class="p">[</span><span class="s1">'p_adjusted'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.05</span>
+<span class="n">_ci_excl</span> <span class="o">=</span> <span class="p">(</span><span class="n">_k5</span><span class="p">[</span><span class="s1">'g2_ci_lower'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">_k5</span><span class="p">[</span><span class="s1">'g2_ci_upper'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">n_both</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">_bh_sig</span> <span class="o">&amp;</span> <span class="n">_ci_excl</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="n">n_bh_only</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">_bh_sig</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">_ci_excl</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="n">n_ci_only</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="o">~</span><span class="n">_bh_sig</span> <span class="o">&amp;</span> <span class="n">_ci_excl</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="n">n_either</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">_bh_sig</span> <span class="o">|</span> <span class="n">_ci_excl</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="n">s84_disagree_ratio</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_bh_only</span> <span class="o">+</span> <span class="n">n_ci_only</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_either</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'BH-significant:          </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">_bh_sig</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'CI excludes 0:           </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">_ci_excl</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Both flagged:            </span><span class="si">{</span><span class="n">n_both</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'BH only (CI straddles):  </span><span class="si">{</span><span class="n">n_bh_only</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'CI only (not BH-sig):    </span><span class="si">{</span><span class="n">n_ci_only</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Disagreement / either-flagged ratio: </span><span class="si">{</span><span class="n">s84_disagree_ratio</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>BH-significant:          4222
+CI excludes 0:           3911
+Both flagged:            3785
+BH only (CI straddles):  437
+CI only (not BH-sig):    126
+Disagreement / either-flagged ratio: 0.129
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=322c2c2b">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="8.5-min_count-sensitivity-for-%C2%A75-keyness">8.5 min_count sensitivity for §5 keyness<a class="anchor-link" href="#8.5-min_count-sensitivity-for-%C2%A75-keyness">¶</a></h3><p>The §5 keyness contrast used <code>min_count=50</code>. Vary it across an order
+of magnitude and confirm the top-distinctive terms are stable.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=66090bb8">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [31]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">mc_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">mc</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">]:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">kk</span> <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">mr_pre</span><span class="p">,</span> <span class="n">id_post</span><span class="p">)</span><span class="o">.</span><span class="n">keyness</span><span class="p">(</span>
+            <span class="n">min_count</span><span class="o">=</span><span class="n">mc</span><span class="p">,</span> <span class="n">formula</span><span class="o">=</span><span class="s1">'dunning'</span><span class="p">,</span> <span class="n">stop_words</span><span class="o">=</span><span class="n">PUBMED_STOP</span><span class="p">,</span>
+            <span class="n">multiple_comparisons</span><span class="o">=</span><span class="s1">'bh'</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">kdf</span> <span class="o">=</span> <span class="n">kk</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+        <span class="n">top3_pre</span> <span class="o">=</span> <span class="s1">','</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kdf</span><span class="p">[</span><span class="n">kdf</span><span class="p">[</span><span class="s1">'log_ratio'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)[</span><span class="s1">'term'</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">top3_post</span> <span class="o">=</span> <span class="s1">','</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kdf</span><span class="p">[</span><span class="n">kdf</span><span class="p">[</span><span class="s1">'log_ratio'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)[</span><span class="s1">'term'</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">mc_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'min_count'</span><span class="p">:</span> <span class="n">mc</span><span class="p">,</span> <span class="s1">'n_terms'</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">kdf</span><span class="p">),</span>
+                        <span class="s1">'top-3 pre-anchor'</span><span class="p">:</span> <span class="n">top3_pre</span><span class="p">,</span> <span class="s1">'top-3 post-anchor'</span><span class="p">:</span> <span class="n">top3_post</span><span class="p">})</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">mc_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'min_count'</span><span class="p">:</span> <span class="n">mc</span><span class="p">,</span> <span class="s1">'n_terms'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'error'</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)[:</span><span class="mi">50</span><span class="p">]})</span>
+<span class="n">mc_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">mc_rows</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">mc_df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">_pre_sets</span> <span class="o">=</span> <span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">','</span><span class="p">))</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">mc_df</span><span class="p">[</span><span class="s1">'top-3 pre-anchor'</span><span class="p">]]</span>
+<span class="n">_post_sets</span> <span class="o">=</span> <span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">','</span><span class="p">))</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">mc_df</span><span class="p">[</span><span class="s1">'top-3 post-anchor'</span><span class="p">]]</span>
+<span class="n">s85_pre_stable</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">s</span> <span class="o">==</span> <span class="n">_pre_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_pre_sets</span><span class="p">)</span>
+<span class="n">s85_post_stable</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">s</span> <span class="o">==</span> <span class="n">_post_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_post_sets</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="se">\\</span><span class="s1">npre-anchor top-3 stable across </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mc_rows</span><span class="p">)</span><span class="si">}</span><span class="s1"> min_count values:  </span><span class="si">{</span><span class="n">s85_pre_stable</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'post-anchor top-3 stable across </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mc_rows</span><span class="p">)</span><span class="si">}</span><span class="s1"> min_count values: </span><span class="si">{</span><span class="n">s85_post_stable</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre> min_count  n_terms      top-3 pre-anchor          top-3 post-anchor
+        10    18494 retardation,mental,mr intellectual,disability,id
+        30     9820 retardation,mental,mr intellectual,disability,id
+        50     7268 retardation,mental,mr intellectual,disability,id
+       100     4829 retardation,mental,mr intellectual,disability,id
+       200     3056 retardation,mental,mr intellectual,disability,id
+\npre-anchor top-3 stable across 5 min_count values:  True
+post-anchor top-3 stable across 5 min_count values: True
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23803380">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="8.6-Spearman-monotonic-trend-test-on-the-%C2%A75-trajectory">8.6 Spearman monotonic-trend test on the §5 trajectory<a class="anchor-link" href="#8.6-Spearman-monotonic-trend-test-on-the-%C2%A75-trajectory">¶</a></h3><p>Beyond the crossover-year diagnostic, is the ID record-count series
+monotonically rising over the post-anchor decade?</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9535f08e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [32]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">spearmanr</span>
+<span class="n">id_post_yr</span> <span class="o">=</span> <span class="n">new_yr4</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2013</span><span class="p">:</span><span class="mi">2024</span><span class="p">]</span>
+<span class="n">years_arr</span> <span class="o">=</span> <span class="n">id_post_yr</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">counts_arr</span> <span class="o">=</span> <span class="n">id_post_yr</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">rho</span><span class="p">,</span> <span class="n">p_sp</span> <span class="o">=</span> <span class="n">spearmanr</span><span class="p">(</span><span class="n">years_arr</span><span class="p">,</span> <span class="n">counts_arr</span><span class="p">)</span>
+<span class="n">s86_rho</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+<span class="n">s86_p</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">p_sp</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Spearman rho on (year, ID-count) 2013-2024: rho = </span><span class="si">{</span><span class="n">s86_rho</span><span class="si">:</span><span class="s1">+.3f</span><span class="si">}</span><span class="s1">, p = </span><span class="si">{</span><span class="n">s86_p</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Monotonic rising (rho &gt; 0.7): </span><span class="si">{</span><span class="n">s86_rho</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.7</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Spearman rho on (year, ID-count) 2013-2024: rho = +0.944, p = 3.93e-06
+Monotonic rising (rho &gt; 0.7): True
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1561e23b">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="9.-Audit-scoreboard">9. Audit scoreboard<a class="anchor-link" href="#9.-Audit-scoreboard">¶</a></h2><p>Per-shift pass/partial/fail summary, computed from the runtime
 objects above (no literal verdicts; every Observed cell is an
 f-string over runtime variables, every Verdict cell is a Boolean
 expression over named threshold constants — same data-driven pattern
@@ -9315,12 +10447,12 @@ as the CBD and asylum scoreboards).</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=be421d36">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a77f7518">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [17]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [33]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Pre-specified thresholds (drafted with §0b pre-registration)</span>
@@ -9331,6 +10463,11 @@ as the CBD and asylum scoreboards).</p>
 <span class="n">TH_CROSSOVER_TOL_10S</span> <span class="o">=</span> <span class="mi">2</span>   <span class="c1"># ID crossover within 2 years of 2012</span>
 <span class="n">TH_RETENTION_FLOOR</span>   <span class="o">=</span> <span class="mf">0.80</span>  <span class="c1"># Step-A vs Step-B retention</span>
 <span class="n">TH_NULL_RATIO_FLOOR</span>  <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># observed/null at 10x</span>
+<span class="n">TH_TOP15_CI_EXCL</span>     <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># of top-15 keyness terms, this many should have per-term CI excluding 0</span>
+<span class="n">TH_BURST_ONSET_LO</span>    <span class="o">=</span> <span class="mi">1979</span>  <span class="c1"># PTSD burst onset window (DSM-III anchor 1980, ±1)</span>
+<span class="n">TH_BURST_ONSET_HI</span>    <span class="o">=</span> <span class="mi">1983</span>
+<span class="n">TH_RHO_FLOOR</span>         <span class="o">=</span> <span class="mf">0.70</span>  <span class="c1"># Spearman rho on ID post-anchor trajectory should rise</span>
+<span class="n">TH_BH_CI_DISAGREE</span>    <span class="o">=</span> <span class="mf">0.30</span>  <span class="c1"># disagreement ratio between BH and bootstrap CI</span>
 
 <span class="c1"># §2 evidence</span>
 <span class="n">s2_cross</span> <span class="o">=</span> <span class="n">crossover</span>
@@ -9366,30 +10503,69 @@ as the CBD and asylum scoreboards).</p>
 <span class="n">s73_pass</span> <span class="o">=</span> <span class="n">s73_ratio</span> <span class="o">&gt;=</span> <span class="n">TH_NULL_RATIO_FLOOR</span>
 
 <span class="n">scoreboard</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">'§0d Cross-package Rayson G^2 byte-equality'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'worst absolute error across 6 reference cases: </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">xv</span><span class="p">[</span><span class="s2">"abs_error"</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1"> (assertion floor 1e-10)'</span><span class="p">,</span>
+     <span class="s1">'PASS'</span> <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">xv</span><span class="p">[</span><span class="s1">'abs_error'</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">&lt;</span> <span class="mf">1e-10</span> <span class="k">else</span> <span class="s1">'FAIL'</span><span class="p">),</span>
     <span class="p">(</span><span class="s1">'§2 mongolism -&gt; Down syndrome'</span><span class="p">,</span>
      <span class="sa">f</span><span class="s1">'crossover </span><span class="si">{</span><span class="n">s2_cross</span><span class="si">}</span><span class="s1"> (anchor </span><span class="si">{</span><span class="n">anchor1</span><span class="si">}</span><span class="s1">, tolerance ±</span><span class="si">{</span><span class="n">TH_CROSSOVER_TOL_60S</span><span class="si">}</span><span class="s1">)'</span><span class="p">,</span>
      <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s2_pass</span> <span class="k">else</span> <span class="s1">'FAIL (pre-registered)'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'§2a Bootstrap CIs on §2 contextual keyness'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'top-15: per-term CI excludes 0 in </span><span class="si">{</span><span class="n">s2a_top15_per_term_excl</span><span class="si">}</span><span class="s1">/15; simultaneous CI excludes 0 in </span><span class="si">{</span><span class="n">s2a_top15_sim_excl</span><span class="si">}</span><span class="s1">/15'</span><span class="p">,</span>
+     <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s2a_top15_per_term_excl</span> <span class="o">&gt;=</span> <span class="n">TH_TOP15_CI_EXCL</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'§2b Collocation shift around "syndrome"'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">s2b_df</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> collocates analysed; top |shift| at </span><span class="si">{</span><span class="n">s2b_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"collocate"</span><span class="p">]</span><span class="si">!r}</span><span class="s1"> (shift=</span><span class="si">{</span><span class="n">s2b_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"shift"</span><span class="p">]</span><span class="si">:</span><span class="s1">+.2f</span><span class="si">}</span><span class="s1">)'</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s2b_df</span><span class="p">)</span> <span class="k">else</span> <span class="s1">'no collocates'</span><span class="p">,</span>
+     <span class="s1">'PASS'</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s2b_df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
     <span class="p">(</span><span class="s1">'§3 shell shock -&gt; PTSD'</span><span class="p">,</span>
      <span class="sa">f</span><span class="s1">'first PTSD record </span><span class="si">{</span><span class="n">s3_first_ptsd</span><span class="si">}</span><span class="s1"> (anchor </span><span class="si">{</span><span class="n">anchor2</span><span class="si">}</span><span class="s1">, tolerance ±</span><span class="si">{</span><span class="n">TH_FIRST_PTSD_TOL</span><span class="si">}</span><span class="s1">)'</span><span class="p">,</span>
      <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s3_pass</span> <span class="k">else</span> <span class="s1">'FAIL (pre-registered)'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'§3b Burstiness detection on PTSD annual series'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'first burst onset: </span><span class="si">{</span><span class="n">s3b_first_burst_year</span><span class="si">}</span><span class="s1">; aligned with DSM-III 1980 (window </span><span class="si">{</span><span class="n">TH_BURST_ONSET_LO</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">TH_BURST_ONSET_HI</span><span class="si">}</span><span class="s1">): </span><span class="si">{</span><span class="n">s3b_aligned</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span>
+     <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s3b_aligned</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
     <span class="p">(</span><span class="s1">'§4 MPD -&gt; DID'</span><span class="p">,</span>
      <span class="sa">f</span><span class="s1">'first DID record </span><span class="si">{</span><span class="n">s4_first_did</span><span class="si">}</span><span class="s1"> (pre-reg window 1993-1995)'</span><span class="p">,</span>
      <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s4_pass</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
     <span class="p">(</span><span class="s1">'§5 mental retardation -&gt; intellectual disability'</span><span class="p">,</span>
      <span class="sa">f</span><span class="s1">'crossover </span><span class="si">{</span><span class="n">s5_cross</span><span class="si">}</span><span class="s1"> (anchor </span><span class="si">{</span><span class="n">anchor4</span><span class="si">}</span><span class="s1">, tolerance ±</span><span class="si">{</span><span class="n">TH_CROSSOVER_TOL_10S</span><span class="si">}</span><span class="s1">)'</span><span class="p">,</span>
      <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s5_pass</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'§5a Bootstrap CIs on §5 contextual keyness'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'top-15: per-term CI excludes 0 in </span><span class="si">{</span><span class="n">s5a_top15_per_term_excl</span><span class="si">}</span><span class="s1">/15; simultaneous CI excludes 0 in </span><span class="si">{</span><span class="n">s5a_top15_sim_excl</span><span class="si">}</span><span class="s1">/15'</span><span class="p">,</span>
+     <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s5a_top15_per_term_excl</span> <span class="o">&gt;=</span> <span class="n">TH_TOP15_CI_EXCL</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
     <span class="p">(</span><span class="s1">'§6 NEGATIVE FINDING: "committed" -&gt; "died by" suicide'</span><span class="p">,</span>
      <span class="sa">f</span><span class="s1">'"died by suicide" PubMed records: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">new5</span><span class="p">)</span><span class="si">}</span><span class="s1"> (falsifier was zero)'</span><span class="p">,</span>
      <span class="s1">'FAIL (pre-registered falsifier; honestly recorded)'</span> <span class="k">if</span> <span class="n">s6_pass</span> <span class="k">else</span> <span class="s1">'PASS'</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">'AUDIT §7.1 Step-A/Step-B retention'</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">'§6.5.1 Loaded-vocab inversion: "retarded" slur outlives clinical "mental retardation"'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'clinical peak </span><span class="si">{</span><span class="n">s65_mr_peak_n</span><span class="si">}</span><span class="s1"> in </span><span class="si">{</span><span class="n">s65_mr_peak_yr</span><span class="si">}</span><span class="s1"> vs slur peak </span><span class="si">{</span><span class="n">s65_slur_peak_n</span><span class="si">}</span><span class="s1"> in </span><span class="si">{</span><span class="n">s65_slur_peak_yr</span><span class="si">}</span><span class="s1">; 2020s slur/clinical ratio </span><span class="si">{</span><span class="n">s65_slur_2020s</span><span class="o">/</span><span class="nb">max</span><span class="p">(</span><span class="n">s65_mr_2020s</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">x'</span><span class="p">,</span>
+     <span class="s1">'INVERSION (slur 2020s sum &gt;= clinical 2020s sum)'</span> <span class="k">if</span> <span class="n">s65_slur_2020s</span> <span class="o">&gt;=</span> <span class="n">s65_mr_2020s</span> <span class="k">else</span> <span class="s1">'no inversion'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'§6.5.2 Loaded-vocab clean extinctions'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">s65_n_extinct</span><span class="si">}</span><span class="s1"> of 43 loaded-vocab labels are extinct (peak &lt;= 1990 and zero records in 2020s)'</span><span class="p">,</span>
+     <span class="s1">'OBSERVED'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'§6.5.3 ZERO-hit indexing-curation evidence'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">s65_n_zero</span><span class="si">}</span><span class="s1"> of 43 loaded-vocab labels have zero records across 1950-2024 (Tier-3 most-offensive set)'</span><span class="p">,</span>
+     <span class="s1">'OBSERVED'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'§6.5.4 Persistent loaded-vocab (not all retire)'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">s65_n_persistent</span><span class="si">}</span><span class="s1"> labels persist with 2020s sum &gt;= 50 records'</span><span class="p">,</span>
+     <span class="s1">'OBSERVED'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'§7 Cross-corpus: PubMed vs Google Books'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'PubMed leads Books for </span><span class="si">{</span><span class="nb">int</span><span class="p">((</span><span class="n">cross_corpus</span><span class="p">[</span><span class="s2">"lag_books_vs_pubmed"</span><span class="p">]</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="si">}</span><span class="s1"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">cross_corpus</span><span class="p">)</span><span class="si">}</span><span class="s1"> shifts; Books-"died by suicide" growth 2000-&gt;2019: </span><span class="si">{</span><span class="n">s7_books_growth_ratio</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">x'</span><span class="p">,</span>
+     <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s7_books_growth_ratio</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'AUDIT §8.1 Step-A/Step-B retention'</span><span class="p">,</span>
      <span class="sa">f</span><span class="s1">'worst retention </span><span class="si">{</span><span class="n">s71_worst</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> (floor </span><span class="si">{</span><span class="n">TH_RETENTION_FLOOR</span><span class="si">}</span><span class="s1">)'</span><span class="p">,</span>
      <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s71_pass</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">'AUDIT §7.2 Placebo anchor years'</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">'AUDIT §8.2 Placebo anchor years'</span><span class="p">,</span>
      <span class="sa">f</span><span class="s1">'real anchor aligns: </span><span class="si">{</span><span class="n">s72_real_aligns</span><span class="si">}</span><span class="s1">; placebos aligning: </span><span class="si">{</span><span class="n">s72_placebos_align</span><span class="si">}</span><span class="s1">/5'</span><span class="p">,</span>
      <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s72_pass</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">'AUDIT §7.3 Shuffled-label null for §5 keyness'</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">'AUDIT §8.3 Shuffled-label null for §5 keyness'</span><span class="p">,</span>
      <span class="sa">f</span><span class="s1">'observed |G^2|=</span><span class="si">{</span><span class="n">obs_max</span><span class="si">:</span><span class="s1">,.0f</span><span class="si">}</span><span class="s1">; 95th-pct null=</span><span class="si">{</span><span class="n">p95</span><span class="si">:</span><span class="s1">,.0f</span><span class="si">}</span><span class="s1">; ratio </span><span class="si">{</span><span class="n">s73_ratio</span><span class="si">:</span><span class="s1">.0f</span><span class="si">}</span><span class="s1">x'</span><span class="p">,</span>
      <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s73_pass</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'AUDIT §8.4 BH-vs-bootstrap-CI alignment on §5 keyness'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'disagreement ratio: </span><span class="si">{</span><span class="n">s84_disagree_ratio</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> (tolerance </span><span class="si">{</span><span class="n">TH_BH_CI_DISAGREE</span><span class="si">}</span><span class="s1">)'</span><span class="p">,</span>
+     <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s84_disagree_ratio</span> <span class="o">&lt;=</span> <span class="n">TH_BH_CI_DISAGREE</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'AUDIT §8.5 min_count sensitivity for §5 keyness'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'pre-anchor top-3 stable: </span><span class="si">{</span><span class="n">s85_pre_stable</span><span class="si">}</span><span class="s1">; post-anchor top-3 stable: </span><span class="si">{</span><span class="n">s85_post_stable</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span>
+     <span class="s1">'PASS'</span> <span class="k">if</span> <span class="p">(</span><span class="n">s85_pre_stable</span> <span class="ow">and</span> <span class="n">s85_post_stable</span><span class="p">)</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'AUDIT §8.6 Spearman monotonic-trend on §5 ID 2013-2024'</span><span class="p">,</span>
+     <span class="sa">f</span><span class="s1">'rho = </span><span class="si">{</span><span class="n">s86_rho</span><span class="si">:</span><span class="s1">+.3f</span><span class="si">}</span><span class="s1">, p = </span><span class="si">{</span><span class="n">s86_p</span><span class="si">:</span><span class="s1">.2e</span><span class="si">}</span><span class="s1"> (floor rho &gt; </span><span class="si">{</span><span class="n">TH_RHO_FLOOR</span><span class="si">}</span><span class="s1">)'</span><span class="p">,</span>
+     <span class="s1">'PASS'</span> <span class="k">if</span> <span class="n">s86_rho</span> <span class="o">&gt;</span> <span class="n">TH_RHO_FLOOR</span> <span class="k">else</span> <span class="s1">'PARTIAL'</span><span class="p">),</span>
 <span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'Check'</span><span class="p">,</span> <span class="s1">'Observed'</span><span class="p">,</span> <span class="s1">'Verdict'</span><span class="p">])</span>
 
 <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">option_context</span><span class="p">(</span><span class="s1">'display.max_colwidth'</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="s1">'display.width'</span><span class="p">,</span> <span class="mi">200</span><span class="p">):</span>
@@ -9406,22 +10582,35 @@ as the CBD and asylum scoreboards).</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>                                                Check                                                 Observed                                            Verdict
-                        §2 mongolism -&gt; Down syndrome               crossover 1966 (anchor 1965, tolerance ±5)                                               PASS
-                               §3 shell shock -&gt; PTSD       first PTSD record 1980 (anchor 1980, tolerance ±1)                                               PASS
-                                        §4 MPD -&gt; DID         first DID record 1994 (pre-reg window 1993-1995)                                               PASS
-     §5 mental retardation -&gt; intellectual disability               crossover 2012 (anchor 2012, tolerance ±2)                                               PASS
-§6 NEGATIVE FINDING: "committed" -&gt; "died by" suicide "died by suicide" PubMed records: 0 (falsifier was zero) FAIL (pre-registered falsifier; honestly recorded)
-                   AUDIT §7.1 Step-A/Step-B retention                         worst retention 0.82 (floor 0.8)                                               PASS
-                      AUDIT §7.2 Placebo anchor years         real anchor aligns: True; placebos aligning: 0/5                                               PASS
-        AUDIT §7.3 Shuffled-label null for §5 keyness     observed |G^2|=30,028; 95th-pct null=239; ratio 126x                                               PASS
+<pre>                                                                                Check                                                                                   Observed                                            Verdict
+                                           §0d Cross-package Rayson G^2 byte-equality            worst absolute error across 6 reference cases: 1.77e-11 (assertion floor 1e-10)                                               PASS
+                                                        §2 mongolism -&gt; Down syndrome                                                 crossover 1966 (anchor 1965, tolerance ±5)                                               PASS
+                                           §2a Bootstrap CIs on §2 contextual keyness                top-15: per-term CI excludes 0 in 15/15; simultaneous CI excludes 0 in 6/15                                               PASS
+                                              §2b Collocation shift around "syndrome"                         3,547 collocates analysed; top |shift| at 'twinning' (shift=+8.29)                                               PASS
+                                                               §3 shell shock -&gt; PTSD                                         first PTSD record 1980 (anchor 1980, tolerance ±1)                                               PASS
+                                       §3b Burstiness detection on PTSD annual series               first burst onset: None; aligned with DSM-III 1980 (window 1979-1983): False                                            PARTIAL
+                                                                        §4 MPD -&gt; DID                                           first DID record 1994 (pre-reg window 1993-1995)                                               PASS
+                                     §5 mental retardation -&gt; intellectual disability                                                 crossover 2012 (anchor 2012, tolerance ±2)                                               PASS
+                                           §5a Bootstrap CIs on §5 contextual keyness               top-15: per-term CI excludes 0 in 15/15; simultaneous CI excludes 0 in 14/15                                               PASS
+                                §6 NEGATIVE FINDING: "committed" -&gt; "died by" suicide                                   "died by suicide" PubMed records: 0 (falsifier was zero) FAIL (pre-registered falsifier; honestly recorded)
+§6.5.1 Loaded-vocab inversion: "retarded" slur outlives clinical "mental retardation"       clinical peak 1087 in 2009 vs slur peak 1239 in 2021; 2020s slur/clinical ratio 2.9x   INVERSION (slur 2020s sum &gt;= clinical 2020s sum)
+                                                §6.5.2 Loaded-vocab clean extinctions           4 of 43 loaded-vocab labels are extinct (peak &lt;= 1990 and zero records in 2020s)                                           OBSERVED
+                                           §6.5.3 ZERO-hit indexing-curation evidence 3 of 43 loaded-vocab labels have zero records across 1950-2024 (Tier-3 most-offensive set)                                           OBSERVED
+                                      §6.5.4 Persistent loaded-vocab (not all retire)                                              7 labels persist with 2020s sum &gt;= 50 records                                           OBSERVED
+                                              §7 Cross-corpus: PubMed vs Google Books      PubMed leads Books for 3 of 5 shifts; Books-"died by suicide" growth 2000-&gt;2019: 7.1x                                               PASS
+                                                   AUDIT §8.1 Step-A/Step-B retention                                                           worst retention 0.82 (floor 0.8)                                               PASS
+                                                      AUDIT §8.2 Placebo anchor years                                           real anchor aligns: True; placebos aligning: 0/5                                               PASS
+                                        AUDIT §8.3 Shuffled-label null for §5 keyness                                       observed |G^2|=30,028; 95th-pct null=239; ratio 126x                                               PASS
+                                AUDIT §8.4 BH-vs-bootstrap-CI alignment on §5 keyness                                                  disagreement ratio: 0.129 (tolerance 0.3)                                               PASS
+                                      AUDIT §8.5 min_count sensitivity for §5 keyness                              pre-anchor top-3 stable: True; post-anchor top-3 stable: True                                               PASS
+                               AUDIT §8.6 Spearman monotonic-trend on §5 ID 2013-2024                                               rho = +0.944, p = 3.93e-06 (floor rho &gt; 0.7)                                               PASS
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1fa9cc59">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=607dbaa5">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

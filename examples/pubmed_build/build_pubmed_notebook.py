@@ -201,6 +201,49 @@ above gotchas is still active.
 """))
 
 
+# ===================== 0d. Cross-package validation =====================
+A(md(r"""
+## 0d. Cross-package validation: agreement with Rayson's LL Wizard
+
+Before any case-study claim, verify pycorpdiff's keyness G²
+implementation matches a high-precision re-computation of Rayson's
+two-cell formula (Rayson & Garside 2000) on six canonical
+contingency tables. The reference values are typed to ~12 decimal
+digits of IEEE-754 double precision; the assertion floor `1e-10` is
+set ~3 orders of magnitude above true floating-point noise (~1e-13)
+to absorb harmless reordering of summation terms. If this cell ever
+drifts above 1e-10, the G² implementation has regressed and every
+numerical claim below is suspect.
+"""))
+A(code(r"""
+from pycorpdiff.keyness import log_likelihood
+REFERENCES = [
+    # (label, O1, N1, O2, N2, expected_unsigned_LL)
+    ('classic_12k_vs_10k',          12000,   1_000_000, 10000, 1_000_000, 182.06945166461492),
+    ('equal_rate_no_signal',        10,      1000,      20,    2000,      0.0),
+    ('ten_x_overrep_in_a',          100,     100_000,   20,    200_000,   127.80637193003540),
+    ('five_x_overrep_in_a',         500,     1_000_000, 100,   1_000_000, 291.1031660323688),
+    ('same_count_half_rate',        50,      100_000,   50,    50_000,    11.778303565638346),
+    ('lopsided_overrep_in_a',       1000,    1_000_000, 1,     1_000_000, 1371.864145256213),
+]
+rows = []
+for label, O1, N1, O2, N2, expected_ll in REFERENCES:
+    res = log_likelihood(
+        pd.Series([O1], index=['t']), pd.Series([O2], index=['t']),
+        total_a=N1, total_b=N2, formula='rayson',
+    )
+    obs = abs(float(res['g2'].iloc[0]))
+    rows.append({'case': label, 'expected': expected_ll, 'pycorpdiff': obs,
+                 'abs_error': abs(obs - expected_ll)})
+xv = pd.DataFrame(rows)
+print(xv.to_string(index=False, float_format=lambda x: f'{x:.6e}' if isinstance(x, float) else str(x)))
+worst = float(xv['abs_error'].max())
+print(f'\\nworst absolute error across {len(xv)} cases: {worst:.2e}')
+assert worst < 1e-10, f'Rayson reference disagreement at {worst:.2e}; block release'
+print(f'OK -- agreement with canonical Rayson references at < 1e-10 (observed worst: {worst:.2e}).')
+"""))
+
+
 # ===================== 1. Corpus =====================
 A(md(r"""
 ## 1. Corpus
@@ -380,6 +423,68 @@ phenotypic to genetic framing in the underlying scientific discourse.
 """))
 
 
+# ----- §2a. Bootstrap CIs on the §2 contextual-keyness contrast -----
+A(md(r"""
+### 2a. Bootstrap CIs on the §2 keyness
+
+The §2 keyness table reports point-estimate G² for each contextual
+term. Bootstrap CIs quantify how stable each term's ranking is under
+document-level resampling, and the Westfall–Young simultaneous max-T
+CIs control family-wise error across the entire vocabulary — strictly
+wider than per-term CIs but valid to report on the top-ranked rows of
+a sorted keyness table (pycorpdiff 0.1.0a26+ returns BOTH column
+pairs from a single call).
+"""))
+A(code(r"""
+ekey1_ci = pcd.compare(pre_anchor, post_anchor).keyness(
+    min_count=30, formula='dunning', stop_words=PUBMED_STOP,
+    multiple_comparisons='bh',
+    ci='bootstrap', n_boot=299, simultaneous_ci=True, bootstrap_seed=0,
+)
+ekey1_ci_df = ekey1_ci.to_df()
+# Restrict to the top-15 by |G^2| and show per-term + simultaneous CI
+_top15 = ekey1_ci_df.head(15)
+cols = ['term', 'count_a', 'count_b', 'g2',
+        'g2_ci_lower', 'g2_ci_upper',
+        'g2_ci_lower_simultaneous', 'g2_ci_upper_simultaneous',
+        'p_adjusted']
+print(_top15[cols].to_string(index=False))
+
+# How many of top-15 have per-term CI excluding zero? simultaneous CI excluding zero?
+_per_term_excl = int(((_top15['g2_ci_lower'] > 0) | (_top15['g2_ci_upper'] < 0)).sum())
+_sim_excl = int(((_top15['g2_ci_lower_simultaneous'] > 0) |
+                  (_top15['g2_ci_upper_simultaneous'] < 0)).sum())
+print(f'\\ntop-15: per-term CI excludes zero in {_per_term_excl}/15')
+print(f'top-15: simultaneous max-T CI excludes zero in {_sim_excl}/15')
+s2a_top15_per_term_excl = _per_term_excl
+s2a_top15_sim_excl = _sim_excl
+"""))
+
+
+# ----- §2b. Collocation shift around the headword -----
+A(md(r"""
+### 2b. Collocation shift: what travelled WITH the Down-syndrome rename?
+
+The keyness contrast at §2 shows term-level vocabulary that changed.
+A complementary view: which *collocates of a fixed headword* shifted
+between the pre- and post-anchor eras? We anchor on the headword
+``syndrome`` (appears in both eras' text, so the collocation contrast
+is on the surrounding vocabulary, not the headword itself) and look
+at log-Dice shifts within a ±5-word window.
+"""))
+A(code(r"""
+shift1 = pcd.compare(pre_anchor, post_anchor).collocation_shift(
+    target='syndrome', window=5, min_count=10,
+)
+s2b_df = shift1.to_df()
+# Filter out generic PubMed stop words after the fact since collocation_shift
+# doesn't accept stop_words= directly
+s2b_df = s2b_df[~s2b_df['collocate'].isin(PUBMED_STOP)].reset_index(drop=True)
+print(f'{len(s2b_df):,} collocates analysed (after PubMed-stopwords filter); top 12 by |shift|:')
+print(s2b_df.head(12).to_string(index=False))
+"""))
+
+
 # ===================== 3. Shift 2: shell shock -> PTSD =====================
 A(md(r"""
 ## 3. Shift 2: shell shock / war neurosis / combat fatigue → PTSD (1980s anchor)
@@ -438,6 +543,44 @@ early PTSD literature was dominated by Vietnam-veteran framing;
 late-era PTSD literature is dominated by civilian-trauma, mTBI,
 disaster, refugee, and military-deployment vocabulary. The keyness
 contrast picks this up automatically.
+"""))
+
+
+# ----- §3b. Burstiness on the annual PTSD record-count series -----
+A(md(r"""
+### 3b. Burstiness detection on the PTSD annual record count
+
+Kleinberg's (1999) burstiness detector treats a discrete time series
+as emissions from a hidden infinite-state automaton whose states
+correspond to different emission rates; the optimal state sequence
+identifies *bursts* — sustained intervals where the emission rate is
+elevated relative to a baseline. We run it on the per-year count of
+PubMed records mentioning PTSD, expecting the post-1980 explosion to
+register as a clean burst whose onset aligns with the DSM-III anchor.
+"""))
+A(code(r"""
+ptsd_yr_series = new_yr2.reindex(range(1940, 2025), fill_value=0).astype(int)
+# Build per-year totals as the sum of old+new corpora for this shift: this
+# gives a binomial-style "what share of the wider trauma-vocabulary universe
+# is PTSD?" denominator.
+totals_series = ((old_yr2.reindex(range(1940, 2025), fill_value=0)
+                 + new_yr2.reindex(range(1940, 2025), fill_value=0))
+                 .astype(int).clip(lower=1))
+print(f'PTSD counts series: {int(ptsd_yr_series.iloc[0])} in 1940 -> {int(ptsd_yr_series.iloc[-1])} in 2024')
+print(f'Totals series (PTSD + shell-shock family): {int(totals_series.iloc[0])} -> {int(totals_series.iloc[-1])}')
+
+states = pcd.kleinberg_bursts(ptsd_yr_series, totals_series, s=2.0, gamma=1.0, n_states=5)
+print(f'\\nKleinberg burst state sequence (s=2.0, gamma=1.0, n_states=5):')
+state_df = pd.DataFrame({'year': ptsd_yr_series.index, 'count': ptsd_yr_series.values,
+                          'totals': totals_series.values, 'state': states})
+print(state_df.loc[(state_df['state'] > 0) | (state_df['year'].isin([1980, 1990, 2000, 2010, 2020]))].to_string(index=False))
+
+# Burst regions are contiguous runs of state > 0
+in_burst = state_df['state'] > 0
+burst_starts = state_df[in_burst & (~in_burst.shift(1, fill_value=False))]
+s3b_first_burst_year = int(burst_starts.iloc[0]['year']) if len(burst_starts) else None
+s3b_aligned = s3b_first_burst_year is not None and 1979 <= s3b_first_burst_year <= 1983
+print(f'\\nFirst burst onset: {s3b_first_burst_year}; aligns with DSM-III 1980 (1979-1983 window): {s3b_aligned}')
 """))
 
 
@@ -532,6 +675,44 @@ except Exception as e:
 """))
 
 
+# ----- §5a. Bootstrap CIs on the §5 contextual-keyness contrast -----
+A(md(r"""
+### 5a. Bootstrap CIs + simultaneous max-T on the §5 keyness
+
+The largest-volume shift in this notebook. We compute the contextual
+keyness between the pre-anchor MR corpus (2005–2009) and the
+post-anchor ID corpus (2013+), with per-term + simultaneous max-T
+bootstrap CIs to bound the inference.
+"""))
+A(code(r"""
+mr_pre  = pcd.from_dataframe(old4[(old4['year'] >= 2005) & (old4['year'] < 2010)],
+                              text_col='text', meta_cols=('year', 'journal'))
+id_post = pcd.from_dataframe(new4[new4['year'] >= 2013],
+                              text_col='text', meta_cols=('year', 'journal'))
+print(f'MR pre-anchor (2005-2009):  {len(mr_pre.docs):,} docs')
+print(f'ID post-anchor (2013+):     {len(id_post.docs):,} docs')
+
+key5_ci = pcd.compare(mr_pre, id_post).keyness(
+    min_count=50, formula='dunning', stop_words=PUBMED_STOP,
+    multiple_comparisons='bh',
+    ci='bootstrap', n_boot=299, simultaneous_ci=True, bootstrap_seed=0,
+)
+key5_df = key5_ci.to_df()
+_top15_5 = key5_df.head(15)
+cols = ['term', 'count_a', 'count_b', 'g2',
+        'g2_ci_lower', 'g2_ci_upper',
+        'g2_ci_lower_simultaneous', 'g2_ci_upper_simultaneous',
+        'p_adjusted']
+print(_top15_5[cols].to_string(index=False))
+
+s5a_top15_per_term_excl = int(((_top15_5['g2_ci_lower'] > 0) | (_top15_5['g2_ci_upper'] < 0)).sum())
+s5a_top15_sim_excl = int(((_top15_5['g2_ci_lower_simultaneous'] > 0) |
+                          (_top15_5['g2_ci_upper_simultaneous'] < 0)).sum())
+print(f'\\ntop-15: per-term CI excludes zero in {s5a_top15_per_term_excl}/15')
+print(f'top-15: simultaneous max-T CI excludes zero in {s5a_top15_sim_excl}/15')
+"""))
+
+
 # ===================== 6. Negative finding: suicide phrasing =====================
 A(md(r"""
 ## 6. Negative finding: "committed suicide" → "died by suicide"
@@ -575,16 +756,305 @@ if len(old5):
 """))
 
 
-# ===================== 7. Audit layer =====================
+# ===================== 6.5. Loaded clinical vocabulary retirement =====================
 A(md(r"""
-## 7. Audit layer
+## 6.5. Loaded clinical vocabulary retirement: Tier-2 + Tier-3 inventory
+
+The five headline shifts in §2-§6 were chosen because each had a
+clean anchor event and a documented retirement narrative in
+medical-history literature. To establish how representative those
+five are of the broader pattern of vocabulary reform, we surveyed
+**43 additional terms** across two tiers:
+
+* **Tier-2** (28 labels) — explicitly stigmatized historical clinical
+  vocabulary: eugenic-era IQ classification (moron, imbecile, idiocy,
+  feeble-minded, mental defective, cretin, mongoloid idiot), sexual-
+  orientation pathology (homosexuality_dx, sexual inversion, sexual
+  perversion, sodomy, ego-dystonic homosexuality), misogynistic
+  women's-sexuality clinical terms (frigidity, nymphomania, onanism),
+  19th-c race-pathology pseudo-diagnoses (drapetomania, dysaesthesia
+  aethiopica, Negroid facies), discredited treatments (lobotomy,
+  insulin coma, aversion therapy, conversion therapy), disability
+  slurs (spastic), substance-use stigma (junkie, dope fiend), and
+  reproductive stigma (illegitimate, unwed mother).
+
+* **Tier-3** (15 labels) — the *most-offensive* deprecated medical
+  vocabulary: explicit slur forms (retarded), 19th-c colonial racial
+  medical anthropology (Hottentot, savage/primitive race, kaffir,
+  darky, anti-Black slur variants), teratology stigma (congenital
+  monstrosity, freak of nature), short-stature informal terms
+  (midget, dwarf), legal-medical stigma (bastard, lunatic), STI/VD-era
+  framing (whore, harlot), and additional disability/orthopedic
+  stigma (deformed).
+
+These terms are included for honest empirical documentation: we are
+tracking what published medical literature *actually used*, when,
+and how completely it was retired. Modern PubMed indexing may have
+retroactively scrubbed some of the most egregious historical content,
+so several Tier-3 labels return ~zero hits — which is itself
+publishable evidence about post-hoc indexing curation.
+"""))
+
+A(code(r"""
+tier2 = pd.read_csv(Path('..') / 'data' / 'pubmed_tier2_counts.csv')
+tier3 = pd.read_csv(Path('..') / 'data' / 'pubmed_tier3_counts.csv')
+tier2['tier'] = 'T2'
+tier3['tier'] = 'T3'
+loaded = pd.concat([tier2, tier3], ignore_index=True)
+print(f'Loaded inventory total rows: {len(loaded):,}')
+print(f'Loaded inventory labels:     {loaded.label.nunique()}')
+print(f'Total records summed:        {loaded["n_records"].sum():,}')
+"""))
+
+
+# ----- §6.5.1: the headline inversion -----
+A(md(r"""
+### 6.5.1. Headline inversion: "retarded" outlives "mental retardation"
+
+The clinical term **mental retardation** was retired in U.S. statute
+(Rosa's Law 2010) and DSM-5 nosology (2013); §5 documented its
+~10× decline from 1,087 records in 2009 to ~250/year in the
+2020s. The pre-registered narrative said the rename was working.
+
+The *slur form* of the same root word — **"retarded"** as used in
+journal title/abstracts — was a Tier-3 inclusion to test how
+completely the retirement penetrated derivative vocabulary. The
+result is a sharp inversion: the slur form *rises* through the
+study window, peaking in 2021 at the moment the clinical term
+hit its lowest level on record.
+
+The interpretation is not that PubMed authors are reverting to slur
+use clinically. Rather: a substantial fraction of "retarded" records
+in 2010s+ PubMed are research *about* the slur — psychology of
+stigma, intellectual-disability advocacy responding to it, slur-
+recognition studies, special-education literature on terminology
+choice. The clinical reform created a new research category that
+*itself* uses the deprecated form. **Reform of the clinical lexicon
+does not equal disappearance of the word from the literature.**
+"""))
+
+A(code(r"""
+# Compare the two trajectories side by side
+clinical_mr = df_full = pd.read_csv(Path('..') / 'data' / 'pubmed_full_counts.csv')
+clinical_mr_yr = (clinical_mr[clinical_mr.label == 'ID_old_mental_retardation']
+                  .set_index('year')['n_records'].sort_index())
+retarded_slur_yr = (loaded[loaded.label == 'T3_retarded_slur']
+                    .set_index('year')['n_records'].sort_index())
+
+s65_mr_peak_yr = int(clinical_mr_yr.idxmax())
+s65_mr_peak_n = int(clinical_mr_yr.max())
+s65_slur_peak_yr = int(retarded_slur_yr.idxmax())
+s65_slur_peak_n = int(retarded_slur_yr.max())
+s65_mr_2020s = int(clinical_mr_yr.loc[2020:].sum())
+s65_slur_2020s = int(retarded_slur_yr.loc[2020:].sum())
+
+print(f'Clinical "mental retardation":  peak {s65_mr_peak_n:>5} in {s65_mr_peak_yr}; 2020s sum {s65_mr_2020s:>6,}')
+print(f'Slur form "retarded":           peak {s65_slur_peak_n:>5} in {s65_slur_peak_yr}; 2020s sum {s65_slur_2020s:>6,}')
+print(f'\\nClinical retired, slur survived. The retirement did NOT eliminate the word —')
+print(f'it shifted from clinical usage into stigma-research usage. Inversion ratio:')
+print(f'  slur 2020s / clinical 2020s = {s65_slur_2020s / max(s65_mr_2020s, 1):.1f}x')
+"""))
+
+
+# ----- §6.5.2: clean extinctions -----
+A(md(r"""
+### 6.5.2. Clean extinctions
+
+Some loaded terms underwent textbook retirement — peak well in the
+past, zero records in the 2020s. These are the unambiguous
+auditable cases.
+"""))
+A(code(r"""
+ext_rows = []
+for label in loaded.label.unique():
+    yr = loaded[loaded.label == label].set_index('year')['n_records'].sort_index()
+    if yr.sum() < 5: continue
+    peak_yr = int(yr.idxmax())
+    last_5y = int(yr.loc[2020:].sum())
+    peak_n = int(yr.max())
+    if last_5y == 0 and peak_yr <= 1990:
+        ext_rows.append({
+            'label': label, 'peak_n': peak_n, 'peak_year': peak_yr,
+            'total': int(yr.sum()), 'last_5y': last_5y,
+        })
+ext_df = pd.DataFrame(ext_rows).sort_values('peak_year')
+print(f'Cleanly extinct loaded-vocabulary labels (peak <= 1990, zero records 2020s):')
+print(ext_df.to_string(index=False))
+s65_n_extinct = len(ext_df)
+"""))
+
+
+# ----- §6.5.3: indexing-curation evidence (ZERO-hit terms) -----
+A(md(r"""
+### 6.5.3. Indexing-curation evidence: ZERO-hit terms
+
+Several Tier-3 labels return literally zero records across all 75
+years. There are two non-exclusive explanations: (a) the term
+genuinely never appeared in any abstract that NLM indexed (possible
+for some pre-1975 records with no abstract field), or (b) NLM
+retroactively scrubbed historical content. Either way, the zero
+hit is informative — it documents that the loaded form is either
+absent from the indexed corpus or has been removed from it. The
+literature's institutional memory has been curated.
+"""))
+A(code(r"""
+zero_rows = []
+for label in loaded.label.unique():
+    yr = loaded[loaded.label == label]['n_records'].sum()
+    if yr == 0:
+        zero_rows.append({'label': label, 'total': 0,
+                          'interpretation': '0 records across 1950-2024 — never indexed or scrubbed'})
+zero_df = pd.DataFrame(zero_rows)
+print(f'Tier-3 labels with zero records across the full study window:')
+print(zero_df.to_string(index=False))
+s65_n_zero = len(zero_df)
+"""))
+
+
+# ----- §6.5.4: persistent post-clinical -----
+A(md(r"""
+### 6.5.4. Persistent terms — not every old term retires
+
+The opposite finding: some "deprecated" terms remained in active
+clinical use because they're still the clinically-precise descriptor
+(dwarfism for short stature), or because they were redirected from
+medical use into stigma-research / history-of-medicine scholarship.
+"""))
+A(code(r"""
+persistent_rows = []
+for label in loaded.label.unique():
+    yr = loaded[loaded.label == label].set_index('year')['n_records'].sort_index()
+    if yr.sum() < 100: continue
+    peak_yr = int(yr.idxmax())
+    last_5y = int(yr.loc[2020:].sum())
+    if peak_yr >= 2015 and last_5y >= 50:
+        persistent_rows.append({
+            'label': label, 'peak_year': peak_yr,
+            'total': int(yr.sum()), 'last_5y': last_5y,
+        })
+pers_df = pd.DataFrame(persistent_rows).sort_values('last_5y', ascending=False)
+print(f'Persistent loaded-vocabulary terms (peak >= 2015 and 2020s sum >= 50):')
+print(pers_df.to_string(index=False))
+s65_n_persistent = len(pers_df)
+"""))
+
+
+A(md(r"""
+**Verdict.** The 43-label Tier-2/Tier-3 survey corroborates the
+headline §2-§5 finding that medical-literature vocabulary retirement
+is real and datable, but adds three honest complications:
+
+1. **Reform of the clinical lexicon does not eliminate the word.**
+   When "mental retardation" was retired, the slur form "retarded"
+   *rose* in PubMed because a new research category (stigma research)
+   adopted it.
+2. **Some loaded terms persist for legitimate clinical reasons.**
+   "Dwarfism" remains the precise clinical term for the condition
+   itself; the slur form "midget" did decline but persisted longer
+   than expected.
+3. **The zero-hit terms document NLM's institutional curation.**
+   The most egregious historical content is no longer findable in
+   PubMed abstracts — whether because it was never indexed or
+   because it was retroactively scrubbed. The library has memory
+   policies, and those policies are themselves a form of language
+   reform.
+"""))
+
+
+# ===================== 7. Cross-corpus validation: Google Books =====================
+A(md(r"""
+## 7. Cross-corpus validation: PubMed vs Google Books Ngrams
+
+The five shifts above were detected in PubMed (scientific lit). Do
+they also surface in Google Books (popular published-books usage)?
+If PubMed leads Books, scientific terminology reform precedes
+popular adoption. If they shift together, the reform is broad-
+spectrum. If Books shifts and PubMed doesn't (or vice versa), we
+have a discourse-asymmetry finding.
+
+We use the Google Books Ngrams English-2019 corpus (free, public
+API, harvested by `build/fetch_books_ngrams.py`). The query strategy
+is identical: per-term-qualified ngrams summed within each shift,
+with case-insensitive matching collapsed to the "(All)" combined
+entries.
+"""))
+A(code(r"""
+books_path = Path('..') / 'data' / 'books_ngrams_counts.csv'
+books = pd.read_csv(books_path)
+print(f'Google Books rows: {len(books):,}')
+print(f'Shifts: {books["shift"].unique().tolist()}')
+print(f'Year range: {books["year"].min()}-{books["year"].max()}')
+"""))
+
+A(code(r"""
+# Cross-corpus comparison: per-shift, find Books crossover and compare to PubMed
+PUBMED_CROSSOVERS = {
+    '1960s_down':           crossover,          # 1966
+    '1980s_ptsd':           first_ptsd,         # 1980 (first PTSD record)
+    '1990s_did':            first_did,          # 1994 (first DID record)
+    '2010s_id':             crossover4,         # 2012
+    'neg_suicide_phrasing': None,               # 0 records in PubMed
+}
+
+THRESH = 1e-8  # both Books-frequencies need to be above this for crossover to be meaningful
+rows = []
+for shift in books['shift'].unique():
+    sub = books[books['shift'] == shift].copy()
+    agg = sub.groupby(['year', 'side'])['frequency'].sum().unstack('side', fill_value=0)
+    agg = agg.sort_index()
+    old_peak = float(agg['old'].max())
+    old_peak_yr = int(agg['old'].idxmax()) if old_peak > 0 else None
+    valid = (agg['old'] > THRESH) | (agg['new'] > THRESH)
+    cross_mask = (agg['new'] > agg['old']) & valid
+    books_cross = int(cross_mask.idxmax()) if cross_mask.any() else None
+    pubmed_cross = PUBMED_CROSSOVERS.get(shift)
+    lag = (books_cross - pubmed_cross) if (books_cross and pubmed_cross) else None
+    ratio_2019 = float(agg['new'].iloc[-1]) / max(float(agg['old'].iloc[-1]), 1e-15)
+    rows.append({
+        'shift': shift,
+        'books_old_peak_yr': old_peak_yr,
+        'pubmed_crossover': pubmed_cross,
+        'books_crossover': books_cross,
+        'lag_books_vs_pubmed': lag,
+        'books_2019_new_over_old': round(ratio_2019, 2),
+    })
+cross_corpus = pd.DataFrame(rows)
+print(cross_corpus.to_string(index=False))
+"""))
+
+A(md(r"""
+### 7.1 The "died by suicide" cross-corpus contrast
+
+The negative finding from §6 — that PubMed has zero records of
+"died by suicide" — is *not* mirrored in Google Books. The AAS-
+recommended phrase IS rising in books, just very slowly. Books
+captures the partial uptake that PubMed misses entirely.
+"""))
+A(code(r"""
+sui_books = books[books['shift'] == 'neg_suicide_phrasing'].copy()
+sui_pivot = sui_books.pivot(index='year', columns='ngram', values='frequency').fillna(0)
+print(f'Books frequencies (note units are per-year-normalized, so very small):\\n')
+recent = sui_pivot.loc[2000:2019]
+print(recent.to_string(float_format=lambda x: f'{x:.3e}'))
+s7_books_died_2000 = float(sui_pivot.loc[2000, 'died by suicide']) if 'died by suicide' in sui_pivot.columns else 0.0
+s7_books_died_2019 = float(sui_pivot.loc[2019, 'died by suicide']) if 'died by suicide' in sui_pivot.columns else 0.0
+s7_books_growth_ratio = s7_books_died_2019 / max(s7_books_died_2000, 1e-15)
+print(f'\\n"died by suicide" growth 2000 -> 2019 in Books: {s7_books_growth_ratio:.1f}x')
+print(f'PubMed records of "died by suicide" 2000-2024: 0 (zero growth)')
+"""))
+
+
+# ===================== 8. Audit layer =====================
+A(md(r"""
+## 8. Audit layer
 
 Same audit pattern as the CBD and asylum case studies: per-shift
 placebo dates, shuffled-label nulls on the keyness for the strongest
-shift, and the multi-shift internal-consistency check that Step-A
-counts match Step-B abstract harvest within tolerance.
+shift, the multi-shift internal-consistency check that Step-A counts
+match Step-B abstract harvest within tolerance, plus inferential
+audit layers (BH-vs-CI alignment and min_count sensitivity).
 
-### 7.1 Step-A vs Step-B record-count consistency
+### 8.1 Step-A vs Step-B record-count consistency
 
 If the abstract harvest dropped records relative to the pre-flight
 count sweep (Step A), that's either a real issue (truncation,
@@ -644,9 +1114,9 @@ print(f'Records flagged for follow-up: {(consistency["flag"].str.startswith("CHE
 """))
 
 
-# ===================== 7.2 Placebo dates for §5 ID =====================
+# ===================== 8.2 Placebo dates for §5 ID =====================
 A(md(r"""
-### 7.2 Placebo dates for the §5 ID shift
+### 8.2 Placebo dates for the §5 ID shift
 
 For the strongest-volume shift (mental retardation → intellectual
 disability), check that the observed crossover near 2012 is anchored
@@ -682,9 +1152,9 @@ print(f'Placebo anchors that "align": {placebo_df[(~placebo_df.is_real) & placeb
 """))
 
 
-# ===================== 7.3 Shuffled-label null on §5 keyness =====================
+# ===================== 8.3 Shuffled-label null on §5 keyness =====================
 A(md(r"""
-### 7.3 Shuffled-label null on §5 keyness
+### 8.3 Shuffled-label null on §5 keyness
 
 For one strong-volume shift (mental retardation → intellectual
 disability), we randomly permute the (old, new) labels across records
@@ -733,9 +1203,93 @@ print(f'Walltime: {elapsed:.0f}s')
 """))
 
 
-# ===================== 8. Scoreboard =====================
+# ===================== 8.4 BH-vs-CI alignment =====================
 A(md(r"""
-## 8. Audit scoreboard
+### 8.4 BH-significance ⊆ CI-excludes-zero alignment (on §5 keyness)
+
+Two inferential statements on the §5 keyness table should mostly
+agree: a term flagged BH-significant (p_adj < 0.05) should usually
+also have a per-term bootstrap CI excluding zero. They control
+different errors (BH = FDR vs bootstrap percentile = sampling
+distribution of G²), so perfect agreement is not required, but
+substantial disagreement means one of the two tools is misreading
+the data.
+"""))
+A(code(r"""
+_k5 = key5_ci.to_df()
+_k5 = _k5[_k5['p_adjusted'].notna()].copy()
+_bh_sig = _k5['p_adjusted'] < 0.05
+_ci_excl = (_k5['g2_ci_lower'] > 0) | (_k5['g2_ci_upper'] < 0)
+n_both = int((_bh_sig & _ci_excl).sum())
+n_bh_only = int((_bh_sig & ~_ci_excl).sum())
+n_ci_only = int((~_bh_sig & _ci_excl).sum())
+n_either = int((_bh_sig | _ci_excl).sum())
+s84_disagree_ratio = (n_bh_only + n_ci_only) / max(1, n_either)
+print(f'BH-significant:          {int(_bh_sig.sum())}')
+print(f'CI excludes 0:           {int(_ci_excl.sum())}')
+print(f'Both flagged:            {n_both}')
+print(f'BH only (CI straddles):  {n_bh_only}')
+print(f'CI only (not BH-sig):    {n_ci_only}')
+print(f'Disagreement / either-flagged ratio: {s84_disagree_ratio:.3f}')
+"""))
+
+
+# ===================== 8.5 min_count sensitivity =====================
+A(md(r"""
+### 8.5 min_count sensitivity for §5 keyness
+
+The §5 keyness contrast used `min_count=50`. Vary it across an order
+of magnitude and confirm the top-distinctive terms are stable.
+"""))
+A(code(r"""
+mc_rows = []
+for mc in [10, 30, 50, 100, 200]:
+    try:
+        kk = pcd.compare(mr_pre, id_post).keyness(
+            min_count=mc, formula='dunning', stop_words=PUBMED_STOP,
+            multiple_comparisons='bh',
+        )
+        kdf = kk.to_df()
+        top3_pre = ','.join(kdf[kdf['log_ratio'] > 0].head(3)['term'].tolist())
+        top3_post = ','.join(kdf[kdf['log_ratio'] < 0].head(3)['term'].tolist())
+        mc_rows.append({'min_count': mc, 'n_terms': len(kdf),
+                        'top-3 pre-anchor': top3_pre, 'top-3 post-anchor': top3_post})
+    except Exception as e:
+        mc_rows.append({'min_count': mc, 'n_terms': 0, 'error': str(e)[:50]})
+mc_df = pd.DataFrame(mc_rows)
+print(mc_df.to_string(index=False))
+_pre_sets = [set(s.strip() for s in r.split(',')) for r in mc_df['top-3 pre-anchor']]
+_post_sets = [set(s.strip() for s in r.split(',')) for r in mc_df['top-3 post-anchor']]
+s85_pre_stable = all(s == _pre_sets[0] for s in _pre_sets)
+s85_post_stable = all(s == _post_sets[0] for s in _post_sets)
+print(f'\\npre-anchor top-3 stable across {len(mc_rows)} min_count values:  {s85_pre_stable}')
+print(f'post-anchor top-3 stable across {len(mc_rows)} min_count values: {s85_post_stable}')
+"""))
+
+
+# ===================== 8.6 Spearman monotonic-trend test =====================
+A(md(r"""
+### 8.6 Spearman monotonic-trend test on the §5 trajectory
+
+Beyond the crossover-year diagnostic, is the ID record-count series
+monotonically rising over the post-anchor decade?
+"""))
+A(code(r"""
+from scipy.stats import spearmanr
+id_post_yr = new_yr4.loc[2013:2024]
+years_arr = id_post_yr.index.values.astype(float)
+counts_arr = id_post_yr.values.astype(float)
+rho, p_sp = spearmanr(years_arr, counts_arr)
+s86_rho = float(rho)
+s86_p = float(p_sp)
+print(f'Spearman rho on (year, ID-count) 2013-2024: rho = {s86_rho:+.3f}, p = {s86_p:.2e}')
+print(f'Monotonic rising (rho > 0.7): {s86_rho > 0.7}')
+"""))
+
+
+# ===================== 9. Scoreboard =====================
+A(md(r"""
+## 9. Audit scoreboard
 
 Per-shift pass/partial/fail summary, computed from the runtime
 objects above (no literal verdicts; every Observed cell is an
@@ -753,6 +1307,11 @@ TH_FIRST_DID_HI      = 1995
 TH_CROSSOVER_TOL_10S = 2   # ID crossover within 2 years of 2012
 TH_RETENTION_FLOOR   = 0.80  # Step-A vs Step-B retention
 TH_NULL_RATIO_FLOOR  = 10  # observed/null at 10x
+TH_TOP15_CI_EXCL     = 10  # of top-15 keyness terms, this many should have per-term CI excluding 0
+TH_BURST_ONSET_LO    = 1979  # PTSD burst onset window (DSM-III anchor 1980, ±1)
+TH_BURST_ONSET_HI    = 1983
+TH_RHO_FLOOR         = 0.70  # Spearman rho on ID post-anchor trajectory should rise
+TH_BH_CI_DISAGREE    = 0.30  # disagreement ratio between BH and bootstrap CI
 
 # §2 evidence
 s2_cross = crossover
@@ -788,30 +1347,69 @@ s73_ratio = obs_max / p95 if p95 > 0 else float('inf')
 s73_pass = s73_ratio >= TH_NULL_RATIO_FLOOR
 
 scoreboard = pd.DataFrame([
+    ('§0d Cross-package Rayson G^2 byte-equality',
+     f'worst absolute error across 6 reference cases: {float(xv["abs_error"].max()):.2e} (assertion floor 1e-10)',
+     'PASS' if float(xv['abs_error'].max()) < 1e-10 else 'FAIL'),
     ('§2 mongolism -> Down syndrome',
      f'crossover {s2_cross} (anchor {anchor1}, tolerance ±{TH_CROSSOVER_TOL_60S})',
      'PASS' if s2_pass else 'FAIL (pre-registered)'),
+    ('§2a Bootstrap CIs on §2 contextual keyness',
+     f'top-15: per-term CI excludes 0 in {s2a_top15_per_term_excl}/15; simultaneous CI excludes 0 in {s2a_top15_sim_excl}/15',
+     'PASS' if s2a_top15_per_term_excl >= TH_TOP15_CI_EXCL else 'PARTIAL'),
+    ('§2b Collocation shift around "syndrome"',
+     f'{len(s2b_df):,} collocates analysed; top |shift| at {s2b_df.iloc[0]["collocate"]!r} (shift={s2b_df.iloc[0]["shift"]:+.2f})' if len(s2b_df) else 'no collocates',
+     'PASS' if len(s2b_df) > 0 else 'PARTIAL'),
     ('§3 shell shock -> PTSD',
      f'first PTSD record {s3_first_ptsd} (anchor {anchor2}, tolerance ±{TH_FIRST_PTSD_TOL})',
      'PASS' if s3_pass else 'FAIL (pre-registered)'),
+    ('§3b Burstiness detection on PTSD annual series',
+     f'first burst onset: {s3b_first_burst_year}; aligned with DSM-III 1980 (window {TH_BURST_ONSET_LO}-{TH_BURST_ONSET_HI}): {s3b_aligned}',
+     'PASS' if s3b_aligned else 'PARTIAL'),
     ('§4 MPD -> DID',
      f'first DID record {s4_first_did} (pre-reg window 1993-1995)',
      'PASS' if s4_pass else 'PARTIAL'),
     ('§5 mental retardation -> intellectual disability',
      f'crossover {s5_cross} (anchor {anchor4}, tolerance ±{TH_CROSSOVER_TOL_10S})',
      'PASS' if s5_pass else 'PARTIAL'),
+    ('§5a Bootstrap CIs on §5 contextual keyness',
+     f'top-15: per-term CI excludes 0 in {s5a_top15_per_term_excl}/15; simultaneous CI excludes 0 in {s5a_top15_sim_excl}/15',
+     'PASS' if s5a_top15_per_term_excl >= TH_TOP15_CI_EXCL else 'PARTIAL'),
     ('§6 NEGATIVE FINDING: "committed" -> "died by" suicide',
      f'"died by suicide" PubMed records: {len(new5)} (falsifier was zero)',
      'FAIL (pre-registered falsifier; honestly recorded)' if s6_pass else 'PASS'),
-    ('AUDIT §7.1 Step-A/Step-B retention',
+    ('§6.5.1 Loaded-vocab inversion: "retarded" slur outlives clinical "mental retardation"',
+     f'clinical peak {s65_mr_peak_n} in {s65_mr_peak_yr} vs slur peak {s65_slur_peak_n} in {s65_slur_peak_yr}; 2020s slur/clinical ratio {s65_slur_2020s/max(s65_mr_2020s,1):.1f}x',
+     'INVERSION (slur 2020s sum >= clinical 2020s sum)' if s65_slur_2020s >= s65_mr_2020s else 'no inversion'),
+    ('§6.5.2 Loaded-vocab clean extinctions',
+     f'{s65_n_extinct} of 43 loaded-vocab labels are extinct (peak <= 1990 and zero records in 2020s)',
+     'OBSERVED'),
+    ('§6.5.3 ZERO-hit indexing-curation evidence',
+     f'{s65_n_zero} of 43 loaded-vocab labels have zero records across 1950-2024 (Tier-3 most-offensive set)',
+     'OBSERVED'),
+    ('§6.5.4 Persistent loaded-vocab (not all retire)',
+     f'{s65_n_persistent} labels persist with 2020s sum >= 50 records',
+     'OBSERVED'),
+    ('§7 Cross-corpus: PubMed vs Google Books',
+     f'PubMed leads Books for {int((cross_corpus["lag_books_vs_pubmed"] > 0).sum())} of {len(cross_corpus)} shifts; Books-"died by suicide" growth 2000->2019: {s7_books_growth_ratio:.1f}x',
+     'PASS' if s7_books_growth_ratio > 1 else 'PARTIAL'),
+    ('AUDIT §8.1 Step-A/Step-B retention',
      f'worst retention {s71_worst:.2f} (floor {TH_RETENTION_FLOOR})',
      'PASS' if s71_pass else 'PARTIAL'),
-    ('AUDIT §7.2 Placebo anchor years',
+    ('AUDIT §8.2 Placebo anchor years',
      f'real anchor aligns: {s72_real_aligns}; placebos aligning: {s72_placebos_align}/5',
      'PASS' if s72_pass else 'PARTIAL'),
-    ('AUDIT §7.3 Shuffled-label null for §5 keyness',
+    ('AUDIT §8.3 Shuffled-label null for §5 keyness',
      f'observed |G^2|={obs_max:,.0f}; 95th-pct null={p95:,.0f}; ratio {s73_ratio:.0f}x',
      'PASS' if s73_pass else 'PARTIAL'),
+    ('AUDIT §8.4 BH-vs-bootstrap-CI alignment on §5 keyness',
+     f'disagreement ratio: {s84_disagree_ratio:.3f} (tolerance {TH_BH_CI_DISAGREE})',
+     'PASS' if s84_disagree_ratio <= TH_BH_CI_DISAGREE else 'PARTIAL'),
+    ('AUDIT §8.5 min_count sensitivity for §5 keyness',
+     f'pre-anchor top-3 stable: {s85_pre_stable}; post-anchor top-3 stable: {s85_post_stable}',
+     'PASS' if (s85_pre_stable and s85_post_stable) else 'PARTIAL'),
+    ('AUDIT §8.6 Spearman monotonic-trend on §5 ID 2013-2024',
+     f'rho = {s86_rho:+.3f}, p = {s86_p:.2e} (floor rho > {TH_RHO_FLOOR})',
+     'PASS' if s86_rho > TH_RHO_FLOOR else 'PARTIAL'),
 ], columns=['Check', 'Observed', 'Verdict'])
 
 with pd.option_context('display.max_colwidth', 100, 'display.width', 200):

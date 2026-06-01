@@ -298,6 +298,124 @@ FULL_INVENTORY: dict[str, tuple[list[str], int, int]] = {
 }
 
 
+# Tier 2: explicitly stigmatized / loaded historical clinical vocabulary.
+# Same per-term [Title/Abstract] discipline as the headline inventory; the
+# point is to empirically document *when* and *how completely* the medical
+# literature retired each loaded term. The analysis is descriptive; we are
+# not endorsing or rehabilitating any of these terms.
+
+TIER2_INVENTORY: dict[str, tuple[list[str], int, int]] = {
+    # --- Eugenic-era IQ classification (Goddard 1914 scale; became slurs) ---
+    "T2_moron":              (["moron", "morons", "moronic"],                                          1950, 2024),
+    "T2_imbecile":           (["imbecile", "imbeciles", "imbecility"],                                  1950, 2024),
+    "T2_idiocy_clinical":    (["idiocy", '"Mongolian idiocy"', '"amaurotic idiocy"'],                  1950, 2024),
+    "T2_feeble_minded":      (['"feeble-minded"', '"feeble minded"', "feeblemindedness",
+                               '"feeble-mindedness"'],                                                  1950, 2024),
+    "T2_mental_defective":   (['"mental defective"', '"mental defectives"', '"mental deficiency"'],   1950, 2024),
+    "T2_cretin":             (["cretin", "cretins", "cretinism", "cretinoid"],                          1950, 2024),
+    "T2_mongoloid_idiot":    (['"mongoloid idiot"', '"mongoloid idiocy"', '"mongol idiocy"'],          1950, 2024),
+
+    # --- Sexual orientation as pathology ---
+    # Overall topic volume (will show post-1973 reframing as the COUNT staying
+    # large but the keyness CONTEXT shifting):
+    "T2_homosexuality":      (["homosexuality"],                                                        1950, 2024),
+    # Explicitly pathology-framed phrases (much smaller volume, clear retirement):
+    "T2_homosexuality_dx":   (['"homosexual disorder"', '"homosexual deviation"',
+                               '"homosexual neurosis"', '"latent homosexuality"',
+                               '"treatment of homosexuality"', '"cure of homosexuality"',
+                               '"etiology of homosexuality"'],                                          1950, 2024),
+    "T2_ego_dystonic":       (['"ego-dystonic homosexuality"', '"ego dystonic homosexuality"'],       1970, 2024),
+    "T2_sexual_inversion":   (['"sexual inversion"', '"sexual invert"', '"sexual inverts"',
+                               '"congenital invert"'],                                                  1950, 2024),
+    "T2_sexual_perversion":  (['"sexual perversion"', '"sexual pervert"', '"sexual perversions"'],    1950, 2024),
+    "T2_sodomy_clinical":    (["sodomy", "sodomite", '"sodomitical"'],                                  1950, 2024),
+
+    # --- Misogynistic women's-sexuality clinical terms ---
+    "T2_frigidity":          (["frigidity", "frigid"],                                                  1950, 2024),
+    "T2_nymphomania":        (["nymphomania", "nymphomaniac", "nymphomaniacal"],                        1950, 2024),
+    "T2_onanism":            (["onanism", '"self-abuse"', '"self abuse"', '"self-pollution"'],         1950, 2024),
+
+    # --- 19th-century race-pathology pseudo-diagnoses ---
+    "T2_drapetomania":       (["drapetomania"],                                                          1950, 2024),
+    "T2_dysaesthesia_aeth":  (['"dysaesthesia aethiopica"', '"dysesthesia aethiopica"'],               1950, 2024),
+    "T2_negroid_facies":     (['"Negroid facies"', '"Negroid skull"', '"Negroid features"'],          1950, 2024),
+
+    # --- Discredited / contested treatments ---
+    "T2_lobotomy":           (["lobotomy", "leukotomy", '"prefrontal lobotomy"',
+                               '"transorbital lobotomy"'],                                              1940, 2024),
+    "T2_insulin_coma":       (['"insulin coma"', '"insulin shock therapy"',
+                               '"insulin coma therapy"'],                                                1940, 2024),
+    "T2_aversion_therapy":   (['"aversion therapy"', '"aversion conditioning"',
+                               '"electrical aversion"'],                                                1950, 2024),
+    "T2_conversion_therapy": (['"conversion therapy"', '"reparative therapy"',
+                               '"sexual orientation change"', '"sexual reorientation"'],                1950, 2024),
+
+    # --- Disability slurs from clinical origin ---
+    "T2_spastic_clinical":   (['"spastic child"', '"spastic children"', '"the spastics"',
+                               '"spastic diplegic"'],                                                    1950, 2024),
+
+    # --- Substance-use stigma ---
+    "T2_junkie":             (["junkie", "junkies"],                                                    1950, 2024),
+    "T2_dope_fiend":         (['"dope fiend"', '"dope fiends"', '"dope addict"', '"dope addicts"'],  1950, 2024),
+
+    # --- Reproductive stigma ---
+    "T2_illegitimate":       (['"illegitimate child"', '"illegitimate children"',
+                               "illegitimacy"],                                                          1950, 2024),
+    "T2_unwed_mother":       (['"unwed mother"', '"unwed mothers"', '"out of wedlock"'],              1950, 2024),
+}
+
+
+# Tier 3: the most-offensive deprecated medical vocabulary. Included for
+# completeness and honest empirical documentation: we are tracking *what
+# the medical literature actually published* and *when those terms were
+# retired*. Modern PubMed indexing may have scrubbed some of the most
+# egregious historical content, so several of these will return ~zero
+# even where the original publications used the term — which is itself a
+# data point about post-hoc indexing curation.
+#
+# This is descriptive empirical history. No endorsement of these terms.
+
+TIER3_INVENTORY: dict[str, tuple[list[str], int, int]] = {
+    # --- Slur forms of clinical terms ---
+    "T3_retarded_slur":     (["retarded", '"retards"', '"retard"'],                                    1950, 2024),
+
+    # --- 19th-c racial anthropology / colonial tropical medicine ---
+    "T3_hottentot":         (["Hottentot", "Hottentots", '"Hottentot Venus"', '"Hottentot apron"'],   1950, 2024),
+    "T3_savage_primitive":  (['"primitive race"', '"primitive races"', '"savage races"',
+                              '"savage tribe"', '"savage tribes"'],                                    1950, 2024),
+    "T3_kaffir":            (["kaffir", "kaffirs"],                                                     1950, 2024),
+    "T3_darky":             (["darky", "darkey", "darkies"],                                            1950, 2024),
+    # The N-word is included for empirical completeness — its historical
+    # appearance in published medical writing is a documentable fact, and
+    # zero-hits in modern PubMed is itself a finding about indexing
+    # curation. Variants:
+    "T3_n_word":            (['"negro slave"', '"negro slaves"'],                                       1950, 2024),
+
+    # --- Teratology / pediatric / "freak" historical ---
+    "T3_monster_clinical":  (['"congenital monster"', '"congenital monstrosity"',
+                              '"human monster"', '"monstrous birth"',
+                              '"acardiac monster"'],                                                    1950, 2024),
+    "T3_freak":             (['"freak of nature"', '"medical freak"', '"freaks of nature"'],          1950, 2024),
+
+    # --- Short-stature informal terms ---
+    "T3_midget":            (["midget", "midgets"],                                                     1950, 2024),
+    "T3_dwarf_clinical":    (["dwarfism", "dwarf", '"primordial dwarf"'],                              1950, 2024),
+
+    # --- Legal-medical with stigma ---
+    "T3_bastard":           (['"bastard child"', '"bastard children"', '"bastardy"'],                  1950, 2024),
+    "T3_lunatic":           (["lunatic", "lunatics", '"lunatic asylum"', "lunacy"],                    1950, 2024),
+
+    # --- STI / venereal disease era stigma ---
+    "T3_whore_harlot":      (["whore", "whores", "harlot", "harlots", '"common prostitute"'],          1950, 2024),
+
+    # --- Disability slurs (more explicit than DIS_old_*) ---
+    "T3_deformed":          (['"deformed child"', '"deformed children"', '"hideously deformed"',
+                              '"facial deformity"'],                                                    1950, 2024),
+    "T3_imbecile_slur":     (["imbeciles", "imbecility"],   # the slur usage as distinct from clinical
+                                                                                                        1950, 2024),
+}
+
+
 def run_inventory(
     inventory: dict[str, tuple[list[str], int, int]],
     out_csv: Path,
@@ -358,6 +476,28 @@ def run_full(
                          cache_dir_name="pubmed_full_cache")
 
 
+def run_tier2(
+    out_csv: Path,
+    *,
+    api_key: str | None = None,
+    only: list[str] | None = None,
+) -> pd.DataFrame:
+    """Run the Tier-2 (explicitly stigmatized historical vocabulary) inventory."""
+    return run_inventory(TIER2_INVENTORY, out_csv, api_key=api_key, only=only,
+                         cache_dir_name="pubmed_tier2_cache")
+
+
+def run_tier3(
+    out_csv: Path,
+    *,
+    api_key: str | None = None,
+    only: list[str] | None = None,
+) -> pd.DataFrame:
+    """Run the Tier-3 (most-offensive deprecated medical vocabulary) inventory."""
+    return run_inventory(TIER3_INVENTORY, out_csv, api_key=api_key, only=only,
+                         cache_dir_name="pubmed_tier3_cache")
+
+
 def summarise(df: pd.DataFrame) -> str:
     """Tabular summary of the pilot — counts by label × decade."""
     df = df.copy()
@@ -391,21 +531,54 @@ def main(argv: list[str] | None = None) -> int:
              "the three-shift pilot.",
     )
     p.add_argument(
+        "--tier2",
+        action="store_true",
+        help="Run the Tier-2 (explicitly stigmatized historical vocabulary) "
+             "inventory: eugenic-era IQ classification, sexual-orientation "
+             "pathology, race-pathology pseudo-diagnoses, discredited "
+             "treatments, women's-sexuality clinical terms, etc.",
+    )
+    p.add_argument(
+        "--tier3",
+        action="store_true",
+        help="Run the Tier-3 (most-offensive deprecated medical vocabulary) "
+             "inventory: explicit slur forms, 19th-century colonial racial "
+             "medical anthropology, teratology, legal-medical stigma, etc. "
+             "Some may return ~zero from modern PubMed indexing; that is "
+             "itself a data point.",
+    )
+    p.add_argument(
         "--out",
         type=Path,
         default=None,
-        help="Output CSV path (default: data/pubmed_pilot_counts.csv or "
-             "data/pubmed_full_counts.csv depending on mode).",
+        help="Output CSV path (default: data/pubmed_pilot_counts.csv, "
+             "_full_counts.csv, or _tier2_counts.csv depending on mode).",
     )
     args = p.parse_args(argv)
 
-    default_out = (
-        Path(__file__).resolve().parents[1] / "data"
-        / ("pubmed_full_counts.csv" if args.full else "pubmed_pilot_counts.csv")
-    )
+    if sum([args.full, args.tier2, args.tier3]) > 1:
+        p.error("--full / --tier2 / --tier3 are mutually exclusive")
+
+    if args.tier3:
+        default_csv = "pubmed_tier3_counts.csv"
+    elif args.tier2:
+        default_csv = "pubmed_tier2_counts.csv"
+    elif args.full:
+        default_csv = "pubmed_full_counts.csv"
+    else:
+        default_csv = "pubmed_pilot_counts.csv"
+    default_out = Path(__file__).resolve().parents[1] / "data" / default_csv
     out = args.out or default_out
 
-    if args.full:
+    if args.tier3:
+        print(f"Running Tier-3 inventory ({len(TIER3_INVENTORY)} labels)...",
+              file=sys.stderr)
+        df = run_tier3(out, api_key=args.api_key, only=args.only)
+    elif args.tier2:
+        print(f"Running Tier-2 inventory ({len(TIER2_INVENTORY)} labels)...",
+              file=sys.stderr)
+        df = run_tier2(out, api_key=args.api_key, only=args.only)
+    elif args.full:
         print(f"Running full inventory ({len(FULL_INVENTORY)} labels)...",
               file=sys.stderr)
         df = run_full(out, api_key=args.api_key, only=args.only)
