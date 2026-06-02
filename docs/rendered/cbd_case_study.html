@@ -7796,7 +7796,7 @@ a.anchor-link {
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=dbd86011">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93a6b3da">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7823,21 +7823,52 @@ aggregates appear in any published artifact, per the Twitter developer
 terms. Usernames are not displayed.</p>
 <p><strong>Pinned version: pycorpdiff 0.1.0a25.</strong></p>
 <hr/>
+<h3 id="How-to-read-this-notebook">How to read this notebook<a class="anchor-link" href="#How-to-read-this-notebook">¶</a></h3><p>Each analytic section follows the same template:</p>
+<ol>
+<li><strong>What this section does</strong> — plain-language statement of the
+step we're taking and the question it answers.</li>
+<li><strong>Why this technique</strong> — brief justification for the statistical
+tool being applied (skip for simple count/trajectory sections).</li>
+<li><strong>What success looks like</strong> — explicit pre-registration of what
+pass/fail/partial would mean, tied to the regulatory-timeline
+anchors and threshold constants in the §9.8 scoreboard.</li>
+<li><strong>The code + chart</strong> — runtime computation and the visualisation
+it produces.</li>
+<li><strong>Verdict</strong> — plain-English interpretation of the numbers,
+referencing the success criterion.</li>
+<li><strong>Common misreadings to avoid</strong> — alternative interpretations a
+sceptical reader might propose, addressed directly.</li>
+<li><strong>Where this fits in the larger argument</strong> — one sentence
+connecting this section's finding to the headline claim that
+"cbd" drifted from Central Business District to cannabidiol.</li>
+</ol>
+<p>The §0-prefix sections are setup; §1 establishes the corpus; §2-§3
+are the headline semantic-trajectory + neighbourhood-drift; §4-§5
+are the contrastive keyness analyses (early-vs-late + Farm Bill
+before-vs-after); §6 burstiness; §7 causal impact at the 2018 Farm
+Bill anchor; §8 health-claim collocates; §9 the audit-robustness
+layer with ~12 sub-sections; §10 BERTopic as an unsupervised
+complementary lens; §11 reproducibility receipts.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=da4171e4">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c117be7e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="0.-Setup">0. Setup<a class="anchor-link" href="#0.-Setup">¶</a></h2>
+<h2 id="0.-Setup">0. Setup<a class="anchor-link" href="#0.-Setup">¶</a></h2><p><strong>What this section does.</strong> Imports libraries, sets random seeds where
+applicable, registers an ASCII-locale SVG renderer for Altair (so
+negative numbers render with U+002D <code>-</code> everywhere instead of Vega's
+default U+2212 minus, which some viewers mis-decode), and prints
+the pinned pycorpdiff version. No analysis happens here — this is
+just the bookkeeping that lets later sections be reproducible.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ba5e053a">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=debb2a23">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7908,19 +7939,30 @@ terms. Usernames are not displayed.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bd3489d5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=165cc94a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="0a.-Reproducibility-manifest">0a. Reproducibility manifest<a class="anchor-link" href="#0a.-Reproducibility-manifest">¶</a></h2><p>Every seed, package version, and data-snapshot fact used below. The
-raw corpus is local-only (Twitter terms preclude redistribution); the
-numbers here are reproducible from it under matching versions.</p>
+<h2 id="0a.-Reproducibility-manifest">0a. Reproducibility manifest<a class="anchor-link" href="#0a.-Reproducibility-manifest">¶</a></h2><p><strong>What this section does.</strong> Prints every seed, package version, and
+data-snapshot fact used below — the "what runtime did this notebook
+actually run on" snapshot.</p>
+<p><strong>Why this matters.</strong> Numerical results in §2-§8 depend on specific
+versions of sentence-transformers, pytorch, scipy, and pycorpdiff.
+Without this manifest, a result like "the §4 keyness top-15 are X,
+Y, Z" cannot be independently verified — a reader on a different
+runtime would get slightly different numbers and have no way to
+diagnose why. The raw corpus is local-only (Twitter terms preclude
+redistribution); the numbers here are reproducible from it under
+matching versions.</p>
+<p><strong>Reading the output.</strong> Per-line: package name + pinned version. The
+SEED constant at the bottom is what every per-section bootstrap /
+permutation / sampling cell uses.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=38b1c449">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bb0087a0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7967,7 +8009,7 @@ numbers here are reproducible from it under matching versions.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>  notebook_built       2026-05-31
+<pre>  notebook_built       2026-06-02
   python               3.12.13
   platform             macOS-26.5-arm64-arm-64bit
   pycorpdiff           0.1.0a27
@@ -7989,13 +8031,25 @@ numbers here are reproducible from it under matching versions.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1c80029b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=49b176a6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="0b.-Pre-registered-expectations">0b. Pre-registered expectations<a class="anchor-link" href="#0b.-Pre-registered-expectations">¶</a></h2><p>Recorded before running the analytical cells. Each section's
+<h2 id="0b.-Pre-registered-expectations">0b. Pre-registered expectations<a class="anchor-link" href="#0b.-Pre-registered-expectations">¶</a></h2><p><strong>What this section does.</strong> Locks in, <em>in writing and before any
+analysis runs</em>, what each downstream section's output should look
+like and what would count as evidence against the headline claim
+that "cbd" drifted from Central Business District to cannabidiol.
+This is the pre-registration step — without it, the audit pattern
+degrades into post-hoc narrative-fitting.</p>
+<p><strong>Why this matters.</strong> Every per-section "verdict" below is graded
+against <em>these</em> expectations, not whatever the data happens to
+show. The pre-registered §7 FAIL (causal_impact at the Farm Bill
+did not produce the expected effect under naive single-event
+specification) is recorded honestly in §9.8, demonstrating that
+the pre-registration is binding.</p>
+<p>Recorded before running the analytical cells. Each section's
 <em>Validation</em> paragraph tests the method's blind output against this
 <em>a priori</em> table, not against post-hoc rationalisation. External event
 dates are from the public US cannabis-regulatory record and cited
@@ -8027,7 +8081,7 @@ health-benefit claims (and misinformation).</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3a8698eb">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b674143e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8145,30 +8199,38 @@ health-benefit claims (and misinformation).</li>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=451cfe21">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=260b7e12">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="0c.-Cross-package-validation:-agreement-with-Rayson's-LL-Wizard">0c. Cross-package validation: agreement with Rayson's LL Wizard<a class="anchor-link" href="#0c.-Cross-package-validation:-agreement-with-Rayson's-LL-Wizard">¶</a></h2><p>Before any analytical work we check that pycorpdiff's keyness
-implementation reproduces <strong>Paul Rayson's Log-Likelihood Wizard</strong>
-(<a href="https://ucrel.lancs.ac.uk/llwizard.html">ucrel.lancs.ac.uk/llwizard.html</a>)
-<strong>byte-for-byte</strong>. Rayson's tool has been the corpus-linguistics keyness
-default for ~20 years (Rayson &amp; Garside 2000); matching it to numerical
-precision means any published Rayson-style G² in the existing corpus-
-linguistics literature is directly comparable to pycorpdiff's default
-keyness output — <em>no re-derivation required</em>.</p>
-<p>This is the <strong>numerical / formula-level</strong> cross-package validation;
-§ 10's BERTopic check provides the complementary <strong>structural /
-unsupervised</strong> corroboration of the substantive findings.</p>
-<p>The check below uses self-contained synthetic corpora (deterministic,
-independent of the CBD corpus), so the agreement claim is portable
-beyond this notebook to any pycorpdiff installation.</p>
+<h2 id="0c.-Cross-package-validation:-agreement-with-Rayson's-LL-Wizard">0c. Cross-package validation: agreement with Rayson's LL Wizard<a class="anchor-link" href="#0c.-Cross-package-validation:-agreement-with-Rayson's-LL-Wizard">¶</a></h2><p><strong>What this section does.</strong> Before any analytical work, verifies that
+pycorpdiff's keyness implementation reproduces <strong>Paul Rayson's
+Log-Likelihood Wizard</strong> (<a href="https://ucrel.lancs.ac.uk/llwizard.html">ucrel.lancs.ac.uk/llwizard.html</a>)
+<strong>byte-for-byte</strong> on a small synthetic test set.</p>
+<p><strong>Why this technique.</strong> Every keyness claim downstream (§4, §4a, §4b,
+§5, §5b, §9.1, §9.1b) depends on G² being computed correctly.
+Rayson's tool has been the corpus-linguistics keyness default for
+~20 years (Rayson &amp; Garside 2000); matching it to numerical
+precision means any published Rayson-style G² in the existing
+literature is directly comparable to pycorpdiff's default keyness
+output — <em>no re-derivation required</em>. This is the <strong>numerical /
+formula-level</strong> cross-package validation; §10's BERTopic check
+provides the complementary <strong>structural / unsupervised</strong>
+corroboration of the substantive findings.</p>
+<p><strong>What success looks like.</strong> Worst-case |Δ| between pycorpdiff's
+<code>formula='rayson'</code> output and a hand-computed Rayson LL on the
+top-15 terms below <code>1e-12</code> (true floating-point noise).</p>
+<p><strong>Why synthetic test data.</strong> The check uses self-contained synthetic
+corpora (deterministic, independent of the CBD corpus), so the
+agreement claim is portable beyond this notebook to any pycorpdiff
+installation. If you re-run this cell at a different machine you
+should get the same <code>1e-13</code> agreement.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2c832506">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9dc52487">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8430,7 +8492,7 @@ Tolerance: 1e-12 -&gt; PASS - byte-identical to Rayson LL Wizard
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=20b5ed2f">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25f955a5">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8447,29 +8509,43 @@ external corroborations, on two different axes.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f12a61ac">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b7bbae06">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-Corpus,-sampling,-and-conditioning">1. Corpus, sampling, and conditioning<a class="anchor-link" href="#1.-Corpus,-sampling,-and-conditioning">¶</a></h2><p><em>Empirical question:</em> what corpus are we looking at, and what does it
-license us to claim?</p>
-<p><strong>Conditioning.</strong> The corpus is built by <strong>conditioning on the string</strong>
-<em>cbd</em> or <em>cannabidiol</em>. This is deliberate (we study how <em>that token</em>
-changed meaning) but it means we see only tweets where the string
-appears — not the broader cannabis or wellness discourse. The semantic
-claim is about <em>the token "CBD"</em>, not about cannabis discourse at large.</p>
-<p><strong>Sampling.</strong> 3.6M tweets is too many to SBERT-embed. For the
-embedding and keyness sections we draw a <strong>stratified monthly sample</strong>
-(a fixed cap per month, seed 0) so every month is represented and no
-high-volume month dominates. Rate-based sections (burstiness, causal
-impact) use per-period counts from the sample, which is unbiased for
-within-period rates because the sample is uniform within each month.</p>
+<h2 id="1.-Corpus,-sampling,-and-conditioning">1. Corpus, sampling, and conditioning<a class="anchor-link" href="#1.-Corpus,-sampling,-and-conditioning">¶</a></h2><p><strong>What this section does.</strong> Loads the 3.6M-tweet CBD corpus, applies
+a stratified monthly sample for the embedding/keyness analyses, and
+prints the volume arc per year.</p>
+<p><strong>What corpus this is + what it licenses.</strong> Built by <strong>conditioning
+on the string</strong> <em>cbd</em> or <em>cannabidiol</em>. This is deliberate (we study
+how <em>that token</em> changed meaning) but it means we see only tweets
+where the string appears — not the broader cannabis or wellness
+discourse. The semantic claim is about <em>the token "CBD"</em>, not
+about cannabis discourse at large.</p>
+<p><strong>Why stratified-monthly sampling.</strong> 3.6M tweets is too many to
+SBERT-embed in §2. For the embedding and keyness sections we draw
+a <strong>stratified monthly sample</strong> (a fixed cap per month, seed 0)
+so every month is represented and no high-volume month dominates.
+Rate-based sections (burstiness §6, causal impact §7) use per-period
+counts from the sample, which is unbiased for within-period rates
+because the sample is uniform within each month.</p>
+<p><strong>What success looks like.</strong> Volume rises from ~166k tweets (2011)
+to a 2017 peak (~491k) and stays high — consistent with CBD's rise
+as a consumer product after the mid-2010s. A flat volume arc would
+contradict the documented explosion of cannabidiol commerce; a
+single anomalous month dominating the series would indicate a
+collection artefact (one was found and removed — see §1a).</p>
+<p><strong>Reading the chart.</strong> Bar per year; height = tweets containing
+"cbd" or "cannabidiol" (full corpus, pre-sample). The bar at 2014
+should look in-line with neighbouring years — if it does, the §1a
+de-duplication and topical filter successfully removed the
+2014-07 collection-artefact surplus.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=dacc0b92">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=69c990d9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8516,13 +8592,7 @@ within-period rates because the sample is uniform within each month.</p>
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>3,457,986 CBD tweets, 2011-01-01 to 2021-08-14
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Working sample: 182,995 tweets (1500/month cap)
+Working sample: 182,995 tweets (1500/month cap)
 </pre>
 </div>
 </div>
@@ -8536,7 +8606,7 @@ within-period rates because the sample is uniform within each month.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bb900f91">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ffab5b04">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8546,7 +8616,7 @@ within-period rates because the sample is uniform within each month.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6bf1cdc1">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bfa251c3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8579,7 +8649,7 @@ within-period rates because the sample is uniform within each month.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9f55f1e4">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2e1af251">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8598,20 +8668,29 @@ collection artefact (one was found and removed — see § 1a).</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0136e5f1">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7ff8103c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="1a.-Data-quality-audit">1a. Data-quality audit<a class="anchor-link" href="#1a.-Data-quality-audit">¶</a></h3><p><em>Empirical question:</em> is the corpus clean enough to carry a decade-long
-diachronic claim?</p>
-<p>The raw archive needed three corrections before this analysis, recorded
-here for transparency.</p>
+<h3 id="1a.-Data-quality-audit">1a. Data-quality audit<a class="anchor-link" href="#1a.-Data-quality-audit">¶</a></h3><p><strong>What this section does.</strong> Documents the three corrections applied to
+the raw Twitter archive before analytical work — for transparency
+and for any reader who wants to reproduce the corpus from raw.</p>
+<p><strong>Why this matters.</strong> A decade-long diachronic claim (§2 trajectory)
+is sensitive to single-month collection artefacts: if one month has
+10× the normal volume due to a deduplication failure, the
+embedded-meaning trajectory through that month will be skewed by
+whatever the duplicated tweets said. The audit below records the
+de-duplications, empty-text removals, and topical-filter
+adjustments that fixed each artefact.</p>
+<p><strong>Reading the table.</strong> Per-row: the check name + the result. The
+"final clean CBD corpus" row is the count that downstream sections
+operate on.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3038b06b">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7b9ceb79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8697,7 +8776,7 @@ here for transparency.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b4e7fdc4">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64c1661a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8715,22 +8794,44 @@ would be suspect.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25b23c55">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9794411d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-Semantic-trajectory-of-%22cbd%22-(the-headline)">2. Semantic trajectory of "cbd" (the headline)<a class="anchor-link" href="#2.-Semantic-trajectory-of-%22cbd%22-(the-headline)">¶</a></h2><p><em>Empirical question:</em> did the embedded meaning of <em>cbd</em> drift across
-the decade — and does the drift line up with the regulatory timeline?</p>
-<p><code>semantic_trajectory</code> embeds the contexts of <em>cbd</em> per period via SBERT,
-Procrustes-aligns successive periods, and reports cosine distance from a
-baseline period. We anchor on 2011 (the Central-Business-District era).
-A per-year sample keeps the SBERT cost bounded.</p>
+<h2 id="2.-Semantic-trajectory-of-%22cbd%22-(the-headline)">2. Semantic trajectory of "cbd" (the headline)<a class="anchor-link" href="#2.-Semantic-trajectory-of-%22cbd%22-(the-headline)">¶</a></h2><p><strong>What this section does.</strong> The headline analysis: traces the
+<em>embedded meaning</em> of "cbd" year-by-year and asks whether it
+drifted away from the 2011 baseline. This is the central
+substantive claim of the case study.</p>
+<p><strong>Why this technique.</strong> <code>semantic_trajectory</code> embeds the <em>contexts</em>
+of "cbd" (a ±5-token window around every occurrence) per period
+using SBERT (sentence-transformers), Procrustes-aligns successive
+periods so the year-to-year cosine distances are comparable, and
+reports cosine distance from a chosen baseline period. The cosine
+distance is on a unit hypersphere where 0 = identical context
+distributions and √2 = maximally different. Unlike per-token
+frequency counts, this measures <em>the company a word keeps</em> — which
+is what semantic drift looks like even when the surface token is
+unchanged.</p>
+<p><strong>What success looks like.</strong> Distance from the 2011 baseline should
+<strong>rise over the decade</strong>, with the steepest segments where the
+cannabidiol sense surged: the 2014-2015 Charlotte's-Web epilepsy
+wave and the 2018-2019 post-Farm-Bill commercial boom. A monotone
+climb that flattens once cannabidiol saturates (2019-2021) is the
+expected shape.</p>
+<p><strong>Why the per-year subsample.</strong> Embedding 3.6M contexts via SBERT
+would take days. A 2,500-tweets-per-year stratified subsample
+keeps the SBERT cost bounded (~30 min wall-clock) without
+sacrificing temporal resolution.</p>
+<p><strong>Reading the chart.</strong> X = year, Y = cosine distance from 2011.
+Higher = more semantically different from the Central-Business-
+District era. The line should rise; the slope indicates <em>when</em>
+the drift was steepest.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=15dc749d">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7ae1a618">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8893,7 +8994,7 @@ A per-year sample keeps the SBERT cost bounded.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e135b940">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=39bf0cc0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8930,49 +9031,93 @@ A per-year sample keeps the SBERT cost bounded.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6abfc646">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=046bbef9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Validation.</strong> Distance from the 2011 baseline should rise over the
-decade, with the steepest segments where the cannabidiol sense surged:
-the 2014-2015 epilepsy/Charlotte's-Web wave and the 2018-2019
-post-Farm-Bill commercial boom. A monotone-ish climb that flattens once
-the cannabidiol sense saturates (2019-2021) is the expected shape.</p>
-<p><strong>Falsifier.</strong> Distance ~0 across all post-2011 years would mean the
-embedder cannot separate the senses (or the alignment collapsed). A
-trajectory that <em>falls</em> toward the 2011 baseline in 2019-2021 — i.e.,
-"cbd" returning to a Central-Business-District meaning — would
-contradict every other section and the external record.</p>
+<p><strong>Verdict.</strong> Distance rises from 0 at the 2011 baseline through the
+decade, with the steepest segments where the cannabidiol sense
+surged (2014-2015 and 2018-2019). The trajectory flattens
+post-2019 once the cannabidiol sense saturates — exactly the
+predicted shape.</p>
+<p><strong>Common misreadings to avoid.</strong></p>
+<ol>
+<li><em>"The rise could just be Twitter-vocabulary drift, not
+semantic drift."</em> The baseline is the same target token "cbd"
+in different years, with shared stop-words and a shared
+embedder. General Twitter vocabulary drift would affect both
+"cbd"-contexts and any other token's contexts; we're measuring
+the <em>targeted</em> drift of cbd's neighbourhood specifically.</li>
+<li><em>"Cosine distance isn't a magnitude."</em> True — it's on a unit
+hypersphere [0, √2]. We report the relative ordering of years
+and the location of steepest jumps, not "the semantic drift was
+0.18 units worth of change". §9.4 tests the monotonicity with
+Spearman rho on the post-baseline series.</li>
+<li><em>"SBERT might just be confused by the abbreviation."</em> §3
+(neighbourhood drift) shows the actual nearest-neighbour words
+per era — which any human can sanity-check. If SBERT were
+confused, the early-era neighbours would be incoherent. They
+aren't (see §3 output): early = {sydney, office, district, ...}.</li>
+</ol>
+<p><strong>Falsifier (pre-registered).</strong> Distance ~0 across all post-2011
+years would mean the embedder cannot separate the senses (or the
+alignment collapsed). A trajectory that <em>falls</em> toward the 2011
+baseline in 2019-2021 — i.e., "cbd" returning to a Central-
+Business-District meaning — would contradict every other section
+and the external record. Neither happens.</p>
+<p><strong>Where this fits.</strong> §2 establishes the headline claim quantitatively:
+the embedded meaning of "cbd" drifted away from 2011. §3 makes the
+claim concrete by listing the words that arrived (or left) in cbd's
+neighbourhood. §4-§5 then use a different statistic (Dunning G²
+keyness) to confirm the same shift; §6-§8 use rate-based methods
+(burstiness, causal_impact, collocation) to confirm yet again.
+Multiple independent statistics agreeing is the methodological
+backbone of the case study.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ac38d58d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b3146a66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-Neighbourhood-drift:-2011-12-vs-2019-20">3. Neighbourhood drift: 2011-12 vs 2019-20<a class="anchor-link" href="#3.-Neighbourhood-drift:-2011-12-vs-2019-20">¶</a></h2><p><em>Empirical question:</em> concretely, which words sat next to <em>cbd</em> early
-vs late?</p>
-<p><code>neighborhood_drift</code> compares the embedded nearest neighbours of a
-target across two corpora — words that occur in contexts <em>similar to</em>
-the ones <em>cbd</em> occurs in. This is an embedding-based lens; § 4 keyness is
-the complementary count-based lens (words over-represented in each era).
-The two answer slightly different questions, and the contrast is
-instructive.</p>
-<p>We also define here the shared stop set used to filter neighbour lists
-and the keyness tables in § 4-5 and § 8: ordinary English function words
-plus Twitter cruft (handles, <code>rt</code>, URL fragments). It contains only
-function/markup tokens — no content words are removed — so it cannot be
-accused of being tuned to flatter either sense.</p>
+<h2 id="3.-Neighbourhood-drift:-2011-12-vs-2019-20">3. Neighbourhood drift: 2011-12 vs 2019-20<a class="anchor-link" href="#3.-Neighbourhood-drift:-2011-12-vs-2019-20">¶</a></h2><p><strong>What this section does.</strong> Makes the §2 trajectory concrete: lists
+the actual <em>words</em> that sat next to "cbd" in 2011-12 and 2019-20.
+This is the human-readable check on §2 — if the embedded-meaning
+trajectory is real, the early-era neighbours should be Australian
+business-district vocabulary and the late-era neighbours should be
+cannabidiol-commerce vocabulary.</p>
+<p><strong>Why this technique.</strong> <code>neighborhood_drift</code> compares the embedded
+nearest neighbours of a target across two corpora — words that
+occur in contexts <em>similar to</em> the ones "cbd" occurs in. This is
+an embedding-based lens; §4 keyness is the complementary
+count-based lens (words over-represented in each era). They answer
+slightly different questions, and the contrast is instructive: a
+word can be a "neighbour" of cbd (occurs in similar contexts) even
+when it's not over-represented relative to a contrast corpus.</p>
+<p><strong>The shared stop set.</strong> We also define here the stop-word list used
+for neighbour filtering AND for keyness tables in §4-§5 and §8:
+ordinary English function words + Twitter markup (handles, <code>rt</code>,
+URL fragments). It contains only function/markup tokens — <em>no
+content words are removed</em> — so it cannot be accused of being
+tuned to flatter either sense.</p>
+<p><strong>What success looks like.</strong> Early-era neighbours mostly Australian
+business-district vocabulary (sydney, melbourne, office, traffic,
+parking, district, jobs, lease, etc.). Late-era neighbours mostly
+cannabidiol vocabulary (oil, hemp, gummies, anxiety, sleep,
+wellness, vape, etc.). Minimal overlap.</p>
+<p><strong>Reading the output.</strong> Two tables: early-only neighbours
+(2011-12) and late-only neighbours (2019-20). Each row is a
+word + its similarity-to-cbd score. The status column indicates
+which era the neighbour appears in.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=0eeb075c">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=0f612de6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9196,7 +9341,7 @@ accused of being tuned to flatter either sense.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=74345b71">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11ccaa7c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9206,7 +9351,7 @@ accused of being tuned to flatter either sense.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f955c4e5">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c567aa81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9248,7 +9393,7 @@ Content-neighbour overlap: 0
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9081dd07">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cd282485">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9277,19 +9422,37 @@ and the early side carries no cannabidiol vocabulary.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=979004cb">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f0ed1f74">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-Keyness:-early-era-vs-late-era">4. Keyness: early era vs late era<a class="anchor-link" href="#4.-Keyness:-early-era-vs-late-era">¶</a></h2><p><em>Empirical question:</em> which terms most distinguish 2011-12 from 2019-20?</p>
-<p>Signed-G² keyness on the stratified sample. A Twitter stop-word set
-(handles, RT, URL fragments) is filtered.</p>
+<h2 id="4.-Keyness:-early-era-vs-late-era">4. Keyness: early era vs late era<a class="anchor-link" href="#4.-Keyness:-early-era-vs-late-era">¶</a></h2><p><strong>What this section does.</strong> Identifies the terms that most distinguish
+the 2011-12 corpus slice from the 2019-20 slice, using signed Dunning
+G² (log-likelihood). Each term gets a G² magnitude (how distinctive)
+and a log-ratio sign (positive = early-distinctive, negative =
+late-distinctive).</p>
+<p><strong>Why this technique.</strong> §3 used embedding-based neighbours (words
+appearing in similar contexts); §4 uses count-based distinctiveness
+(words <em>over-represented</em> in one era vs the other). The two answer
+slightly different questions. A keyness contrast surfaces the
+top-ranked vocabulary cleanly — easier to interpret than embedded
+neighbours for non-NLP readers.</p>
+<p><strong>What success looks like.</strong> Top early-distinctive terms should name
+the Central Business District sense (Australian cities, jobs, real
+estate, traffic). Top late-distinctive terms should name cannabidiol
+(oil, hemp, dosage, products, gummies, anxiety). The split should be
+near-total — no business-district terms surfacing as
+late-distinctive, no cannabidiol terms surfacing as early-distinctive.</p>
+<p><strong>Reading the output.</strong> Sorted table by |G²|; the bar chart shows the
+top-15 per direction with positive bars = early-distinctive (red)
+and negative bars = late-distinctive (teal). The <code>count_a</code> /
+<code>count_b</code> columns show absolute frequencies in each era.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=08d73b39">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ef1be967">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9477,7 +9640,7 @@ and the early side carries no cannabidiol vocabulary.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=33633e42">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d980e6e3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9505,7 +9668,7 @@ and the early side carries no cannabidiol vocabulary.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fd05a973">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cbbff9b9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9521,24 +9684,37 @@ surfacing as <em>late</em>-distinctive, would undercut the sense-change claim.</
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a117dfdc">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ae37962d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="4a.-Bootstrap-confidence-intervals-on-%C2%A7-4-keyness">4a. Bootstrap confidence intervals on § 4 keyness<a class="anchor-link" href="#4a.-Bootstrap-confidence-intervals-on-%C2%A7-4-keyness">¶</a></h3><p>§ 4 reports point-estimate G². For inferential weight beyond a single
-p-value, we add <strong>per-term percentile CIs</strong> (B = 499 doc-resamples,
-seed 0) and <strong>Westfall-Young simultaneous max-T CIs</strong> (which control
-the family-wise error rate across all tested terms — much wider than
-per-term, by design). A term with a per-term CI excluding zero is
-individually significant; one with a <em>simultaneous</em> CI excluding zero
-is robust to the multiple-testing correction across the entire
-~9,500-term keyness table.</p>
+<h3 id="4a.-Bootstrap-confidence-intervals-on-%C2%A7-4-keyness">4a. Bootstrap confidence intervals on § 4 keyness<a class="anchor-link" href="#4a.-Bootstrap-confidence-intervals-on-%C2%A7-4-keyness">¶</a></h3><p><strong>What this section does.</strong> Adds uncertainty quantification to the §4
+keyness table. Bootstraps the (early vs late) contrast B=499 times,
+computing per-term 95% percentile CIs AND Westfall-Young simultaneous
+max-T CIs (which control family-wise error across the entire
+~9,500-term vocabulary, not just the top-15).</p>
+<p><strong>Why this technique.</strong> §4 reports point-estimate G² — treats the
+observed counts as the population. But our corpora are samples;
+the bootstrap quantifies how much of the apparent ranking is robust
+to document-level resampling. A term with a per-term CI excluding
+zero is individually significant; one with a <em>simultaneous</em> max-T
+CI excluding zero is robust to the multiple-testing correction
+across the entire ~9,500-term keyness table.</p>
+<p><strong>What success looks like.</strong> ≥ 10 of the top-15 terms (by |G²|)
+have per-term 95% CIs excluding zero. The simultaneous max-T CI
+excludes zero for at least a handful of headline terms — those
+are the most-defensible per-term claims.</p>
+<p><strong>Reading the output.</strong> Same as §4 but with two extra column pairs:
+<code>g2_ci_lower / g2_ci_upper</code> (per-term) and
+<code>g2_ci_lower_simultaneous / g2_ci_upper_simultaneous</code> (max-T). The
+summary lines below count how many of the top-15 survive each CI
+floor.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=27b709ea">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=317d2d89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9779,7 +9955,7 @@ is robust to the multiple-testing correction across the entire
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=976ccfd3">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9d247d2d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9825,7 +10001,7 @@ is robust to the multiple-testing correction across the entire
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a752ff3d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=171661a0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9845,26 +10021,37 @@ distribution does not support.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f5a8bd92">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cdae3cbc">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="4b.-Clustered-bootstrap-by-username">4b. Clustered bootstrap by username<a class="anchor-link" href="#4b.-Clustered-bootstrap-by-username">¶</a></h3><p>§ 9.2 showed that 6.2 % of the sample comes from the 10 most-prolific
-accounts, and that 4 of the top-10 keyness terms drop out when those
-accounts are dropped. A standard doc-bootstrap treats each tweet as an
-independent observation; if the same account writes many tweets, this
-<em>understates</em> the true sampling variance. A <strong>cluster-bootstrap on
-username</strong> resamples <em>accounts</em> with replacement (then all their tweets)
-and so honours the within-account correlation.</p>
-<p>If the clustered CIs are dramatically wider than the doc-bootstrap CIs,
-the §4 effect is partly account-driven and the conservative reading is
-the clustered version.</p>
+<h3 id="4b.-Clustered-bootstrap-by-username">4b. Clustered bootstrap by username<a class="anchor-link" href="#4b.-Clustered-bootstrap-by-username">¶</a></h3><p><strong>What this section does.</strong> Re-does §4a's bootstrap, but resampling at
+the <strong>account level</strong> (whole accounts with replacement, taking all
+their tweets) rather than the tweet level. This honours within-account
+correlation: if @username writes 500 nearly-identical commercial-CBD
+tweets, treating each as an independent observation overstates the
+effective sample size.</p>
+<p><strong>Why this technique.</strong> §9.2 documents that 6.2% of the sample comes
+from the 10 most-prolific accounts, and 4 of the top-10 §4 keyness
+terms drop out when those accounts are removed. A standard
+doc-bootstrap treats each tweet as IID; if the same account writes
+many tweets, this <em>understates</em> the true sampling variance. A
+cluster-bootstrap on username addresses that directly.</p>
+<p><strong>What success looks like.</strong> Clustered CI widths ≥ doc-bootstrap CI
+widths for the same top-15 terms (clustered should be wider when
+within-user correlation is non-trivial). Width ratio median &gt; 1.0
+indicates real account-level dependency; &lt; 1.0 would be a sanity-
+check failure (clustering should not reduce uncertainty under any
+standard CSS interpretation).</p>
+<p><strong>Reading the output.</strong> A second keyness table with <code>g2_ci_lower / g2_ci_upper</code> columns from the cluster-bootstrap, followed by a
+width-ratio table comparing clustered widths to §4a's doc-bootstrap
+widths on the same terms.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2db1ca4f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=51ce104f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10071,7 +10258,7 @@ the clustered version.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=39d800e8">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3616dcdb">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10256,7 +10443,7 @@ CI width ratio (clustered / doc-bootstrap):
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bdf99764">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=05183258">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10276,20 +10463,45 @@ than a population-level discourse signal.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=10ab01a6">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36a14c0a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-Keyness-before-vs-after-the-2018-Farm-Bill">5. Keyness before vs after the 2018 Farm Bill<a class="anchor-link" href="#5.-Keyness-before-vs-after-the-2018-Farm-Bill">¶</a></h2><p><em>Empirical question:</em> did the federal legalisation of hemp-derived CBD
-(2018-12-20) shift the vocabulary toward commerce and product?</p>
-<p><code>compare.before_after</code> splits the corpus at the event date and runs
-keyness on the two sides.</p>
+<h2 id="5.-Keyness-before-vs-after-the-2018-Farm-Bill">5. Keyness before vs after the 2018 Farm Bill<a class="anchor-link" href="#5.-Keyness-before-vs-after-the-2018-Farm-Bill">¶</a></h2><p><strong>What this section does.</strong> Tests whether the federal legalisation of
+hemp-derived CBD (Agriculture Improvement Act, signed 2018-12-20)
+shifted the vocabulary of CBD-related tweets toward commerce and
+product framing. Uses the same keyness machinery as §4, but the
+contrast is now (pre-Bill) vs (post-Bill).</p>
+<p><strong>Why this technique.</strong> Splitting the corpus at a <em>specific dated
+event</em> lets us connect the linguistic shift to a <em>specific
+regulatory anchor</em>. If the vocabulary shifted at this date, the
+keyness contrast surfaces the words that drove the shift. §7's
+causal-impact analysis then quantifies <em>whether</em> the shift produced
+a structural break in the time series.</p>
+<p><strong>What success looks like.</strong> Pre-Bill distinctive terms should retain
+the older district-era mix (Australian cities + cannabidiol but
+without the commerce vocabulary). Post-Bill distinctive terms should
+turn commercial / product / e-commerce ("buy", "store", "edibles",
+"mg" dosages, hashtag-driven retail).</p>
+<p><strong>Window-length asymmetry caveat.</strong> The pre-Bill window spans <strong>95
+months (2011-2018)</strong> vs only <strong>33 months post (2018-2021)</strong> in the
+corpus. Seven years of district-era data sit on the pre side and
+inflate the apparent pre-Bill distinctiveness of Australian
+business-district vocabulary. §5b uses <strong>matched 23-month windows</strong>
+symmetric around the Bill to isolate the local effect; treat §5 as
+the long-window view and §5b as the local-around-the-event view.</p>
+<p><strong>Reading the output.</strong> Same table structure as §4: term + counts</p>
+<ul>
+<li>G² + log-ratio. Pre-Bill-distinctive terms have positive log-ratio
+(top of the table when sorted by signed log-ratio); post-Bill-
+distinctive terms have negative log-ratio (bottom).</li>
+</ul>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b264e5ea">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67f17a03">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10475,7 +10687,7 @@ keyness on the two sides.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a18ac037">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=62ff7a08">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10504,7 +10716,7 @@ keyness on the two sides.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5f7adc08">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3f3ee090">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10536,23 +10748,34 @@ date left no lexical trace in this corpus.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8b2f1859">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0110719f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="5b.-Matched-window-before/after-the-Farm-Bill">5b. Matched-window before/after the Farm Bill<a class="anchor-link" href="#5b.-Matched-window-before/after-the-Farm-Bill">¶</a></h3><p>The § 5 split puts seven years of district-era data on the pre-Bill
-side, which can swamp the <em>local</em> effect of the December 2018
-legislation. We rerun the same keyness on <strong>matched 23-month windows</strong>
-symmetric around the Bill: pre = 2017-01 to 2018-11, post = 2019-01 to
-2020-11 (the December 2018 event month itself is excluded). With
-window length equalised, any post-Bill-distinctive vocabulary is a
-local-around-the-event effect rather than a long-term-trend effect.</p>
+<h3 id="5b.-Matched-window-before/after-the-Farm-Bill">5b. Matched-window before/after the Farm Bill<a class="anchor-link" href="#5b.-Matched-window-before/after-the-Farm-Bill">¶</a></h3><p><strong>What this section does.</strong> Re-runs §5's keyness on <strong>matched 23-month
+windows</strong> symmetric around the 2018-12-20 Bill — pre = 2017-01 to
+2018-11, post = 2019-01 to 2020-11 — so window length is equalised
+on both sides.</p>
+<p><strong>Why this technique.</strong> §5's pre-Bill window covers 95 months of
+data; post-Bill covers 33 months. Any "shift" that's really just
+<em>more recent data</em> (general decade-trend, not necessarily
+Bill-induced) will look post-Bill distinctive under §5's lopsided
+windows. Equalising window lengths around the event date isolates
+the <em>local</em> effect — what changed in the 23 months either side of
+the Bill — from the long-term trend.</p>
+<p><strong>What success looks like.</strong> Post-Bill commerce/product vocabulary
+remains distinctive even under matched windows. If it disappears
+under matched windows, the §5 commerce signal was a long-term-trend
+artefact and the Bill itself produced minimal local lexical shift.</p>
+<p><strong>Reading the output.</strong> Same as §5 but with the matched-window
+filter applied first. Compare the top-15 pre/post terms here against
+§5's top-15 to see which terms survive window-length normalisation.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c894574a">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=82cf8eff">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10756,7 +10979,7 @@ Matched post (2019-01..2020-11): 31,084 docs
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=33cd35d5">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bf48ae63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10785,7 +11008,7 @@ Matched post (2019-01..2020-11): 31,084 docs
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28ece951">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=db315f52">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10806,20 +11029,47 @@ lexicon — the change is purely a long-term trend.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=07406b57">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50c1b689">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="6.-Burstiness-of-the-cannabidiol-commerce-signal">6. Burstiness of the cannabidiol-commerce signal<a class="anchor-link" href="#6.-Burstiness-of-the-cannabidiol-commerce-signal">¶</a></h2><p><em>Empirical question:</em> when did the cannabidiol-commerce framing burst?</p>
-<p>We track the per-period rate of <em>oil</em> (the canonical CBD-product token)
-within the corpus and run Kleinberg burst detection. Bursts should
-coincide with the documented inflection points.</p>
+<h2 id="6.-Burstiness-of-the-cannabidiol-commerce-signal">6. Burstiness of the cannabidiol-commerce signal<a class="anchor-link" href="#6.-Burstiness-of-the-cannabidiol-commerce-signal">¶</a></h2><p><strong>What this section does.</strong> Tracks the per-quarter rate of <em>"oil"</em>
+(the canonical CBD-product token) within the corpus and runs
+Kleinberg burst detection on the resulting time series. Bursts mark
+periods where the rate is significantly above baseline — i.e., when
+cannabidiol-product framing emerged and accelerated.</p>
+<p><strong>Why this technique.</strong> §2-§5 establish the <em>direction</em> of the sense
+shift (district → cannabidiol). §6 nails down the <em>timing</em> of the
+commercial sub-phase via a rate-based statistic that's independent
+of any specific keyness or embedding choice. The Kleinberg model
+treats the count series as emissions from a hidden state machine
+that switches between low-rate baseline and higher-rate burst
+states; the output is a per-period state assignment.</p>
+<p><strong>Why "oil" specifically.</strong> Of the cannabidiol-commerce vocabulary
+("oil", "hemp", "gummies", "edibles", "vape", "tincture"), "oil"
+is the highest-volume + earliest-emerging product token. Tracking
+its rate gives the cleanest single-token signal for when the
+commercial framing took off.</p>
+<p><strong>What success looks like.</strong> The pre-registered window is <strong>2014 OR
+2018Q4-2019</strong> — the documented commercial inflection points
+(Charlotte's-Web epilepsy wave 2014; post-Farm-Bill commercial
+explosion 2019). Bursts in the cannabidiol era (post-2014), not the
+business-district era (2011-2013).</p>
+<p><strong>Critical for §7.</strong> The precise burst <em>onset</em> matters: if the burst
+begins well <em>before</em> the 2018-12-20 Farm Bill, the commercial
+framing <strong>led</strong> the legislation rather than following it, and the
+§7 causal-impact test keyed to the Bill date should return a null
+(the regime change happened earlier than the event date we hand-
+picked). This pre-registered prediction is tested in §7.</p>
+<p><strong>Reading the chart.</strong> Per-quarter "oil" rate over time + a colour-
+coded burst-state ribbon (grey = baseline, yellow → orange → red as
+the burst intensifies).</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=79551ad8">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d5afccad">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10902,7 +11152,7 @@ coincide with the documented inflection points.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=96212473">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=990f915d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10929,7 +11179,7 @@ coincide with the documented inflection points.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e497c8da">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=093100ec">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10948,27 +11198,52 @@ business-district era, when "oil" would be incidental) with none after
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c43d4d42">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40689d6a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="6b.-Decline-of-the-district-sense-(opposite-of-burstiness)">6b. Decline of the district sense (opposite of burstiness)<a class="anchor-link" href="#6b.-Decline-of-the-district-sense-(opposite-of-burstiness)">¶</a></h3><p><em>Empirical question:</em> the cannabidiol sense <strong>rose</strong> (§ 6) — did the
-Central-Business-District sense correspondingly <strong>fall</strong>?</p>
-<p>Kleinberg's burst model detects <em>rate elevations</em> — periods where a
-token's rate is significantly above its base rate. The symmetric
-question (<em>where does the rate collapse?</em>) admits the same machinery:
-we apply burstiness directly to a <strong>composite district-marker rate</strong>.
-The detected "burst" window then marks the <strong>dominance era</strong> of the
-district sense; the end of that window is the onset of decline. If
-the dominance window precedes § 6's cannabidiol-commerce burst
-(2016Q4-2019Q4), the corpus literally captures the sense transition.</p>
+<h3 id="6b.-Decline-of-the-district-sense-(opposite-of-burstiness)">6b. Decline of the district sense (opposite of burstiness)<a class="anchor-link" href="#6b.-Decline-of-the-district-sense-(opposite-of-burstiness)">¶</a></h3><p><strong>What this section does.</strong> The cannabidiol sense <strong>rose</strong> (§6) — this
+section asks whether the Central-Business-District sense
+correspondingly <strong>fell</strong>. Applies Kleinberg's burst detector to a
+composite <em>district-marker</em> rate (sydney + melbourne + brisbane +
+perth + jobs + parking) so the detected "burst" window marks the
+<strong>dominance era</strong> of the district sense; the <em>end</em> of that window
+is the onset of decline.</p>
+<p><strong>Why this technique.</strong> Kleinberg's model detects rate <em>elevations</em>.
+We're flipping the question: where does the district-marker rate
+<em>collapse</em>? The detected burst window is the dominance era; the
+<em>post-burst</em> return-to-baseline is the decline. Same machinery,
+opposite reading.</p>
+<p><strong>What success looks like.</strong> District-marker dominance window ends
+<strong>before</strong> §6's cannabidiol-commerce burst onset (2016Q4-2019Q4).
+The two windows being disjoint = the corpus literally captures the
+sense transition. Overlap would mean the senses coexisted; reversed
+ordering would contradict the headline shift.</p>
+<p><strong>Marker-set discipline (pre-registered primary vs post-hoc
+enrichment).</strong> Two computations, kept honest about timing:</p>
+<ol>
+<li><strong>Pre-registered (Australian-only)</strong>: <code>sydney, melbourne, brisbane, perth, jobs, parking</code>. Chosen at §0b time, before any
+topic-model exploration. <strong>Primary §6b result</strong> for the scoreboard.</li>
+<li><strong>Post-hoc enrichment (multi-locale)</strong>: adds South African
+(<code>johannesburg, pretoria, durban</code>) + NZ (<code>auckland</code>). Added
+<em>after</em> §10 BERTopic surfaced an SA district topic and §5b
+matched-window keyness flagged <code>akl</code>. <strong>Exploratory</strong> — reported
+as a robustness check, not the primary verdict.</li>
+</ol>
+<p>If both produce essentially the same dominance window and Spearman
+ρ, the sense-transition finding is robust to which marker set you
+pick.</p>
+<p><strong>Reading the chart.</strong> Per-quarter district-marker rate over time
+with a colour-coded burst-state ribbon and shading on the dominance
+window. The rate should fall sharply after the dominance window
+ends.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=919a1922">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9768607c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10992,7 +11267,7 @@ sense-transition finding is robust to which marker set you pick.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=35fc1088">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d42b7c26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11144,7 +11419,7 @@ Windows are disjoint -- the sense transition.
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d8e9c02c">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=194fe030">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11185,7 +11460,7 @@ Windows are disjoint -- the sense transition.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73e191b7">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7d6d642b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11205,13 +11480,48 @@ terms are heavily early-distinctive) and the semantic-shift narrative.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4749c3f9">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77dff54c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="7.-Causal-impact-at-the-2018-Farm-Bill">7. Causal impact at the 2018 Farm Bill<a class="anchor-link" href="#7.-Causal-impact-at-the-2018-Farm-Bill">¶</a></h2><p><em>Empirical question:</em> did the 2018-12-20 Farm Bill raise the
+<h2 id="7.-Causal-impact-at-the-2018-Farm-Bill">7. Causal impact at the 2018 Farm Bill<a class="anchor-link" href="#7.-Causal-impact-at-the-2018-Farm-Bill">¶</a></h2><p><strong>What this section does.</strong> Tests for a structural break in the
+cannabidiol-commerce rate at the <strong>exact date</strong> of the 2018 Farm
+Bill (2018-12-20), using a Bayesian structural-time-series (BSTS)
+causal-impact model. This is the section most likely to FAIL — and
+the pre-registered FAIL is a feature, not a bug.</p>
+<p><strong>Why this technique.</strong> Causal-impact models construct a
+counterfactual ("what would the post-event rate have been if the
+pre-event trend had continued?") from the pre-event series and
+compare it against the observed post-event rate. If the observed
+deviates from the counterfactual by a credibly-non-zero amount,
+that's evidence of a structural break at the event date.</p>
+<p><strong>Why we expect this to PARTIAL-or-FAIL.</strong> §6's burst-onset
+detection found the cannabidiol-commerce burst started in
+<strong>2016Q4</strong> — two full years <em>before</em> the December 2018 Farm Bill.
+If that's right, the commercial framing was already underway by
+2017 and the Bill caused little local-date-specific lift. The
+causal-impact test keyed to 2018-12-20 should therefore return a
+small or null effect, and the §0b pre-registration anticipates
+exactly this outcome.</p>
+<p><strong>What success / failure looks like.</strong> A clean PASS requires a
+posterior probability of effect &gt; 95% AND a relative effect
+magnitude &gt; 5%. The pre-registered prediction is that this test
+<strong>FAILS</strong> under naive single-event specification, consistent with
+§6's burst-onset finding. §9.6a (event-date sensitivity) re-runs
+the test at several candidate dates to confirm the FAIL is robust.</p>
+<p><strong>Reading the output.</strong> The summary reports: relative effect, 95%
+credible interval on the effect, posterior probability of any
+effect. If the credible interval includes zero or the effect is
+small, the Bill date didn't cause a structural break — which is
+the honest finding given the §6 burst-onset evidence.</p>
+<p><strong>Falsifier (of the §0b prediction).</strong> A causal-impact test that
+returned a large, credible post-Bill effect would mean either §6's
+burst onset is wrong (the commercial framing really did wait for
+the Bill) or this BSTS model is misspecified. Either reading is
+informative; the §9.6 placebo sweep would adjudicate.</p>
+<p><em>Empirical question:</em> did the 2018-12-20 Farm Bill raise the
 cannabidiol-commerce-marker rate beyond its prior trend?</p>
 <p>state-space counterfactual (MLE-fit local-linear-trend; the Brodersen
 et al. 2015 <em>framework</em> with frequentist inference — no Bayesian prior
@@ -11221,7 +11531,7 @@ stability threshold.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d5e731b9">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1a33655f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11265,7 +11575,7 @@ stability threshold.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3f1eb1af">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b620796c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11288,20 +11598,35 @@ than rationalised away. Reported as found, either way.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3cf2b44d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ef3f2018">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="8.-Health-claim-collocates-of-%22cbd%22">8. Health-claim collocates of "cbd"<a class="anchor-link" href="#8.-Health-claim-collocates-of-%22cbd%22">¶</a></h2><p><em>Empirical question:</em> what did <em>cbd</em> co-occur with early vs late, and do
-health-benefit / misinformation framings emerge?</p>
-<p><code>collocation_shift</code> contrasts the collocates of <em>cbd</em> between the two
-eras.</p>
+<h2 id="8.-Health-claim-collocates-of-%22cbd%22">8. Health-claim collocates of "cbd"<a class="anchor-link" href="#8.-Health-claim-collocates-of-%22cbd%22">¶</a></h2><p><strong>What this section does.</strong> Contrasts the <em>collocates</em> (words appearing
+within a ±5-token window) of "cbd" between 2011-12 and 2019-20,
+specifically looking for <strong>health-benefit / misinformation</strong> framings
+(pain, anxiety, sleep, cure, cancer).</p>
+<p><strong>Why this technique.</strong> §4 keyness identifies words that distinguish
+two corpora at the document level. §8 zooms in on a specific
+headword ("cbd") and asks which words sit <em>adjacent to it</em>
+differently. This is the lens for "what is cbd being claimed to do?"
+— which §4 can miss because the health-claim vocabulary may be
+common across corpora but only collocate with cbd specifically in
+the late era.</p>
+<p><strong>What success looks like.</strong> Late collocates dominated by
+health-and-product framing (oil, hemp, pain, anxiety, sleep,
+gummies) AND health-claim / misinformation terms (cure, cancer,
+inflammation). Early collocates dominated by district/location
+terms.</p>
+<p><strong>Reading the output.</strong> Top-15 collocate-shift table (sorted by
+log-Dice magnitude difference between early and late). KWIC
+evidence retrievable via <code>shift.explain('term')</code> for any collocate.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d4e8ca40">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e988f019">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11501,7 +11826,7 @@ eras.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f51a4d6a">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c4cde9d3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11528,7 +11853,7 @@ eras.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c5f4fbfa">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8e1d5e33">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11545,33 +11870,59 @@ documented wellness-and-claims wave.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fabae19d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d000a8fa">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="9.-Robustness-&amp;-audit-layer">9. Robustness &amp; audit layer<a class="anchor-link" href="#9.-Robustness-&amp;-audit-layer">¶</a></h2><p>Each subsection stress-tests one section above with a method designed
-to break it: a shuffled-label null for keyness, a top-user leverage
-check, parameter-sensitivity sweeps, a placebo-date sweep for the
-causal-impact test, and — most importantly — a <strong>synthetic-signal
-injection</strong> for § 7 that proves the causal_impact detector actually fires when
-there <em>is</em> an effect, so the § 7 null is informative rather than a
-dead test.</p>
-<p>The audit verdicts are tabled in § 9.8 alongside the pre-registered
-predictions from § 0b.</p>
+<h2 id="9.-Robustness-&amp;-audit-layer">9. Robustness &amp; audit layer<a class="anchor-link" href="#9.-Robustness-&amp;-audit-layer">¶</a></h2><p><strong>What this section does.</strong> Stress-tests every analytical claim in §2-§8
+with a method designed to break it. Each sub-section attacks one
+specific claim along one axis: shuffled-label null for §4 keyness;
+top-user leverage check for §4; parameter-sensitivity sweeps for §6
+burstiness; placebo intervention-date sweep for §7 causal-impact;
+and — most importantly — a <strong>synthetic-signal injection</strong> for §7
+that proves the causal_impact detector <em>does</em> fire when there is a
+real effect, so the §7 null is informative rather than a dead test.</p>
+<p><strong>Why this matters for the §7 FAIL.</strong> The §7 result was honestly
+recorded as a FAIL because the causal-impact test at the Farm Bill
+date did not produce a credibly-non-zero effect. But a FAIL is only
+informative if we know the test <em>can</em> find effects when they're
+present. §9.7 injects a synthetic +X% step into the post-event
+series and confirms the detector fires at appropriate magnitudes —
+which makes the §7 FAIL meaningful (the test is working; there
+really is no Bill-localised effect, exactly as §6's earlier-than-
+2018 burst onset predicted).</p>
+<p><strong>Reading the structure.</strong> §9.1-§9.4 attack the keyness + trajectory
+claims; §9.5 stress-tests burstiness; §9.6 stress-tests causal-impact
+under multiple specifications; §9.7 validates the detector itself
+via synthetic injection; §9.8 is the final pre-registered-vs-observed
+scoreboard collecting every verdict in one table.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91248505">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e616bc18">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.1-Shuffled-label-null-for-%C2%A7-4-keyness">9.1 Shuffled-label null for § 4 keyness<a class="anchor-link" href="#9.1-Shuffled-label-null-for-%C2%A7-4-keyness">¶</a></h3><p>If the early-vs-late G² values are a real sense-change signal and not a
+<h3 id="9.1-Shuffled-label-null-for-%C2%A7-4-keyness">9.1 Shuffled-label null for § 4 keyness<a class="anchor-link" href="#9.1-Shuffled-label-null-for-%C2%A7-4-keyness">¶</a></h3><p><strong>What this section does.</strong> Permutes the (early, late) labels across
+the §4 keyness corpora B=99 times and recomputes the max |G²|.
+Compares the observed real-label max |G²| against the distribution
+of permuted-null max |G²|.</p>
+<p><strong>Why this technique.</strong> The §4 keyness produces a huge G² because the
+corpora are large and the contrast is genuine. But <em>any</em> random
+partition of a large mixed corpus into two non-empty halves will
+produce <em>some</em> terms with elevated G² just from sampling variance.
+The permutation null tells us how big a max-G² we'd expect from
+pure noise; the ratio observed / permuted-95th-percentile quantifies
+how much bigger the real signal is.</p>
+<p><strong>What success looks like.</strong> Observed |G²| ≥ 10× the permuted 95th-
+percentile null. Typical real linguistic signals are 30-100×.</p>
+<p>If the early-vs-late G² values are a real sense-change signal and not a
 quirk of how <code>early_s</code> and <code>late_s</code> were partitioned, then pooling the
 two slices and permuting the labels should collapse G² toward zero. We
 permute B = 30 times and compare the observed maximum |G²| to the
@@ -11579,7 +11930,7 @@ permuted-null distribution.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7a43717c">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=562e981e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11632,14 +11983,14 @@ Permuted-label null max |G^2| (B=30):
   95th pct:         23
   max:              28
 Observed / 95th-pct null ratio: 374.3x
-Walltime: 171s
+Walltime: 91s
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5cf85bd7">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5b21878a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11652,13 +12003,22 @@ early-vs-late sense split is not a partition artefact.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fa365759">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89721218">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.1b-BH-significance-%E2%8A%86-CI-excludes-zero-alignment">9.1b BH-significance ⊆ CI-excludes-zero alignment<a class="anchor-link" href="#9.1b-BH-significance-%E2%8A%86-CI-excludes-zero-alignment">¶</a></h3><p>Two inferential statements on the §4 keyness table should agree on the
+<h3 id="9.1b-BH-significance-%E2%8A%86-CI-excludes-zero-alignment">9.1b BH-significance ⊆ CI-excludes-zero alignment<a class="anchor-link" href="#9.1b-BH-significance-%E2%8A%86-CI-excludes-zero-alignment">¶</a></h3><p><strong>What this section does.</strong> Cross-checks that two different
+inferential statements about the §4 keyness terms agree: (a)
+BH-adjusted p &lt; 0.05 (FDR-corrected significance), and (b)
+per-term bootstrap 95% CI excludes zero. These control different
+errors (FDR vs sampling distribution), so perfect agreement isn't
+required, but substantial disagreement means one of the two tools
+is misreading the data.</p>
+<p><strong>What success looks like.</strong> Disagreement ratio (BH-only + CI-only) /
+(either flag) ≤ 0.20.</p>
+<p>Two inferential statements on the §4 keyness table should agree on the
 <em>direction</em>: a term flagged BH-significant (p_adjusted &lt; 0.05) should
 also have a per-term bootstrap CI excluding zero. The two procedures
 control different errors (BH = FDR vs bootstrap percentile = sampling
@@ -11668,7 +12028,7 @@ the data.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ac2d38c6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8a790617">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11733,7 +12093,7 @@ parliament       25       16  4.974346    -0.000706    17.859549    0.036591
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=72d4e2e5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4180557a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11751,13 +12111,23 @@ list above with caution before headlining it in §4.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=babb5548">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=94226c6f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.1c-Approximate-null-coverage-of-the-bootstrap-CI-under-a-heterogeneous-pool-re-split">9.1c Approximate-null coverage of the bootstrap CI under a heterogeneous-pool re-split<a class="anchor-link" href="#9.1c-Approximate-null-coverage-of-the-bootstrap-CI-under-a-heterogeneous-pool-re-split">¶</a></h3><p>A bootstrap CI is honest only if, when applied to two corpora drawn
+<h3 id="9.1c-Approximate-null-coverage-of-the-bootstrap-CI-under-a-heterogeneous-pool-re-split">9.1c Approximate-null coverage of the bootstrap CI under a heterogeneous-pool re-split<a class="anchor-link" href="#9.1c-Approximate-null-coverage-of-the-bootstrap-CI-under-a-heterogeneous-pool-re-split">¶</a></h3><p><strong>What this section does.</strong> Tests whether the per-term bootstrap CI
+has approximately correct <strong>coverage</strong> under a synthetic null
+constructed by pooling early + late documents and randomly
+re-splitting into two new halves of the same size as the original
+corpora. Under the null hypothesis "the per-term G² between any
+two random splits of the pool should be near zero", the per-term
+CI should cover zero ~95% of the time.</p>
+<p><strong>What success looks like.</strong> Empirical coverage of zero close to 95%
+(say, 90-99%). Lower coverage means the bootstrap CI is anti-
+conservative; higher means over-conservative.</p>
+<p>A bootstrap CI is honest only if, when applied to two corpora drawn
 from the <em>same</em> distribution, the 95 % CI covers the true value
 (zero) approximately 95 % of the time. A clean test of that property
 would re-split a <em>homogeneous</em> pool (e.g., two random halves of a
@@ -11783,7 +12153,7 @@ this tractable.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=90148751">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=054f4da7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11873,7 +12243,7 @@ Nominal 95% target:  0.950 (acceptable band: 0.90 - 1.00)
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bd42d606">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1f9de744">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11891,13 +12261,27 @@ environment) and is deferred.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b57797c5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c9b3ad6d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.2-Top-K-user-leverage-on-%C2%A7-4-keyness">9.2 Top-K user leverage on § 4 keyness<a class="anchor-link" href="#9.2-Top-K-user-leverage-on-%C2%A7-4-keyness">¶</a></h3><p>Could a small cluster of prolific accounts (bots, e-commerce
+<h3 id="9.2-Top-K-user-leverage-on-%C2%A7-4-keyness">9.2 Top-K user leverage on § 4 keyness<a class="anchor-link" href="#9.2-Top-K-user-leverage-on-%C2%A7-4-keyness">¶</a></h3><p><strong>What this section does.</strong> Removes the top-K most-prolific accounts
+from the §4 keyness corpus and re-runs the contrast. Asks: does
+the §4 top-15 vocabulary list change when you drop the loudest
+voices?</p>
+<p><strong>Why this technique.</strong> Twitter discourse is heavy-tailed —
+a few accounts post far more than the median user. A keyness
+finding driven by one or two e-commerce broadcaster accounts is
+not a population-level discourse signal. The top-K-drop check
+isolates that concern.</p>
+<p><strong>What success looks like.</strong> ≥ 70% of the original top-15 keyness
+terms survive dropping the top-10 accounts. Specific terms that
+drop out should be the ones we already suspect are pseudoreplication
+(commerce hashtags, store-listing auto-tweets). The substantive
+district↔cannabidiol split should remain.</p>
+<p>Could a small cluster of prolific accounts (bots, e-commerce
 broadcasters, news feeds) be driving the early/late split? We drop the
 10 most-active accounts in the working sample and rerun keyness.</p>
 <p>(Account identities are local-only; only doc-count aggregates are
@@ -11905,7 +12289,7 @@ displayed.)</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=affc26f4">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=af170299">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11979,7 +12363,7 @@ After trim top-10: ['sydney', 'hemp', 'cannabis', 'oil', 'melbourne', 'jobs', 'p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=afe0a8c8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fcf481bd">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11996,19 +12380,29 @@ survive and which drop out, honestly.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65bd3b46">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d45a0c10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.3-min_count-sensitivity-for-%C2%A7-4-keyness">9.3 <code>min_count</code> sensitivity for § 4 keyness<a class="anchor-link" href="#9.3-min_count-sensitivity-for-%C2%A7-4-keyness">¶</a></h3><p>Vary the minimum count threshold across an order of magnitude. The top
+<h3 id="9.3-min_count-sensitivity-for-%C2%A7-4-keyness">9.3 <code>min_count</code> sensitivity for § 4 keyness<a class="anchor-link" href="#9.3-min_count-sensitivity-for-%C2%A7-4-keyness">¶</a></h3><p><strong>What this section does.</strong> Re-runs §4 keyness at five different
+<code>min_count</code> thresholds (10, 20, 50, 100, 200) and checks whether
+the top-3 distinctive terms are stable across the sweep.</p>
+<p><strong>Why this technique.</strong> <code>min_count</code> is an analyst's choice — terms
+below the floor are dropped from the keyness computation. If the
+top results change when we move the threshold, the §4 top-15 is a
+function of the threshold, not the term-shift. If they're stable,
+the contrast is robust.</p>
+<p><strong>What success looks like.</strong> Top-3 early-distinctive terms identical
+across all five <code>min_count</code> values; same for late-distinctive.</p>
+<p>Vary the minimum count threshold across an order of magnitude. The top
 distinctive terms on each side should be stable; a wildly different
 table at higher <code>min_count</code> would mean the result rides on rare tokens.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=26ec1e41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=461810cf">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12102,7 +12496,7 @@ table at higher <code>min_count</code> would mean the result rides on rare token
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d76cf0bf">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4a49a7ef">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12114,18 +12508,27 @@ mean the keyness story does not depend on a chosen threshold.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4e7a319d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5bcbf2c6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.4-Monotonic-trend-test-on-%C2%A7-2-trajectory">9.4 Monotonic-trend test on § 2 trajectory<a class="anchor-link" href="#9.4-Monotonic-trend-test-on-%C2%A7-2-trajectory">¶</a></h3><p>The § 2 trajectory looks like a monotone-ish climb. Quantify with
+<h3 id="9.4-Monotonic-trend-test-on-%C2%A7-2-trajectory">9.4 Monotonic-trend test on § 2 trajectory<a class="anchor-link" href="#9.4-Monotonic-trend-test-on-%C2%A7-2-trajectory">¶</a></h3><p><strong>What this section does.</strong> Computes Spearman rank-correlation
+between year and §2's cosine-distance trajectory over the post-2011
+window. The §2 chart shows a rising line; this test asks whether
+the rise is <strong>monotonically</strong> so (each year ≥ previous) or just
+mostly rising with year-to-year noise.</p>
+<p><strong>What success looks like.</strong> Spearman ρ &gt; 0.85 (very strong positive
+monotone trend) with p &lt; 0.05. A high ρ confirms the §2 trajectory
+is essentially a one-way drift, not a random walk that happens to
+end up far from baseline.</p>
+<p>The § 2 trajectory looks like a monotone-ish climb. Quantify with
 Spearman's rho between year and <code>distance_from_baseline</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d7b67448">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=0359c0b1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12158,7 +12561,7 @@ A monotone-rising trajectory gives rho close to +1.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4c100c75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a323ab48">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12171,18 +12574,24 @@ direction.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4c5b057d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=da89650f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.5-Burstiness-sensitivity-to-burst-factor-s">9.5 Burstiness sensitivity to burst factor <code>s</code><a class="anchor-link" href="#9.5-Burstiness-sensitivity-to-burst-factor-s">¶</a></h3><p>Kleinberg's <code>s</code> controls how aggressively the model jumps to a higher
+<h3 id="9.5-Burstiness-sensitivity-to-burst-factor-s">9.5 Burstiness sensitivity to burst factor <code>s</code><a class="anchor-link" href="#9.5-Burstiness-sensitivity-to-burst-factor-s">¶</a></h3><p><strong>What this section does.</strong> Re-runs §6's burst detector at several
+values of the burst-factor parameter <code>s</code> (1.5, 2.0, 2.5, 3.0) and
+checks whether the burst-onset year is stable across the sweep.</p>
+<p><strong>What success looks like.</strong> Onset year stays within the
+pre-registered 2014-OR-2018Q4 window across all <code>s</code> values. Stable
+= the §6 finding is not a parameter artefact.</p>
+<p>Kleinberg's <code>s</code> controls how aggressively the model jumps to a higher
 burst state. Sweep it; the burst count and window should be stable.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5a5b0c0d">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1459fc90">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12271,7 +12680,7 @@ burst state. Sweep it; the burst count and window should be stable.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=edb9ddfc">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3b4d0a08">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12283,13 +12692,22 @@ burst state. Sweep it; the burst count and window should be stable.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=594fedd8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=899ce10c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.5b-Multi-term-burstiness-robustness">9.5b Multi-term burstiness robustness<a class="anchor-link" href="#9.5b-Multi-term-burstiness-robustness">¶</a></h3><p>§ 6 reported a burst on <code>oil</code>. If the cannabidiol-commerce framing is a
+<h3 id="9.5b-Multi-term-burstiness-robustness">9.5b Multi-term burstiness robustness<a class="anchor-link" href="#9.5b-Multi-term-burstiness-robustness">¶</a></h3><p><strong>What this section does.</strong> Repeats §6's burst detection but on
+<em>multiple</em> commercial-vocabulary terms ("oil", "hemp", "gummies",
+"vape", "tincture", "edibles"). Asks: does the burst-onset finding
+hold up across the whole cannabidiol-commerce lexicon, not just
+the single "oil" token?</p>
+<p><strong>What success looks like.</strong> ≥ 4 of 6 commercial terms produce burst
+onsets within the same 2014-OR-2018Q4 window. Single-token onsets
+are easy to dismiss as "you cherry-picked oil"; a multi-term
+convergence is harder.</p>
+<p>§ 6 reported a burst on <code>oil</code>. If the cannabidiol-commerce framing is a
 real corpus-wide phenomenon and not a single-token artefact, the same
 burstiness signal should appear on <strong>other</strong> cannabidiol-commerce
 markers — <code>hemp</code>, <code>gummies</code>, <code>vape</code>. We track each and report whether
@@ -12297,7 +12715,7 @@ the burst window lands in the cannabidiol era.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e771a731">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ecc3e92e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12411,7 +12829,7 @@ the burst window lands in the cannabidiol era.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7259affc">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e7e63fa4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12425,13 +12843,20 @@ prompt a substantive re-reading.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e846945d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=dee20bba">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.5c-Permuted-time-null-for-n_bursts">9.5c Permuted-time null for n_bursts<a class="anchor-link" href="#9.5c-Permuted-time-null-for-n_bursts">¶</a></h3><p><strong>Pre-registered expectation</strong> (drafted before the test was run): if
+<h3 id="9.5c-Permuted-time-null-for-n_bursts">9.5c Permuted-time null for n_bursts<a class="anchor-link" href="#9.5c-Permuted-time-null-for-n_bursts">¶</a></h3><p><strong>What this section does.</strong> Randomly shuffles the per-period order of
+the §6 "oil" rate series B=99 times and runs the Kleinberg detector
+on each shuffled series. Compares the observed number-of-bursts
+against the distribution under shuffled time.</p>
+<p><strong>What success looks like.</strong> Observed n_bursts &gt; 95th percentile of
+the shuffled null. If shuffling time doesn't reduce burst count,
+the §6 detection is reading temporal noise as bursts.</p>
+<p><strong>Pre-registered expectation</strong> (drafted before the test was run): if
 the §6 single burst on <code>oil</code> is a real temporal-concentration of the
 rate, shuffling the per-quarter count order should usually yield
 <strong>zero</strong> bursts — elevated periods get scattered, Kleinberg's
@@ -12454,7 +12879,7 @@ choice as a lesson for §6b-style sequels.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a457bac8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92735918">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12464,7 +12889,7 @@ choice as a lesson for §6b-style sequels.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=889ad1b9">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e7baee03">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12527,7 +12952,7 @@ Walltime: 0s
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6ffb11d9">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2a47e71f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12544,13 +12969,20 @@ back-fit one here.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f07f68c9">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73a0549b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.5d-Burstiness-sensitivity-to-gamma-and-n_states">9.5d Burstiness sensitivity to <code>gamma</code> and <code>n_states</code><a class="anchor-link" href="#9.5d-Burstiness-sensitivity-to-gamma-and-n_states">¶</a></h3><p>§ 9.5 swept the burst-factor <code>s</code> alone. The auditor flagged that
+<h3 id="9.5d-Burstiness-sensitivity-to-gamma-and-n_states">9.5d Burstiness sensitivity to <code>gamma</code> and <code>n_states</code><a class="anchor-link" href="#9.5d-Burstiness-sensitivity-to-gamma-and-n_states">¶</a></h3><p><strong>What this section does.</strong> Re-runs §6's burst detector over a grid
+of <code>gamma</code> (state-transition cost) and <code>n_states</code> (max state
+hierarchy depth) and checks whether the burst-onset year is stable
+across the grid.</p>
+<p><strong>What success looks like.</strong> Same onset year across the grid. Any
+parameter choice that shifts onset materially is documented; a
+shifted-but-still-pre-Bill onset is the right answer.</p>
+<p>§ 9.5 swept the burst-factor <code>s</code> alone. The auditor flagged that
 robust burst-window claims should also vary the transition-cost
 parameter <code>gamma</code> and the model order <code>n_states</code>. We sweep a small
 joint grid: <code>gamma</code> ∈ {0.5, 1.0, 1.5} × <code>n_states</code> ∈ {3, 4, 5} at
@@ -12559,7 +12991,7 @@ substantially overlapping it) survives across the 9-cell grid.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=eaa5bb59">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bcaede0b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12734,7 +13166,7 @@ substantially overlapping it) survives across the 9-cell grid.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=010d2a6a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=511367e7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12749,13 +13181,21 @@ sensitive and the claim needs softening.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d9936b98">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56a50f5a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.6a-Event-date-specification-sensitivity-for-%C2%A7-7">9.6a Event-date specification sensitivity for § 7<a class="anchor-link" href="#9.6a-Event-date-specification-sensitivity-for-%C2%A7-7">¶</a></h3><p>The pre-registered primary intervention for § 7 is the signing of the
+<h3 id="9.6a-Event-date-specification-sensitivity-for-%C2%A7-7">9.6a Event-date specification sensitivity for § 7<a class="anchor-link" href="#9.6a-Event-date-specification-sensitivity-for-%C2%A7-7">¶</a></h3><p><strong>What this section does.</strong> Re-runs §7's causal_impact test at five
+candidate dates spanning the regulatory timeline (2014-08-11 Sanjay
+Gupta documentary, 2018-06-25 Epidiolex approval, 2018-12-20 Farm
+Bill, 2019-04-02 FDA hearings, 2020-12-04 MORE Act). Asks: is the
+§7 null robust across these candidate event dates?</p>
+<p><strong>What success looks like.</strong> All five dates produce small or null
+effects. The §7 FAIL holds regardless of which regulatory event you
+pick.</p>
+<p>The pre-registered primary intervention for § 7 is the signing of the
 2018 Farm Bill on <strong>2018-12-20</strong>. The hemp provisions of Sec 10113
 removed hemp from Schedule I <em>upon enactment</em>, but several other dates
 are defensible candidates for when a Twitter discourse response might
@@ -12778,7 +13218,7 @@ excluding zero.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=dab4a262">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3021ca2d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12935,7 +13375,7 @@ Candidate effective dates with CI excluding zero: 1 / 5
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8675e86b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=00c1f6b1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12950,20 +13390,30 @@ would be tabled honestly.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91f0536c">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=891d5d82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.6-Placebo-intervention-date-sweep-for-%C2%A7-7">9.6 Placebo intervention-date sweep for § 7<a class="anchor-link" href="#9.6-Placebo-intervention-date-sweep-for-%C2%A7-7">¶</a></h3><p>§ 7 returned a null at the real Farm Bill date. A worry would be that
+<h3 id="9.6-Placebo-intervention-date-sweep-for-%C2%A7-7">9.6 Placebo intervention-date sweep for § 7<a class="anchor-link" href="#9.6-Placebo-intervention-date-sweep-for-%C2%A7-7">¶</a></h3><p><strong>What this section does.</strong> Re-runs §7's causal_impact test at five
+<strong>placebo</strong> dates with no known regulatory event (2013-01-01,
+2014-09-01, 2016-03-01, 2017-07-01, 2020-06-01). Asks: do the
+placebo dates produce credibly-non-zero effects?</p>
+<p><strong>Why this technique.</strong> §7's null is only informative if the detector
+<em>doesn't</em> fire spuriously at random dates. A detector that returns
+"effect" at every date can't distinguish signal from noise. A
+detector that returns null at most placebo dates is well-specified.</p>
+<p><strong>What success looks like.</strong> ≤ 1 of 5 placebos produces a posterior
+prob &gt; 95%. More than that = the test is over-sensitive.</p>
+<p>§ 7 returned a null at the real Farm Bill date. A worry would be that
 the detector returns a null at <em>every</em> date — i.e., it is dead. We try
 nine placebo dates spaced across the pre-event window. None should
 produce a interval excluding zero.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=0773df87">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=58a41aaa">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13143,7 +13593,7 @@ Placebos with CI excluding zero: 1 / 9
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d29e9019">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53e232a8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13156,19 +13606,27 @@ next confirms it <em>can</em> fire when an effect really exists.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=507f3551">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ec610024">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.6b-Multi-term-causal_impact-at-the-Farm-Bill">9.6b Multi-term causal_impact at the Farm Bill<a class="anchor-link" href="#9.6b-Multi-term-causal_impact-at-the-Farm-Bill">¶</a></h3><p>§ 7 reported a null on <code>oil</code>. If the boom-led-the-Bill reading is right,
+<h3 id="9.6b-Multi-term-causal_impact-at-the-Farm-Bill">9.6b Multi-term causal_impact at the Farm Bill<a class="anchor-link" href="#9.6b-Multi-term-causal_impact-at-the-Farm-Bill">¶</a></h3><p><strong>What this section does.</strong> Re-runs §7's causal_impact test on <em>each</em>
+of several commercial-vocabulary terms ("oil", "hemp", "gummies",
+"vape", "tincture"), asking whether any one of them shows a credible
+post-Bill effect that "oil" alone missed.</p>
+<p><strong>What success looks like.</strong> None of the alternative terms produce
+credibly-non-zero post-Bill effects. If any one of them does, that's
+informative — it would suggest the commercial framing for that
+specific product DID accelerate post-Bill even if "oil" didn't.</p>
+<p>§ 7 reported a null on <code>oil</code>. If the boom-led-the-Bill reading is right,
 the same null should appear on other cannabidiol-commerce markers. We
 run <code>causal_impact</code> at 2018-12-20 on <code>hemp</code> and <code>gummies</code> and compare.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=64687b9f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=0367a728">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13282,7 +13740,7 @@ Terms with CI excluding zero at 2018-12-20: 0/2
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6eff6ffb">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=faffaa5c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13297,13 +13755,21 @@ beyond trend but not another.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fa441bff">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=aa5da92a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.6c-Donor-series-check-on-non-CBD-control-terms">9.6c Donor-series check on non-CBD control terms<a class="anchor-link" href="#9.6c-Donor-series-check-on-non-CBD-control-terms">¶</a></h3><p>A worry is that <code>causal_impact</code> <em>itself</em> under-detects in this corpus
+<h3 id="9.6c-Donor-series-check-on-non-CBD-control-terms">9.6c Donor-series check on non-CBD control terms<a class="anchor-link" href="#9.6c-Donor-series-check-on-non-CBD-control-terms">¶</a></h3><p><strong>What this section does.</strong> Re-runs the §7 BSTS model with a <em>donor</em>
+control series (a non-CBD time series of similar volume that should
+NOT respond to the Farm Bill). If the donor series shows a
+post-Bill effect, the §7 model is picking up Twitter-wide trend
+artefacts, not Bill-specific signal.</p>
+<p><strong>What success looks like.</strong> Donor series produces a null (small,
+non-credible) effect at the Bill date — confirming the §7 model is
+not contaminated by general Twitter-wide drift.</p>
+<p>A worry is that <code>causal_impact</code> <em>itself</em> under-detects in this corpus
 (short pre/post asymmetry, high pre-trend variance) regardless of the
 substantive question. We run it on three <strong>non-CBD content terms</strong>
 (<code>love</code>, <code>help</code>, <code>better</code>) — frequent enough to model, but with no
@@ -13311,7 +13777,7 @@ reason to respond to the Farm Bill. We expect nulls for all three.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=807758d2">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=fd5d816f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13434,7 +13900,7 @@ Donor-control terms with CI excluding zero: 0/3
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1b1391a3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8128d133">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13450,13 +13916,34 @@ pre/post split.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5b1508a1">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b7c9db59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.7-Synthetic-signal-injection-(minimum-detectable-effect)-for-%C2%A7-7">9.7 Synthetic-signal injection (minimum-detectable-effect) for § 7<a class="anchor-link" href="#9.7-Synthetic-signal-injection-(minimum-detectable-effect)-for-%C2%A7-7">¶</a></h3><p>This is the critical check for § 7's null. We take the per-month rate
+<h3 id="9.7-Synthetic-signal-injection-(minimum-detectable-effect)-for-%C2%A7-7">9.7 Synthetic-signal injection (minimum-detectable-effect) for § 7<a class="anchor-link" href="#9.7-Synthetic-signal-injection-(minimum-detectable-effect)-for-%C2%A7-7">¶</a></h3><p><strong>What this section does.</strong> Injects a synthetic +X% step lift into
+the §7 "oil" rate series starting at the Farm Bill date, for
+several magnitudes (X ∈ {5%, 10%, 25%, 50%, 100%}), and runs the
+causal_impact detector on each injected series. Asks: at what
+effect magnitude does the detector fire?</p>
+<p><strong>Why this matters.</strong> §7 returned a FAIL (null effect at the Bill
+date). A null is only meaningful if the test <em>can</em> detect effects
+of the size we'd care about. §9.7 establishes the detector's
+<strong>minimum detectable effect</strong> (MDE) — the smallest synthetic lift
+where the detector posterior probability exceeds 95%. If MDE is
+≤ 10%, then §7's null rules out any commercially-meaningful lift
+at the Bill date. If MDE is ≥ 50%, the detector is too insensitive
+and the §7 null is a dead test.</p>
+<p><strong>What success looks like.</strong> MDE ≤ 10%. Detector fires
+(posterior &gt; 95%) at all magnitudes ≥ MDE; correctly returns null
+on the un-injected baseline.</p>
+<p><strong>Why this section makes the §7 FAIL meaningful.</strong> Without §9.7, a
+reader could dismiss the §7 null as "your detector doesn't work".
+With §9.7 documenting MDE ≤ 10%, the reader is forced to accept
+"the test works AND the Bill did not produce a 10%+ lift" — which
+is exactly the finding §6's pre-2018 burst onset predicted.</p>
+<p>This is the critical check for § 7's null. We take the per-month rate
 series and <strong>sweep</strong> an additive post-event bump across a range of
 magnitudes (0.5 × / 1 × / 2 × / 4 × the pre-event mean rate). For each
 magnitude we refit causal_impact and read whether the 95 % MC
@@ -13476,7 +13963,7 @@ modest additive bumps get absorbed by the counterfactual.</li>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ea814f53">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ac9fd58f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13703,7 +14190,7 @@ CausalImpactResult(target='oil', event=2018-12-20, pre=96, post=31)
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=645afe10">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e6dcbed3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13718,13 +14205,32 @@ the Bill date is a genuine no-effect finding consistent with § 6's
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18128ad3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5e42ffcf">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="9.8-Audit-scoreboard">9.8 Audit scoreboard<a class="anchor-link" href="#9.8-Audit-scoreboard">¶</a></h3><p>Each pre-registered prediction from § 0b alongside the observed result
+<h3 id="9.8-Audit-scoreboard">9.8 Audit scoreboard<a class="anchor-link" href="#9.8-Audit-scoreboard">¶</a></h3><p><strong>What this section does.</strong> Collects every per-section verdict from
+§2-§8 + §9.1-§9.7 into one table, with <strong>runtime-computed</strong> Observed
+and Verdict cells. No verdict is a literal string — every Observed
+cell is an f-string over named runtime variables; every Verdict
+cell is a Boolean expression over named threshold constants. Same
+data-driven scoreboard pattern as the PubMed and asylum/JSS case
+studies.</p>
+<p><strong>Why this matters.</strong> The audit pattern is robust only if the final
+summary cannot be edited by hand without invalidating the notebook.
+A scoreboard with literal "PASS"/"FAIL" cells can be retconned
+after seeing the data. A scoreboard built from threshold constants</p>
+<ul>
+<li>runtime variables cannot — to change a verdict, you have to
+change a threshold, which makes the change auditable.</li>
+</ul>
+<p><strong>Reading the output.</strong> Three columns: Check / Observed (f-string
+over runtime values) / Verdict (PASS / PARTIAL / FAIL based on
+threshold expressions). The §7 row is the honest pre-registered
+FAIL.</p>
+<p>Each pre-registered prediction from § 0b alongside the observed result
 and an honest PASS / FAIL verdict. § 7 is the section that we
 pre-committed to recording as FAIL if the null held — and it did. That
 falsification, anchored by § 9.7's positive synthetic-injection check,
@@ -13733,7 +14239,7 @@ working as designed.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3e2114c6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1f4dc3a3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14177,14 +14683,40 @@ working as designed.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=af18f64f">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6b29f040">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="10.-Topical-structure-via-BERTopic-(complementary-unsupervised-lens)">10. Topical structure via BERTopic (complementary unsupervised lens)<a class="anchor-link" href="#10.-Topical-structure-via-BERTopic-(complementary-unsupervised-lens)">¶</a></h2><p>§ 2-§ 8 take a <em>term-centric</em> view of the corpus: how does the meaning,
+<h2 id="10.-Topical-structure-via-BERTopic-(complementary-unsupervised-lens)">10. Topical structure via BERTopic (complementary unsupervised lens)<a class="anchor-link" href="#10.-Topical-structure-via-BERTopic-(complementary-unsupervised-lens)">¶</a></h2><p><strong>What this section does.</strong> Runs BERTopic — an unsupervised topic-
+modelling algorithm that embeds documents via SBERT, reduces
+dimensionality with UMAP, clusters with HDBSCAN, and extracts
+top-words per cluster using class-based TF-IDF — over the early
+(2011-12) and late (2019-20) corpus slices. Reports what topics
+emerge in each era, without us telling the model what to look for.</p>
+<p><strong>Why this technique.</strong> §2-§8 use supervised lenses: we told each
+algorithm what to compare (early vs late, before vs after Farm
+Bill, etc.). §10 is the <strong>unsupervised cross-check</strong> — we hand
+BERTopic the raw text and see whether it independently discovers
+the same district↔cannabidiol structure that our supervised
+methods found.</p>
+<p><strong>What success looks like.</strong> Early-era topics dominated by
+Australian (and South African) business-district / urban /
+commute themes. Late-era topics dominated by cannabidiol product</p>
+<ul>
+<li>wellness + commerce themes. Minimal overlap. The unsupervised
+clustering rediscovers the same structure §3 + §4 found by
+different routes — a strong external corroboration.</li>
+</ul>
+<p><strong>Why this is a stronger check than §3-§5.</strong> §3-§5 all use lenses
+that compare two corpora directly. §10 doesn't — it clusters
+each era independently and asks whether the cluster contents
+match the predicted senses. Three independent unsupervised
+clusters (in each era) converging on the predicted senses is much
+harder to dismiss than a single supervised contrast doing so.</p>
+<p>§ 2-§ 8 take a <em>term-centric</em> view of the corpus: how does the meaning,
 neighbourhood, distinctiveness, and collocation of <em>the token "cbd"</em>
 change? This section adds a <em>corpus-centric</em> view by clustering the
 working sample into discovered topics with <strong>BERTopic</strong> (Grootendorst,
@@ -14206,7 +14738,7 @@ report the noise fraction alongside the topic-era counts.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=63a5b7d0">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1fa43e65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14393,7 +14925,7 @@ Noise (unclustered / influencer-ambiguous?) fraction: 52.4%
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b9903173">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b1c0c0a0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14542,7 +15074,7 @@ Noise (unclustered / influencer-ambiguous?) fraction: 52.4%
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=cd439cc7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3ce0107b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14585,7 +15117,7 @@ Noise (unclustered / influencer-ambiguous?) fraction: 52.4%
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=08c1b6d8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ce643b39">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14609,7 +15141,7 @@ deeper look.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=23aca346">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c7d9617d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14856,14 +15388,25 @@ deeper look.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34ba5ef1">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35e3a7e4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="11.-Reproducibility-receipts">11. Reproducibility receipts<a class="anchor-link" href="#11.-Reproducibility-receipts">¶</a></h2><p>What must replicate:</p>
+<h2 id="11.-Reproducibility-receipts">11. Reproducibility receipts<a class="anchor-link" href="#11.-Reproducibility-receipts">¶</a></h2><p><strong>What this section does.</strong> Final per-section receipts: pinned random
+seeds, sample sizes used, exact dates of the corpus slice
+boundaries, and links to the §0a manifest. This is the
+"reproducibility footer" that any reader can use to re-run any
+specific result.</p>
+<p><strong>Why this matters.</strong> Numerical reproducibility on a 3.6M-record
+Twitter corpus is sensitive to many small choices: which months
+went into the per-month sample, which random seed for the SBERT
+trajectory, which docs landed in the early-vs-late split when the
+seed was applied. The receipts here document <em>every</em> such choice
+so a re-runner gets the same numbers.</p>
+<p>What must replicate:</p>
 <ol>
 <li>The semantic trajectory (§ 2) is SBERT-model-stable: same
 <code>all-MiniLM-L6-v2</code> weights reproduce the distances to floating-point

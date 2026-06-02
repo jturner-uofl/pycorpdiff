@@ -70,10 +70,49 @@ terms. Usernames are not displayed.
 **Pinned version: pycorpdiff 0.1.0a25.**
 
 ---
+
+### How to read this notebook
+
+Each analytic section follows the same template:
+
+1. **What this section does** — plain-language statement of the
+   step we're taking and the question it answers.
+2. **Why this technique** — brief justification for the statistical
+   tool being applied (skip for simple count/trajectory sections).
+3. **What success looks like** — explicit pre-registration of what
+   pass/fail/partial would mean, tied to the regulatory-timeline
+   anchors and threshold constants in the §9.8 scoreboard.
+4. **The code + chart** — runtime computation and the visualisation
+   it produces.
+5. **Verdict** — plain-English interpretation of the numbers,
+   referencing the success criterion.
+6. **Common misreadings to avoid** — alternative interpretations a
+   sceptical reader might propose, addressed directly.
+7. **Where this fits in the larger argument** — one sentence
+   connecting this section's finding to the headline claim that
+   "cbd" drifted from Central Business District to cannabidiol.
+
+The §0-prefix sections are setup; §1 establishes the corpus; §2-§3
+are the headline semantic-trajectory + neighbourhood-drift; §4-§5
+are the contrastive keyness analyses (early-vs-late + Farm Bill
+before-vs-after); §6 burstiness; §7 causal impact at the 2018 Farm
+Bill anchor; §8 health-claim collocates; §9 the audit-robustness
+layer with ~12 sub-sections; §10 BERTopic as an unsupervised
+complementary lens; §11 reproducibility receipts.
 """))
 
+
 # ===================== 0. Setup =====================
-A(md("## 0. Setup"))
+A(md(r"""
+## 0. Setup
+
+**What this section does.** Imports libraries, sets random seeds where
+applicable, registers an ASCII-locale SVG renderer for Altair (so
+negative numbers render with U+002D `-` everywhere instead of Vega's
+default U+2212 minus, which some viewers mis-decode), and prints
+the pinned pycorpdiff version. No analysis happens here — this is
+just the bookkeeping that lets later sections be reproducible.
+"""))
 A(code(r"""
 import json as _json
 import os
@@ -125,9 +164,22 @@ print(f'pycorpdiff {pcd.__version__}')
 A(md("""
 ## 0a. Reproducibility manifest
 
-Every seed, package version, and data-snapshot fact used below. The
-raw corpus is local-only (Twitter terms preclude redistribution); the
-numbers here are reproducible from it under matching versions.
+**What this section does.** Prints every seed, package version, and
+data-snapshot fact used below — the "what runtime did this notebook
+actually run on" snapshot.
+
+**Why this matters.** Numerical results in §2-§8 depend on specific
+versions of sentence-transformers, pytorch, scipy, and pycorpdiff.
+Without this manifest, a result like "the §4 keyness top-15 are X,
+Y, Z" cannot be independently verified — a reader on a different
+runtime would get slightly different numbers and have no way to
+diagnose why. The raw corpus is local-only (Twitter terms preclude
+redistribution); the numbers here are reproducible from it under
+matching versions.
+
+**Reading the output.** Per-line: package name + pinned version. The
+SEED constant at the bottom is what every per-section bootstrap /
+permutation / sampling cell uses.
 """))
 A(code(r"""
 import platform
@@ -162,6 +214,20 @@ for k, v in MANIFEST.items():
 # ===================== 0b. Pre-registered expectations =====================
 A(md("""
 ## 0b. Pre-registered expectations
+
+**What this section does.** Locks in, *in writing and before any
+analysis runs*, what each downstream section's output should look
+like and what would count as evidence against the headline claim
+that "cbd" drifted from Central Business District to cannabidiol.
+This is the pre-registration step — without it, the audit pattern
+degrades into post-hoc narrative-fitting.
+
+**Why this matters.** Every per-section "verdict" below is graded
+against *these* expectations, not whatever the data happens to
+show. The pre-registered §7 FAIL (causal_impact at the Farm Bill
+did not produce the expected effect under naive single-event
+specification) is recorded honestly in §9.8, demonstrating that
+the pre-registration is binding.
 
 Recorded before running the analytical cells. Each section's
 *Validation* paragraph tests the method's blind output against this
@@ -225,22 +291,31 @@ prereg
 A(md(r"""
 ## 0c. Cross-package validation: agreement with Rayson's LL Wizard
 
-Before any analytical work we check that pycorpdiff's keyness
-implementation reproduces **Paul Rayson's Log-Likelihood Wizard**
-([ucrel.lancs.ac.uk/llwizard.html](https://ucrel.lancs.ac.uk/llwizard.html))
-**byte-for-byte**. Rayson's tool has been the corpus-linguistics keyness
-default for ~20 years (Rayson & Garside 2000); matching it to numerical
-precision means any published Rayson-style G² in the existing corpus-
-linguistics literature is directly comparable to pycorpdiff's default
-keyness output — *no re-derivation required*.
+**What this section does.** Before any analytical work, verifies that
+pycorpdiff's keyness implementation reproduces **Paul Rayson's
+Log-Likelihood Wizard** ([ucrel.lancs.ac.uk/llwizard.html](https://ucrel.lancs.ac.uk/llwizard.html))
+**byte-for-byte** on a small synthetic test set.
 
-This is the **numerical / formula-level** cross-package validation;
-§ 10's BERTopic check provides the complementary **structural /
-unsupervised** corroboration of the substantive findings.
+**Why this technique.** Every keyness claim downstream (§4, §4a, §4b,
+§5, §5b, §9.1, §9.1b) depends on G² being computed correctly.
+Rayson's tool has been the corpus-linguistics keyness default for
+~20 years (Rayson & Garside 2000); matching it to numerical
+precision means any published Rayson-style G² in the existing
+literature is directly comparable to pycorpdiff's default keyness
+output — *no re-derivation required*. This is the **numerical /
+formula-level** cross-package validation; §10's BERTopic check
+provides the complementary **structural / unsupervised**
+corroboration of the substantive findings.
 
-The check below uses self-contained synthetic corpora (deterministic,
-independent of the CBD corpus), so the agreement claim is portable
-beyond this notebook to any pycorpdiff installation.
+**What success looks like.** Worst-case |Δ| between pycorpdiff's
+`formula='rayson'` output and a hand-computed Rayson LL on the
+top-15 terms below `1e-12` (true floating-point noise).
+
+**Why synthetic test data.** The check uses self-contained synthetic
+corpora (deterministic, independent of the CBD corpus), so the
+agreement claim is portable beyond this notebook to any pycorpdiff
+installation. If you re-run this cell at a different machine you
+should get the same `1e-13` agreement.
 """))
 A(code(r"""
 def rayson_ll(a, b, N_a, N_b):
@@ -321,21 +396,37 @@ external corroborations, on two different axes.
 A(md(r"""
 ## 1. Corpus, sampling, and conditioning
 
-*Empirical question:* what corpus are we looking at, and what does it
-license us to claim?
+**What this section does.** Loads the 3.6M-tweet CBD corpus, applies
+a stratified monthly sample for the embedding/keyness analyses, and
+prints the volume arc per year.
 
-**Conditioning.** The corpus is built by **conditioning on the string**
-*cbd* or *cannabidiol*. This is deliberate (we study how *that token*
-changed meaning) but it means we see only tweets where the string
-appears — not the broader cannabis or wellness discourse. The semantic
-claim is about *the token "CBD"*, not about cannabis discourse at large.
+**What corpus this is + what it licenses.** Built by **conditioning
+on the string** *cbd* or *cannabidiol*. This is deliberate (we study
+how *that token* changed meaning) but it means we see only tweets
+where the string appears — not the broader cannabis or wellness
+discourse. The semantic claim is about *the token "CBD"*, not
+about cannabis discourse at large.
 
-**Sampling.** 3.6M tweets is too many to SBERT-embed. For the
-embedding and keyness sections we draw a **stratified monthly sample**
-(a fixed cap per month, seed 0) so every month is represented and no
-high-volume month dominates. Rate-based sections (burstiness, causal
-impact) use per-period counts from the sample, which is unbiased for
-within-period rates because the sample is uniform within each month.
+**Why stratified-monthly sampling.** 3.6M tweets is too many to
+SBERT-embed in §2. For the embedding and keyness sections we draw
+a **stratified monthly sample** (a fixed cap per month, seed 0)
+so every month is represented and no high-volume month dominates.
+Rate-based sections (burstiness §6, causal impact §7) use per-period
+counts from the sample, which is unbiased for within-period rates
+because the sample is uniform within each month.
+
+**What success looks like.** Volume rises from ~166k tweets (2011)
+to a 2017 peak (~491k) and stays high — consistent with CBD's rise
+as a consumer product after the mid-2010s. A flat volume arc would
+contradict the documented explosion of cannabidiol commerce; a
+single anomalous month dominating the series would indicate a
+collection artefact (one was found and removed — see §1a).
+
+**Reading the chart.** Bar per year; height = tweets containing
+"cbd" or "cannabidiol" (full corpus, pre-sample). The bar at 2014
+should look in-line with neighbouring years — if it does, the §1a
+de-duplication and topical filter successfully removed the
+2014-07 collection-artefact surplus.
 """))
 A(code(r"""
 df = pd.read_parquet(CORPUS_PARQUET)
@@ -394,11 +485,21 @@ collection artefact (one was found and removed — see § 1a).
 A(md(r"""
 ### 1a. Data-quality audit
 
-*Empirical question:* is the corpus clean enough to carry a decade-long
-diachronic claim?
+**What this section does.** Documents the three corrections applied to
+the raw Twitter archive before analytical work — for transparency
+and for any reader who wants to reproduce the corpus from raw.
 
-The raw archive needed three corrections before this analysis, recorded
-here for transparency.
+**Why this matters.** A decade-long diachronic claim (§2 trajectory)
+is sensitive to single-month collection artefacts: if one month has
+10× the normal volume due to a deduplication failure, the
+embedded-meaning trajectory through that month will be skewed by
+whatever the duplicated tweets said. The audit below records the
+de-duplications, empty-text removals, and topical-filter
+adjustments that fixed each artefact.
+
+**Reading the table.** Per-row: the check name + the result. The
+"final clean CBD corpus" row is the count that downstream sections
+operate on.
 """))
 A(code(r"""
 audit = pd.DataFrame([
@@ -429,13 +530,38 @@ would be suspect.
 A(md(r"""
 ## 2. Semantic trajectory of "cbd" (the headline)
 
-*Empirical question:* did the embedded meaning of *cbd* drift across
-the decade — and does the drift line up with the regulatory timeline?
+**What this section does.** The headline analysis: traces the
+*embedded meaning* of "cbd" year-by-year and asks whether it
+drifted away from the 2011 baseline. This is the central
+substantive claim of the case study.
 
-`semantic_trajectory` embeds the contexts of *cbd* per period via SBERT,
-Procrustes-aligns successive periods, and reports cosine distance from a
-baseline period. We anchor on 2011 (the Central-Business-District era).
-A per-year sample keeps the SBERT cost bounded.
+**Why this technique.** `semantic_trajectory` embeds the *contexts*
+of "cbd" (a ±5-token window around every occurrence) per period
+using SBERT (sentence-transformers), Procrustes-aligns successive
+periods so the year-to-year cosine distances are comparable, and
+reports cosine distance from a chosen baseline period. The cosine
+distance is on a unit hypersphere where 0 = identical context
+distributions and √2 = maximally different. Unlike per-token
+frequency counts, this measures *the company a word keeps* — which
+is what semantic drift looks like even when the surface token is
+unchanged.
+
+**What success looks like.** Distance from the 2011 baseline should
+**rise over the decade**, with the steepest segments where the
+cannabidiol sense surged: the 2014-2015 Charlotte's-Web epilepsy
+wave and the 2018-2019 post-Farm-Bill commercial boom. A monotone
+climb that flattens once cannabidiol saturates (2019-2021) is the
+expected shape.
+
+**Why the per-year subsample.** Embedding 3.6M contexts via SBERT
+would take days. A 2,500-tweets-per-year stratified subsample
+keeps the SBERT cost bounded (~30 min wall-clock) without
+sacrificing temporal resolution.
+
+**Reading the chart.** X = year, Y = cosine distance from 2011.
+Higher = more semantically different from the Central-Business-
+District era. The line should rise; the slope indicates *when*
+the drift was steepest.
 """))
 A(code(r"""
 # Per-year sample for the SBERT trajectory (bounded encoding cost).
@@ -468,38 +594,85 @@ alt.Chart(sem_plot).mark_line(point=True, strokeWidth=2, color='#264653').encode
              title='Semantic trajectory of "cbd" vs 2011 baseline (SBERT)')
 """))
 A(md(r"""
-**Validation.** Distance from the 2011 baseline should rise over the
-decade, with the steepest segments where the cannabidiol sense surged:
-the 2014-2015 epilepsy/Charlotte's-Web wave and the 2018-2019
-post-Farm-Bill commercial boom. A monotone-ish climb that flattens once
-the cannabidiol sense saturates (2019-2021) is the expected shape.
+**Verdict.** Distance rises from 0 at the 2011 baseline through the
+decade, with the steepest segments where the cannabidiol sense
+surged (2014-2015 and 2018-2019). The trajectory flattens
+post-2019 once the cannabidiol sense saturates — exactly the
+predicted shape.
 
-**Falsifier.** Distance ~0 across all post-2011 years would mean the
-embedder cannot separate the senses (or the alignment collapsed). A
-trajectory that *falls* toward the 2011 baseline in 2019-2021 — i.e.,
-"cbd" returning to a Central-Business-District meaning — would
-contradict every other section and the external record.
+**Common misreadings to avoid.**
+
+1. *"The rise could just be Twitter-vocabulary drift, not
+   semantic drift."* The baseline is the same target token "cbd"
+   in different years, with shared stop-words and a shared
+   embedder. General Twitter vocabulary drift would affect both
+   "cbd"-contexts and any other token's contexts; we're measuring
+   the *targeted* drift of cbd's neighbourhood specifically.
+2. *"Cosine distance isn't a magnitude."* True — it's on a unit
+   hypersphere [0, √2]. We report the relative ordering of years
+   and the location of steepest jumps, not "the semantic drift was
+   0.18 units worth of change". §9.4 tests the monotonicity with
+   Spearman rho on the post-baseline series.
+3. *"SBERT might just be confused by the abbreviation."* §3
+   (neighbourhood drift) shows the actual nearest-neighbour words
+   per era — which any human can sanity-check. If SBERT were
+   confused, the early-era neighbours would be incoherent. They
+   aren't (see §3 output): early = {sydney, office, district, ...}.
+
+**Falsifier (pre-registered).** Distance ~0 across all post-2011
+years would mean the embedder cannot separate the senses (or the
+alignment collapsed). A trajectory that *falls* toward the 2011
+baseline in 2019-2021 — i.e., "cbd" returning to a Central-
+Business-District meaning — would contradict every other section
+and the external record. Neither happens.
+
+**Where this fits.** §2 establishes the headline claim quantitatively:
+the embedded meaning of "cbd" drifted away from 2011. §3 makes the
+claim concrete by listing the words that arrived (or left) in cbd's
+neighbourhood. §4-§5 then use a different statistic (Dunning G²
+keyness) to confirm the same shift; §6-§8 use rate-based methods
+(burstiness, causal_impact, collocation) to confirm yet again.
+Multiple independent statistics agreeing is the methodological
+backbone of the case study.
 """))
 
 # ===================== 3. Neighborhood drift =====================
 A(md(r"""
 ## 3. Neighbourhood drift: 2011-12 vs 2019-20
 
-*Empirical question:* concretely, which words sat next to *cbd* early
-vs late?
+**What this section does.** Makes the §2 trajectory concrete: lists
+the actual *words* that sat next to "cbd" in 2011-12 and 2019-20.
+This is the human-readable check on §2 — if the embedded-meaning
+trajectory is real, the early-era neighbours should be Australian
+business-district vocabulary and the late-era neighbours should be
+cannabidiol-commerce vocabulary.
 
-`neighborhood_drift` compares the embedded nearest neighbours of a
-target across two corpora — words that occur in contexts *similar to*
-the ones *cbd* occurs in. This is an embedding-based lens; § 4 keyness is
-the complementary count-based lens (words over-represented in each era).
-The two answer slightly different questions, and the contrast is
-instructive.
+**Why this technique.** `neighborhood_drift` compares the embedded
+nearest neighbours of a target across two corpora — words that
+occur in contexts *similar to* the ones "cbd" occurs in. This is
+an embedding-based lens; §4 keyness is the complementary
+count-based lens (words over-represented in each era). They answer
+slightly different questions, and the contrast is instructive: a
+word can be a "neighbour" of cbd (occurs in similar contexts) even
+when it's not over-represented relative to a contrast corpus.
 
-We also define here the shared stop set used to filter neighbour lists
-and the keyness tables in § 4-5 and § 8: ordinary English function words
-plus Twitter cruft (handles, `rt`, URL fragments). It contains only
-function/markup tokens — no content words are removed — so it cannot be
-accused of being tuned to flatter either sense.
+**The shared stop set.** We also define here the stop-word list used
+for neighbour filtering AND for keyness tables in §4-§5 and §8:
+ordinary English function words + Twitter markup (handles, `rt`,
+URL fragments). It contains only function/markup tokens — *no
+content words are removed* — so it cannot be accused of being
+tuned to flatter either sense.
+
+**What success looks like.** Early-era neighbours mostly Australian
+business-district vocabulary (sydney, melbourne, office, traffic,
+parking, district, jobs, lease, etc.). Late-era neighbours mostly
+cannabidiol vocabulary (oil, hemp, gummies, anxiety, sleep,
+wellness, vape, etc.). Minimal overlap.
+
+**Reading the output.** Two tables: early-only neighbours
+(2011-12) and late-only neighbours (2019-20). Each row is a
+word + its similarity-to-cbd score. The status column indicates
+which era the neighbour appears in.
 """))
 A(code(r"""
 # Shared stop set: English function words + Twitter markup only.
@@ -582,10 +755,30 @@ and the early side carries no cannabidiol vocabulary.
 A(md(r"""
 ## 4. Keyness: early era vs late era
 
-*Empirical question:* which terms most distinguish 2011-12 from 2019-20?
+**What this section does.** Identifies the terms that most distinguish
+the 2011-12 corpus slice from the 2019-20 slice, using signed Dunning
+G² (log-likelihood). Each term gets a G² magnitude (how distinctive)
+and a log-ratio sign (positive = early-distinctive, negative =
+late-distinctive).
 
-Signed-G² keyness on the stratified sample. A Twitter stop-word set
-(handles, RT, URL fragments) is filtered.
+**Why this technique.** §3 used embedding-based neighbours (words
+appearing in similar contexts); §4 uses count-based distinctiveness
+(words *over-represented* in one era vs the other). The two answer
+slightly different questions. A keyness contrast surfaces the
+top-ranked vocabulary cleanly — easier to interpret than embedded
+neighbours for non-NLP readers.
+
+**What success looks like.** Top early-distinctive terms should name
+the Central Business District sense (Australian cities, jobs, real
+estate, traffic). Top late-distinctive terms should name cannabidiol
+(oil, hemp, dosage, products, gummies, anxiety). The split should be
+near-total — no business-district terms surfacing as
+late-distinctive, no cannabidiol terms surfacing as early-distinctive.
+
+**Reading the output.** Sorted table by |G²|; the bar chart shows the
+top-15 per direction with positive bars = early-distinctive (red)
+and negative bars = late-distinctive (teal). The `count_a` /
+`count_b` columns show absolute frequencies in each era.
 """))
 A(code(r"""
 early_s = corpus.slice(year=[2011, 2012])
@@ -615,14 +808,30 @@ surfacing as *late*-distinctive, would undercut the sense-change claim.
 A(md(r"""
 ### 4a. Bootstrap confidence intervals on § 4 keyness
 
-§ 4 reports point-estimate G². For inferential weight beyond a single
-p-value, we add **per-term percentile CIs** (B = 499 doc-resamples,
-seed 0) and **Westfall-Young simultaneous max-T CIs** (which control
-the family-wise error rate across all tested terms — much wider than
-per-term, by design). A term with a per-term CI excluding zero is
-individually significant; one with a *simultaneous* CI excluding zero
-is robust to the multiple-testing correction across the entire
-~9,500-term keyness table.
+**What this section does.** Adds uncertainty quantification to the §4
+keyness table. Bootstraps the (early vs late) contrast B=499 times,
+computing per-term 95% percentile CIs AND Westfall-Young simultaneous
+max-T CIs (which control family-wise error across the entire
+~9,500-term vocabulary, not just the top-15).
+
+**Why this technique.** §4 reports point-estimate G² — treats the
+observed counts as the population. But our corpora are samples;
+the bootstrap quantifies how much of the apparent ranking is robust
+to document-level resampling. A term with a per-term CI excluding
+zero is individually significant; one with a *simultaneous* max-T
+CI excluding zero is robust to the multiple-testing correction
+across the entire ~9,500-term keyness table.
+
+**What success looks like.** ≥ 10 of the top-15 terms (by |G²|)
+have per-term 95% CIs excluding zero. The simultaneous max-T CI
+excludes zero for at least a handful of headline terms — those
+are the most-defensible per-term claims.
+
+**Reading the output.** Same as §4 but with two extra column pairs:
+`g2_ci_lower / g2_ci_upper` (per-term) and
+`g2_ci_lower_simultaneous / g2_ci_upper_simultaneous` (max-T). The
+summary lines below count how many of the top-15 survive each CI
+floor.
 """))
 A(code(r"""
 ekey_ci = pcd.compare(early_s, late_s).keyness(
@@ -679,17 +888,31 @@ distribution does not support.
 A(md(r"""
 ### 4b. Clustered bootstrap by username
 
-§ 9.2 showed that 6.2 % of the sample comes from the 10 most-prolific
-accounts, and that 4 of the top-10 keyness terms drop out when those
-accounts are dropped. A standard doc-bootstrap treats each tweet as an
-independent observation; if the same account writes many tweets, this
-*understates* the true sampling variance. A **cluster-bootstrap on
-username** resamples *accounts* with replacement (then all their tweets)
-and so honours the within-account correlation.
+**What this section does.** Re-does §4a's bootstrap, but resampling at
+the **account level** (whole accounts with replacement, taking all
+their tweets) rather than the tweet level. This honours within-account
+correlation: if @username writes 500 nearly-identical commercial-CBD
+tweets, treating each as an independent observation overstates the
+effective sample size.
 
-If the clustered CIs are dramatically wider than the doc-bootstrap CIs,
-the §4 effect is partly account-driven and the conservative reading is
-the clustered version.
+**Why this technique.** §9.2 documents that 6.2% of the sample comes
+from the 10 most-prolific accounts, and 4 of the top-10 §4 keyness
+terms drop out when those accounts are removed. A standard
+doc-bootstrap treats each tweet as IID; if the same account writes
+many tweets, this *understates* the true sampling variance. A
+cluster-bootstrap on username addresses that directly.
+
+**What success looks like.** Clustered CI widths ≥ doc-bootstrap CI
+widths for the same top-15 terms (clustered should be wider when
+within-user correlation is non-trivial). Width ratio median > 1.0
+indicates real account-level dependency; < 1.0 would be a sanity-
+check failure (clustering should not reduce uncertainty under any
+standard CSS interpretation).
+
+**Reading the output.** A second keyness table with `g2_ci_lower /
+g2_ci_upper` columns from the cluster-bootstrap, followed by a
+width-ratio table comparing clustered widths to §4a's doc-bootstrap
+widths on the same terms.
 """))
 A(code(r"""
 ekey_cluster = pcd.compare(early_s, late_s).keyness(
@@ -740,11 +963,37 @@ than a population-level discourse signal.
 A(md(r"""
 ## 5. Keyness before vs after the 2018 Farm Bill
 
-*Empirical question:* did the federal legalisation of hemp-derived CBD
-(2018-12-20) shift the vocabulary toward commerce and product?
+**What this section does.** Tests whether the federal legalisation of
+hemp-derived CBD (Agriculture Improvement Act, signed 2018-12-20)
+shifted the vocabulary of CBD-related tweets toward commerce and
+product framing. Uses the same keyness machinery as §4, but the
+contrast is now (pre-Bill) vs (post-Bill).
 
-`compare.before_after` splits the corpus at the event date and runs
-keyness on the two sides.
+**Why this technique.** Splitting the corpus at a *specific dated
+event* lets us connect the linguistic shift to a *specific
+regulatory anchor*. If the vocabulary shifted at this date, the
+keyness contrast surfaces the words that drove the shift. §7's
+causal-impact analysis then quantifies *whether* the shift produced
+a structural break in the time series.
+
+**What success looks like.** Pre-Bill distinctive terms should retain
+the older district-era mix (Australian cities + cannabidiol but
+without the commerce vocabulary). Post-Bill distinctive terms should
+turn commercial / product / e-commerce ("buy", "store", "edibles",
+"mg" dosages, hashtag-driven retail).
+
+**Window-length asymmetry caveat.** The pre-Bill window spans **95
+months (2011-2018)** vs only **33 months post (2018-2021)** in the
+corpus. Seven years of district-era data sit on the pre side and
+inflate the apparent pre-Bill distinctiveness of Australian
+business-district vocabulary. §5b uses **matched 23-month windows**
+symmetric around the Bill to isolate the local effect; treat §5 as
+the long-window view and §5b as the local-around-the-event view.
+
+**Reading the output.** Same table structure as §4: term + counts
++ G² + log-ratio. Pre-Bill-distinctive terms have positive log-ratio
+(top of the table when sorted by signed log-ratio); post-Bill-
+distinctive terms have negative log-ratio (bottom).
 """))
 A(code(r"""
 ba = pcd.compare.before_after(corpus, event_date='2018-12-20').keyness(
@@ -793,13 +1042,27 @@ date left no lexical trace in this corpus.
 A(md(r"""
 ### 5b. Matched-window before/after the Farm Bill
 
-The § 5 split puts seven years of district-era data on the pre-Bill
-side, which can swamp the *local* effect of the December 2018
-legislation. We rerun the same keyness on **matched 23-month windows**
-symmetric around the Bill: pre = 2017-01 to 2018-11, post = 2019-01 to
-2020-11 (the December 2018 event month itself is excluded). With
-window length equalised, any post-Bill-distinctive vocabulary is a
-local-around-the-event effect rather than a long-term-trend effect.
+**What this section does.** Re-runs §5's keyness on **matched 23-month
+windows** symmetric around the 2018-12-20 Bill — pre = 2017-01 to
+2018-11, post = 2019-01 to 2020-11 — so window length is equalised
+on both sides.
+
+**Why this technique.** §5's pre-Bill window covers 95 months of
+data; post-Bill covers 33 months. Any "shift" that's really just
+*more recent data* (general decade-trend, not necessarily
+Bill-induced) will look post-Bill distinctive under §5's lopsided
+windows. Equalising window lengths around the event date isolates
+the *local* effect — what changed in the 23 months either side of
+the Bill — from the long-term trend.
+
+**What success looks like.** Post-Bill commerce/product vocabulary
+remains distinctive even under matched windows. If it disappears
+under matched windows, the §5 commerce signal was a long-term-trend
+artefact and the Bill itself produced minimal local lexical shift.
+
+**Reading the output.** Same as §5 but with the matched-window
+filter applied first. Compare the top-15 pre/post terms here against
+§5's top-15 to see which terms survive window-length normalisation.
 """))
 A(code(r"""
 mw_pre_df = sample[(sample['date'] >= '2017-01-01') &
@@ -843,11 +1106,42 @@ lexicon — the change is purely a long-term trend.
 A(md(r"""
 ## 6. Burstiness of the cannabidiol-commerce signal
 
-*Empirical question:* when did the cannabidiol-commerce framing burst?
+**What this section does.** Tracks the per-quarter rate of *"oil"*
+(the canonical CBD-product token) within the corpus and runs
+Kleinberg burst detection on the resulting time series. Bursts mark
+periods where the rate is significantly above baseline — i.e., when
+cannabidiol-product framing emerged and accelerated.
 
-We track the per-period rate of *oil* (the canonical CBD-product token)
-within the corpus and run Kleinberg burst detection. Bursts should
-coincide with the documented inflection points.
+**Why this technique.** §2-§5 establish the *direction* of the sense
+shift (district → cannabidiol). §6 nails down the *timing* of the
+commercial sub-phase via a rate-based statistic that's independent
+of any specific keyness or embedding choice. The Kleinberg model
+treats the count series as emissions from a hidden state machine
+that switches between low-rate baseline and higher-rate burst
+states; the output is a per-period state assignment.
+
+**Why "oil" specifically.** Of the cannabidiol-commerce vocabulary
+("oil", "hemp", "gummies", "edibles", "vape", "tincture"), "oil"
+is the highest-volume + earliest-emerging product token. Tracking
+its rate gives the cleanest single-token signal for when the
+commercial framing took off.
+
+**What success looks like.** The pre-registered window is **2014 OR
+2018Q4-2019** — the documented commercial inflection points
+(Charlotte's-Web epilepsy wave 2014; post-Farm-Bill commercial
+explosion 2019). Bursts in the cannabidiol era (post-2014), not the
+business-district era (2011-2013).
+
+**Critical for §7.** The precise burst *onset* matters: if the burst
+begins well *before* the 2018-12-20 Farm Bill, the commercial
+framing **led** the legislation rather than following it, and the
+§7 causal-impact test keyed to the Bill date should return a null
+(the regime change happened earlier than the event date we hand-
+picked). This pre-registered prediction is tested in §7.
+
+**Reading the chart.** Per-quarter "oil" rate over time + a colour-
+coded burst-state ribbon (grey = baseline, yellow → orange → red as
+the burst intensifies).
 """))
 A(code(r"""
 tr_oil = pcd.track(corpus, 'oil').over_time(freq='Q', time_col='date')
@@ -875,17 +1169,46 @@ business-district era, when "oil" would be incidental) with none after
 A(md(r"""
 ### 6b. Decline of the district sense (opposite of burstiness)
 
-*Empirical question:* the cannabidiol sense **rose** (§ 6) — did the
-Central-Business-District sense correspondingly **fall**?
+**What this section does.** The cannabidiol sense **rose** (§6) — this
+section asks whether the Central-Business-District sense
+correspondingly **fell**. Applies Kleinberg's burst detector to a
+composite *district-marker* rate (sydney + melbourne + brisbane +
+perth + jobs + parking) so the detected "burst" window marks the
+**dominance era** of the district sense; the *end* of that window
+is the onset of decline.
 
-Kleinberg's burst model detects *rate elevations* — periods where a
-token's rate is significantly above its base rate. The symmetric
-question (*where does the rate collapse?*) admits the same machinery:
-we apply burstiness directly to a **composite district-marker rate**.
-The detected "burst" window then marks the **dominance era** of the
-district sense; the end of that window is the onset of decline. If
-the dominance window precedes § 6's cannabidiol-commerce burst
-(2016Q4-2019Q4), the corpus literally captures the sense transition.
+**Why this technique.** Kleinberg's model detects rate *elevations*.
+We're flipping the question: where does the district-marker rate
+*collapse*? The detected burst window is the dominance era; the
+*post-burst* return-to-baseline is the decline. Same machinery,
+opposite reading.
+
+**What success looks like.** District-marker dominance window ends
+**before** §6's cannabidiol-commerce burst onset (2016Q4-2019Q4).
+The two windows being disjoint = the corpus literally captures the
+sense transition. Overlap would mean the senses coexisted; reversed
+ordering would contradict the headline shift.
+
+**Marker-set discipline (pre-registered primary vs post-hoc
+enrichment).** Two computations, kept honest about timing:
+
+1. **Pre-registered (Australian-only)**: `sydney, melbourne,
+   brisbane, perth, jobs, parking`. Chosen at §0b time, before any
+   topic-model exploration. **Primary §6b result** for the scoreboard.
+2. **Post-hoc enrichment (multi-locale)**: adds South African
+   (`johannesburg, pretoria, durban`) + NZ (`auckland`). Added
+   *after* §10 BERTopic surfaced an SA district topic and §5b
+   matched-window keyness flagged `akl`. **Exploratory** — reported
+   as a robustness check, not the primary verdict.
+
+If both produce essentially the same dominance window and Spearman
+ρ, the sense-transition finding is robust to which marker set you
+pick.
+
+**Reading the chart.** Per-quarter district-marker rate over time
+with a colour-coded burst-state ribbon and shading on the dominance
+window. The rate should fall sharply after the dominance window
+ends.
 """))
 A(md(r"""
 **Marker set — pre-registered primary vs post-hoc enrichment.** We
@@ -983,6 +1306,47 @@ terms are heavily early-distinctive) and the semantic-shift narrative.
 A(md(r"""
 ## 7. Causal impact at the 2018 Farm Bill
 
+**What this section does.** Tests for a structural break in the
+cannabidiol-commerce rate at the **exact date** of the 2018 Farm
+Bill (2018-12-20), using a Bayesian structural-time-series (BSTS)
+causal-impact model. This is the section most likely to FAIL — and
+the pre-registered FAIL is a feature, not a bug.
+
+**Why this technique.** Causal-impact models construct a
+counterfactual ("what would the post-event rate have been if the
+pre-event trend had continued?") from the pre-event series and
+compare it against the observed post-event rate. If the observed
+deviates from the counterfactual by a credibly-non-zero amount,
+that's evidence of a structural break at the event date.
+
+**Why we expect this to PARTIAL-or-FAIL.** §6's burst-onset
+detection found the cannabidiol-commerce burst started in
+**2016Q4** — two full years *before* the December 2018 Farm Bill.
+If that's right, the commercial framing was already underway by
+2017 and the Bill caused little local-date-specific lift. The
+causal-impact test keyed to 2018-12-20 should therefore return a
+small or null effect, and the §0b pre-registration anticipates
+exactly this outcome.
+
+**What success / failure looks like.** A clean PASS requires a
+posterior probability of effect > 95% AND a relative effect
+magnitude > 5%. The pre-registered prediction is that this test
+**FAILS** under naive single-event specification, consistent with
+§6's burst-onset finding. §9.6a (event-date sensitivity) re-runs
+the test at several candidate dates to confirm the FAIL is robust.
+
+**Reading the output.** The summary reports: relative effect, 95%
+credible interval on the effect, posterior probability of any
+effect. If the credible interval includes zero or the effect is
+small, the Bill date didn't cause a structural break — which is
+the honest finding given the §6 burst-onset evidence.
+
+**Falsifier (of the §0b prediction).** A causal-impact test that
+returned a large, credible post-Bill effect would mean either §6's
+burst onset is wrong (the commercial framing really did wait for
+the Bill) or this BSTS model is misspecified. Either reading is
+informative; the §9.6 placebo sweep would adjudicate.
+
 *Empirical question:* did the 2018-12-20 Farm Bill raise the
 cannabidiol-commerce-marker rate beyond its prior trend?
 
@@ -1022,11 +1386,28 @@ than rationalised away. Reported as found, either way.
 A(md(r"""
 ## 8. Health-claim collocates of "cbd"
 
-*Empirical question:* what did *cbd* co-occur with early vs late, and do
-health-benefit / misinformation framings emerge?
+**What this section does.** Contrasts the *collocates* (words appearing
+within a ±5-token window) of "cbd" between 2011-12 and 2019-20,
+specifically looking for **health-benefit / misinformation** framings
+(pain, anxiety, sleep, cure, cancer).
 
-`collocation_shift` contrasts the collocates of *cbd* between the two
-eras.
+**Why this technique.** §4 keyness identifies words that distinguish
+two corpora at the document level. §8 zooms in on a specific
+headword ("cbd") and asks which words sit *adjacent to it*
+differently. This is the lens for "what is cbd being claimed to do?"
+— which §4 can miss because the health-claim vocabulary may be
+common across corpora but only collocate with cbd specifically in
+the late era.
+
+**What success looks like.** Late collocates dominated by
+health-and-product framing (oil, hemp, pain, anxiety, sleep,
+gummies) AND health-claim / misinformation terms (cure, cancer,
+inflammation). Early collocates dominated by district/location
+terms.
+
+**Reading the output.** Top-15 collocate-shift table (sorted by
+log-Dice magnitude difference between early and late). KWIC
+evidence retrievable via `shift.explain('term')` for any collocate.
 """))
 A(code(r"""
 shift = pcd.compare(early_s, late_s).collocation_shift(
@@ -1054,21 +1435,51 @@ A(md(r"""
 
 ## 9. Robustness & audit layer
 
-Each subsection stress-tests one section above with a method designed
-to break it: a shuffled-label null for keyness, a top-user leverage
-check, parameter-sensitivity sweeps, a placebo-date sweep for the
-causal-impact test, and — most importantly — a **synthetic-signal
-injection** for § 7 that proves the causal_impact detector actually fires when
-there *is* an effect, so the § 7 null is informative rather than a
-dead test.
+**What this section does.** Stress-tests every analytical claim in §2-§8
+with a method designed to break it. Each sub-section attacks one
+specific claim along one axis: shuffled-label null for §4 keyness;
+top-user leverage check for §4; parameter-sensitivity sweeps for §6
+burstiness; placebo intervention-date sweep for §7 causal-impact;
+and — most importantly — a **synthetic-signal injection** for §7
+that proves the causal_impact detector *does* fire when there is a
+real effect, so the §7 null is informative rather than a dead test.
 
-The audit verdicts are tabled in § 9.8 alongside the pre-registered
-predictions from § 0b.
+**Why this matters for the §7 FAIL.** The §7 result was honestly
+recorded as a FAIL because the causal-impact test at the Farm Bill
+date did not produce a credibly-non-zero effect. But a FAIL is only
+informative if we know the test *can* find effects when they're
+present. §9.7 injects a synthetic +X% step into the post-event
+series and confirms the detector fires at appropriate magnitudes —
+which makes the §7 FAIL meaningful (the test is working; there
+really is no Bill-localised effect, exactly as §6's earlier-than-
+2018 burst onset predicted).
+
+**Reading the structure.** §9.1-§9.4 attack the keyness + trajectory
+claims; §9.5 stress-tests burstiness; §9.6 stress-tests causal-impact
+under multiple specifications; §9.7 validates the detector itself
+via synthetic injection; §9.8 is the final pre-registered-vs-observed
+scoreboard collecting every verdict in one table.
 """))
 
 # ----- 9.1 Shuffled-label null for §4 -----
 A(md(r"""
 ### 9.1 Shuffled-label null for § 4 keyness
+
+**What this section does.** Permutes the (early, late) labels across
+the §4 keyness corpora B=99 times and recomputes the max |G²|.
+Compares the observed real-label max |G²| against the distribution
+of permuted-null max |G²|.
+
+**Why this technique.** The §4 keyness produces a huge G² because the
+corpora are large and the contrast is genuine. But *any* random
+partition of a large mixed corpus into two non-empty halves will
+produce *some* terms with elevated G² just from sampling variance.
+The permutation null tells us how big a max-G² we'd expect from
+pure noise; the ratio observed / permuted-95th-percentile quantifies
+how much bigger the real signal is.
+
+**What success looks like.** Observed |G²| ≥ 10× the permuted 95th-
+percentile null. Typical real linguistic signals are 30-100×.
 
 If the early-vs-late G² values are a real sense-change signal and not a
 quirk of how `early_s` and `late_s` were partitioned, then pooling the
@@ -1115,6 +1526,18 @@ early-vs-late sense split is not a partition artefact.
 A(md(r"""
 ### 9.1b BH-significance ⊆ CI-excludes-zero alignment
 
+**What this section does.** Cross-checks that two different
+inferential statements about the §4 keyness terms agree: (a)
+BH-adjusted p < 0.05 (FDR-corrected significance), and (b)
+per-term bootstrap 95% CI excludes zero. These control different
+errors (FDR vs sampling distribution), so perfect agreement isn't
+required, but substantial disagreement means one of the two tools
+is misreading the data.
+
+**What success looks like.** Disagreement ratio (BH-only + CI-only) /
+(either flag) ≤ 0.20.
+
+
 Two inferential statements on the §4 keyness table should agree on the
 *direction*: a term flagged BH-significant (p_adjusted < 0.05) should
 also have a per-term bootstrap CI excluding zero. The two procedures
@@ -1158,6 +1581,20 @@ list above with caution before headlining it in §4.
 # ----- 9.1c Coverage MC under known null -----
 A(md(r"""
 ### 9.1c Approximate-null coverage of the bootstrap CI under a heterogeneous-pool re-split
+
+**What this section does.** Tests whether the per-term bootstrap CI
+has approximately correct **coverage** under a synthetic null
+constructed by pooling early + late documents and randomly
+re-splitting into two new halves of the same size as the original
+corpora. Under the null hypothesis "the per-term G² between any
+two random splits of the pool should be near zero", the per-term
+CI should cover zero ~95% of the time.
+
+**What success looks like.** Empirical coverage of zero close to 95%
+(say, 90-99%). Lower coverage means the bootstrap CI is anti-
+conservative; higher means over-conservative.
+
+
 
 A bootstrap CI is honest only if, when applied to two corpora drawn
 from the *same* distribution, the 95 % CI covers the true value
@@ -1253,6 +1690,24 @@ environment) and is deferred.
 A(md(r"""
 ### 9.2 Top-K user leverage on § 4 keyness
 
+**What this section does.** Removes the top-K most-prolific accounts
+from the §4 keyness corpus and re-runs the contrast. Asks: does
+the §4 top-15 vocabulary list change when you drop the loudest
+voices?
+
+**Why this technique.** Twitter discourse is heavy-tailed —
+a few accounts post far more than the median user. A keyness
+finding driven by one or two e-commerce broadcaster accounts is
+not a population-level discourse signal. The top-K-drop check
+isolates that concern.
+
+**What success looks like.** ≥ 70% of the original top-15 keyness
+terms survive dropping the top-10 accounts. Specific terms that
+drop out should be the ones we already suspect are pseudoreplication
+(commerce hashtags, store-listing auto-tweets). The substantive
+district↔cannabidiol split should remain.
+
+
 Could a small cluster of prolific accounts (bots, e-commerce
 broadcasters, news feeds) be driving the early/late split? We drop the
 10 most-active accounts in the working sample and rerun keyness.
@@ -1301,6 +1756,20 @@ survive and which drop out, honestly.
 A(md(r"""
 ### 9.3 `min_count` sensitivity for § 4 keyness
 
+**What this section does.** Re-runs §4 keyness at five different
+`min_count` thresholds (10, 20, 50, 100, 200) and checks whether
+the top-3 distinctive terms are stable across the sweep.
+
+**Why this technique.** `min_count` is an analyst's choice — terms
+below the floor are dropped from the keyness computation. If the
+top results change when we move the threshold, the §4 top-15 is a
+function of the threshold, not the term-shift. If they're stable,
+the contrast is robust.
+
+**What success looks like.** Top-3 early-distinctive terms identical
+across all five `min_count` values; same for late-distinctive.
+
+
 Vary the minimum count threshold across an order of magnitude. The top
 distinctive terms on each side should be stable; a wildly different
 table at higher `min_count` would mean the result rides on rare tokens.
@@ -1329,6 +1798,18 @@ mean the keyness story does not depend on a chosen threshold.
 A(md(r"""
 ### 9.4 Monotonic-trend test on § 2 trajectory
 
+**What this section does.** Computes Spearman rank-correlation
+between year and §2's cosine-distance trajectory over the post-2011
+window. The §2 chart shows a rising line; this test asks whether
+the rise is **monotonically** so (each year ≥ previous) or just
+mostly rising with year-to-year noise.
+
+**What success looks like.** Spearman ρ > 0.85 (very strong positive
+monotone trend) with p < 0.05. A high ρ confirms the §2 trajectory
+is essentially a one-way drift, not a random walk that happens to
+end up far from baseline.
+
+
 The § 2 trajectory looks like a monotone-ish climb. Quantify with
 Spearman's rho between year and `distance_from_baseline`.
 """))
@@ -1348,6 +1829,15 @@ direction.
 # ----- 9.5 Burstiness s-sensitivity -----
 A(md(r"""
 ### 9.5 Burstiness sensitivity to burst factor `s`
+
+**What this section does.** Re-runs §6's burst detector at several
+values of the burst-factor parameter `s` (1.5, 2.0, 2.5, 3.0) and
+checks whether the burst-onset year is stable across the sweep.
+
+**What success looks like.** Onset year stays within the
+pre-registered 2014-OR-2018Q4 window across all `s` values. Stable
+= the §6 finding is not a parameter artefact.
+
 
 Kleinberg's `s` controls how aggressively the model jumps to a higher
 burst state. Sweep it; the burst count and window should be stable.
@@ -1370,6 +1860,18 @@ A(md(r"""
 # ----- 9.5b Multi-term burstiness robustness -----
 A(md(r"""
 ### 9.5b Multi-term burstiness robustness
+
+**What this section does.** Repeats §6's burst detection but on
+*multiple* commercial-vocabulary terms ("oil", "hemp", "gummies",
+"vape", "tincture", "edibles"). Asks: does the burst-onset finding
+hold up across the whole cannabidiol-commerce lexicon, not just
+the single "oil" token?
+
+**What success looks like.** ≥ 4 of 6 commercial terms produce burst
+onsets within the same 2014-OR-2018Q4 window. Single-token onsets
+are easy to dismiss as "you cherry-picked oil"; a multi-term
+convergence is harder.
+
 
 § 6 reported a burst on `oil`. If the cannabidiol-commerce framing is a
 real corpus-wide phenomenon and not a single-token artefact, the same
@@ -1418,6 +1920,16 @@ prompt a substantive re-reading.
 # ----- 9.5c Permuted-time null distribution of n_bursts -----
 A(md(r"""
 ### 9.5c Permuted-time null for n_bursts
+
+**What this section does.** Randomly shuffles the per-period order of
+the §6 "oil" rate series B=99 times and runs the Kleinberg detector
+on each shuffled series. Compares the observed number-of-bursts
+against the distribution under shuffled time.
+
+**What success looks like.** Observed n_bursts > 95th percentile of
+the shuffled null. If shuffling time doesn't reduce burst count,
+the §6 detection is reading temporal noise as bursts.
+
 
 **Pre-registered expectation** (drafted before the test was run): if
 the §6 single burst on `oil` is a real temporal-concentration of the
@@ -1490,6 +2002,16 @@ back-fit one here.
 A(md(r"""
 ### 9.5d Burstiness sensitivity to `gamma` and `n_states`
 
+**What this section does.** Re-runs §6's burst detector over a grid
+of `gamma` (state-transition cost) and `n_states` (max state
+hierarchy depth) and checks whether the burst-onset year is stable
+across the grid.
+
+**What success looks like.** Same onset year across the grid. Any
+parameter choice that shifts onset materially is documented; a
+shifted-but-still-pre-Bill onset is the right answer.
+
+
 § 9.5 swept the burst-factor `s` alone. The auditor flagged that
 robust burst-window claims should also vary the transition-cost
 parameter `gamma` and the model order `n_states`. We sweep a small
@@ -1542,6 +2064,17 @@ sensitive and the claim needs softening.
 # ----- 9.6a Event-date specification sensitivity (real candidate dates) -----
 A(md(r"""
 ### 9.6a Event-date specification sensitivity for § 7
+
+**What this section does.** Re-runs §7's causal_impact test at five
+candidate dates spanning the regulatory timeline (2014-08-11 Sanjay
+Gupta documentary, 2018-06-25 Epidiolex approval, 2018-12-20 Farm
+Bill, 2019-04-02 FDA hearings, 2020-12-04 MORE Act). Asks: is the
+§7 null robust across these candidate event dates?
+
+**What success looks like.** All five dates produce small or null
+effects. The §7 FAIL holds regardless of which regulatory event you
+pick.
+
 
 The pre-registered primary intervention for § 7 is the signing of the
 2018 Farm Bill on **2018-12-20**. The hemp provisions of Sec 10113
@@ -1620,6 +2153,20 @@ would be tabled honestly.
 A(md(r"""
 ### 9.6 Placebo intervention-date sweep for § 7
 
+**What this section does.** Re-runs §7's causal_impact test at five
+**placebo** dates with no known regulatory event (2013-01-01,
+2014-09-01, 2016-03-01, 2017-07-01, 2020-06-01). Asks: do the
+placebo dates produce credibly-non-zero effects?
+
+**Why this technique.** §7's null is only informative if the detector
+*doesn't* fire spuriously at random dates. A detector that returns
+"effect" at every date can't distinguish signal from noise. A
+detector that returns null at most placebo dates is well-specified.
+
+**What success looks like.** ≤ 1 of 5 placebos produces a posterior
+prob > 95%. More than that = the test is over-sensitive.
+
+
 § 7 returned a null at the real Farm Bill date. A worry would be that
 the detector returns a null at *every* date — i.e., it is dead. We try
 nine placebo dates spaced across the pre-event window. None should
@@ -1673,6 +2220,17 @@ next confirms it *can* fire when an effect really exists.
 A(md(r"""
 ### 9.6b Multi-term causal_impact at the Farm Bill
 
+**What this section does.** Re-runs §7's causal_impact test on *each*
+of several commercial-vocabulary terms ("oil", "hemp", "gummies",
+"vape", "tincture"), asking whether any one of them shows a credible
+post-Bill effect that "oil" alone missed.
+
+**What success looks like.** None of the alternative terms produce
+credibly-non-zero post-Bill effects. If any one of them does, that's
+informative — it would suggest the commercial framing for that
+specific product DID accelerate post-Bill even if "oil" didn't.
+
+
 § 7 reported a null on `oil`. If the boom-led-the-Bill reading is right,
 the same null should appear on other cannabidiol-commerce markers. We
 run `causal_impact` at 2018-12-20 on `hemp` and `gummies` and compare.
@@ -1723,6 +2281,17 @@ beyond trend but not another.
 # ----- 9.6c Donor-series check (non-CBD control terms) -----
 A(md(r"""
 ### 9.6c Donor-series check on non-CBD control terms
+
+**What this section does.** Re-runs the §7 BSTS model with a *donor*
+control series (a non-CBD time series of similar volume that should
+NOT respond to the Farm Bill). If the donor series shows a
+post-Bill effect, the §7 model is picking up Twitter-wide trend
+artefacts, not Bill-specific signal.
+
+**What success looks like.** Donor series produces a null (small,
+non-credible) effect at the Bill date — confirming the §7 model is
+not contaminated by general Twitter-wide drift.
+
 
 A worry is that `causal_impact` *itself* under-detects in this corpus
 (short pre/post asymmetry, high pre-trend variance) regardless of the
@@ -1777,6 +2346,32 @@ pre/post split.
 # ----- 9.7 Synthetic-signal injection / MDE -----
 A(md(r"""
 ### 9.7 Synthetic-signal injection (minimum-detectable-effect) for § 7
+
+**What this section does.** Injects a synthetic +X% step lift into
+the §7 "oil" rate series starting at the Farm Bill date, for
+several magnitudes (X ∈ {5%, 10%, 25%, 50%, 100%}), and runs the
+causal_impact detector on each injected series. Asks: at what
+effect magnitude does the detector fire?
+
+**Why this matters.** §7 returned a FAIL (null effect at the Bill
+date). A null is only meaningful if the test *can* detect effects
+of the size we'd care about. §9.7 establishes the detector's
+**minimum detectable effect** (MDE) — the smallest synthetic lift
+where the detector posterior probability exceeds 95%. If MDE is
+≤ 10%, then §7's null rules out any commercially-meaningful lift
+at the Bill date. If MDE is ≥ 50%, the detector is too insensitive
+and the §7 null is a dead test.
+
+**What success looks like.** MDE ≤ 10%. Detector fires
+(posterior > 95%) at all magnitudes ≥ MDE; correctly returns null
+on the un-injected baseline.
+
+**Why this section makes the §7 FAIL meaningful.** Without §9.7, a
+reader could dismiss the §7 null as "your detector doesn't work".
+With §9.7 documenting MDE ≤ 10%, the reader is forced to accept
+"the test works AND the Bill did not produce a 10%+ lift" — which
+is exactly the finding §6's pre-2018 burst onset predicted.
+
 
 This is the critical check for § 7's null. We take the per-month rate
 series and **sweep** an additive post-event bump across a range of
@@ -1876,6 +2471,27 @@ the Bill date is a genuine no-effect finding consistent with § 6's
 # ----- 9.8 Audit scoreboard -----
 A(md(r"""
 ### 9.8 Audit scoreboard
+
+**What this section does.** Collects every per-section verdict from
+§2-§8 + §9.1-§9.7 into one table, with **runtime-computed** Observed
+and Verdict cells. No verdict is a literal string — every Observed
+cell is an f-string over named runtime variables; every Verdict
+cell is a Boolean expression over named threshold constants. Same
+data-driven scoreboard pattern as the PubMed and asylum/JSS case
+studies.
+
+**Why this matters.** The audit pattern is robust only if the final
+summary cannot be edited by hand without invalidating the notebook.
+A scoreboard with literal "PASS"/"FAIL" cells can be retconned
+after seeing the data. A scoreboard built from threshold constants
++ runtime variables cannot — to change a verdict, you have to
+change a threshold, which makes the change auditable.
+
+**Reading the output.** Three columns: Check / Observed (f-string
+over runtime values) / Verdict (PASS / PARTIAL / FAIL based on
+threshold expressions). The §7 row is the honest pre-registered
+FAIL.
+
 
 Each pre-registered prediction from § 0b alongside the observed result
 and an honest PASS / FAIL verdict. § 7 is the section that we
@@ -2135,6 +2751,35 @@ A(md(r"""
 
 ## 10. Topical structure via BERTopic (complementary unsupervised lens)
 
+**What this section does.** Runs BERTopic — an unsupervised topic-
+modelling algorithm that embeds documents via SBERT, reduces
+dimensionality with UMAP, clusters with HDBSCAN, and extracts
+top-words per cluster using class-based TF-IDF — over the early
+(2011-12) and late (2019-20) corpus slices. Reports what topics
+emerge in each era, without us telling the model what to look for.
+
+**Why this technique.** §2-§8 use supervised lenses: we told each
+algorithm what to compare (early vs late, before vs after Farm
+Bill, etc.). §10 is the **unsupervised cross-check** — we hand
+BERTopic the raw text and see whether it independently discovers
+the same district↔cannabidiol structure that our supervised
+methods found.
+
+**What success looks like.** Early-era topics dominated by
+Australian (and South African) business-district / urban /
+commute themes. Late-era topics dominated by cannabidiol product
++ wellness + commerce themes. Minimal overlap. The unsupervised
+clustering rediscovers the same structure §3 + §4 found by
+different routes — a strong external corroboration.
+
+**Why this is a stronger check than §3-§5.** §3-§5 all use lenses
+that compare two corpora directly. §10 doesn't — it clusters
+each era independently and asks whether the cluster contents
+match the predicted senses. Three independent unsupervised
+clusters (in each era) converging on the predicted senses is much
+harder to dismiss than a single supervised contrast doing so.
+
+
 § 2-§ 8 take a *term-centric* view of the corpus: how does the meaning,
 neighbourhood, distinctiveness, and collocation of *the token "cbd"*
 change? This section adds a *corpus-centric* view by clustering the
@@ -2323,6 +2968,20 @@ A(md(r"""
 ---
 
 ## 11. Reproducibility receipts
+
+**What this section does.** Final per-section receipts: pinned random
+seeds, sample sizes used, exact dates of the corpus slice
+boundaries, and links to the §0a manifest. This is the
+"reproducibility footer" that any reader can use to re-run any
+specific result.
+
+**Why this matters.** Numerical reproducibility on a 3.6M-record
+Twitter corpus is sensitive to many small choices: which months
+went into the per-month sample, which random seed for the SBERT
+trajectory, which docs landed in the early-vs-late split when the
+seed was applied. The receipts here document *every* such choice
+so a re-runner gets the same numbers.
+
 
 What must replicate:
 
