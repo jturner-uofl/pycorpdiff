@@ -324,6 +324,20 @@ print(f'{len(yearly):,} (shift, side, year) rows')
 yearly.head()
 """))
 
+# Chart §1: stacked corpus coverage across all shifts (chart 1/11)
+A(code(r"""
+# Stacked-area corpus coverage: how recent the 150K-record corpus skews
+_cov = (yearly.groupby(['year', 'shift'])['n_records'].sum().reset_index())
+_cov_chart = alt.Chart(_cov).mark_area(opacity=0.85).encode(
+    x=alt.X('year:O', title='Year', axis=alt.Axis(values=list(range(1950, 2025, 10)), labelOverlap=True)),
+    y=alt.Y('n_records:Q', title='records / year (stacked across shifts)', stack='zero'),
+    color=alt.Color('shift:N', title='Shift',
+                     scale=alt.Scale(scheme='tableau10')),
+    tooltip=['year:O', 'shift:N', 'n_records:Q'],
+).properties(width=720, height=220, title='Corpus coverage 1950-2024 stacked by shift (n=150,197 records)')
+_cov_chart
+"""))
+
 A(code(r"""
 # Plot per-shift trajectories with anchor lines
 charts = []
@@ -484,6 +498,42 @@ print(f'{len(s2b_df):,} collocates analysed (after PubMed-stopwords filter); top
 print(s2b_df.head(12).to_string(index=False))
 """))
 
+# Chart §2b: collocation-shift dumbbell (chart 2/11)
+A(code(r"""
+_top12 = s2b_df.head(12).copy()
+# Find which column holds 'before' rate and which 'after' — pycorpdiff returns
+# (collocate, count_a, count_b, dice_a, dice_b, shift) or similar; pick the
+# two rate columns to draw the dumbbell against.
+_rate_cols = [c for c in _top12.columns if c.startswith('dice')]
+if len(_rate_cols) >= 2:
+    _ra, _rb = _rate_cols[0], _rate_cols[1]
+elif {'count_a', 'count_b'}.issubset(_top12.columns):
+    _ra, _rb = 'count_a', 'count_b'
+else:
+    _rate_cols = [c for c in _top12.columns if _top12[c].dtype.kind in 'fi' and c != 'shift']
+    _ra, _rb = _rate_cols[:2]
+_top12 = _top12.sort_values('shift').reset_index(drop=True)
+_long = pd.concat([
+    _top12[['collocate', _ra]].rename(columns={_ra: 'rate'}).assign(era='pre-anchor (<1965)'),
+    _top12[['collocate', _rb]].rename(columns={_rb: 'rate'}).assign(era='post-anchor (>=1965)'),
+])
+_line = alt.Chart(_top12).mark_rule(stroke='#bbb', strokeWidth=2).encode(
+    y=alt.Y('collocate:N', sort=_top12['collocate'].tolist(), title=None),
+    x=alt.X(f'{_ra}:Q', title=f'collocate rate ({_ra}=pre, {_rb}=post)'),
+    x2=f'{_rb}:Q',
+)
+_pts = alt.Chart(_long).mark_circle(size=180).encode(
+    y=alt.Y('collocate:N', sort=_top12['collocate'].tolist()),
+    x='rate:Q',
+    color=alt.Color('era:N',
+                     scale=alt.Scale(domain=['pre-anchor (<1965)', 'post-anchor (>=1965)'],
+                                      range=['#e76f51', '#264653'])),
+    tooltip=['collocate', 'era', 'rate'],
+)
+(_line + _pts).properties(width=560, height=300,
+    title='§2b syndrome collocates: pre-1965 (red) -> post-1965 (teal), top 12 by |shift|')
+"""))
+
 
 # ===================== 3. Shift 2: shell shock -> PTSD =====================
 A(md(r"""
@@ -581,6 +631,35 @@ burst_starts = state_df[in_burst & (~in_burst.shift(1, fill_value=False))]
 s3b_first_burst_year = int(burst_starts.iloc[0]['year']) if len(burst_starts) else None
 s3b_aligned = s3b_first_burst_year is not None and 1979 <= s3b_first_burst_year <= 1983
 print(f'\\nFirst burst onset: {s3b_first_burst_year}; aligns with DSM-III 1980 (1979-1983 window): {s3b_aligned}')
+"""))
+
+# Chart §3b: Kleinberg burst-state strip + count overlay (chart 3/11)
+A(code(r"""
+# Two-panel: count series on top, state ribbon on bottom (sharing x-axis)
+_state_palette = {0: '#e5e5e5', 1: '#ffe599', 2: '#f7b267',
+                  3: '#e76f51', 4: '#7c1d1d'}
+_state_df = state_df.copy()
+_state_df['state_label'] = _state_df['state'].map(
+    {0: '0 baseline', 1: '1', 2: '2', 3: '3', 4: '4 peak burst'})
+_counts = alt.Chart(_state_df).mark_area(
+    line={'color': '#264653'}, color='#264653', opacity=0.18,
+).encode(
+    x=alt.X('year:O', axis=alt.Axis(values=list(range(1940, 2025, 5)), labelOverlap=True), title=None),
+    y=alt.Y('count:Q', title='PTSD records / year'),
+    tooltip=['year', 'count', 'state'],
+).properties(width=720, height=180,
+    title='§3b PTSD annual records 1940-2024 (anchor: DSM-III 1980)')
+_anchor_ptsd = alt.Chart(pd.DataFrame({'x': [1980]})).mark_rule(
+    strokeDash=[4, 4], color='#888').encode(x='x:O')
+_strip = alt.Chart(_state_df).mark_rect().encode(
+    x=alt.X('year:O', axis=alt.Axis(values=list(range(1940, 2025, 5)), labelOverlap=True), title='Year'),
+    color=alt.Color('state:Q', title='Kleinberg state',
+                     scale=alt.Scale(domain=list(_state_palette.keys()),
+                                      range=list(_state_palette.values()))),
+    tooltip=['year', 'state'],
+).properties(width=720, height=40,
+    title='Kleinberg burst-state ribbon (0=baseline ... 4=peak)')
+alt.vconcat(_counts + _anchor_ptsd, _strip).resolve_scale(x='shared')
 """))
 
 
@@ -710,6 +789,39 @@ s5a_top15_sim_excl = int(((_top15_5['g2_ci_lower_simultaneous'] > 0) |
                           (_top15_5['g2_ci_upper_simultaneous'] < 0)).sum())
 print(f'\\ntop-15: per-term CI excludes zero in {s5a_top15_per_term_excl}/15')
 print(f'top-15: simultaneous max-T CI excludes zero in {s5a_top15_sim_excl}/15')
+"""))
+
+# Chart §5a: bootstrap-CI forest plot (chart 4/11)
+A(code(r"""
+# Forest plot: point G^2 + per-term CI bar + simultaneous max-T CI tick
+_f = _top15_5[['term', 'g2', 'log_ratio',
+                'g2_ci_lower', 'g2_ci_upper',
+                'g2_ci_lower_simultaneous', 'g2_ci_upper_simultaneous']].copy()
+_f['era'] = np.where(_f['log_ratio'] > 0, 'pre-anchor (MR 2005-2009)',
+                                            'post-anchor (ID 2013+)')
+_f = _f.sort_values('g2', ascending=False).reset_index(drop=True)
+_order = _f['term'].tolist()
+_bar_per = alt.Chart(_f).mark_rule(strokeWidth=4, color='#bbb').encode(
+    y=alt.Y('term:N', sort=_order, title=None),
+    x=alt.X('g2_ci_lower:Q', title='G^2 (bootstrap 95% CI: thick=per-term, thin=simultaneous max-T)'),
+    x2='g2_ci_upper:Q',
+)
+_bar_sim = alt.Chart(_f).mark_rule(strokeWidth=1.5, color='#666').encode(
+    y=alt.Y('term:N', sort=_order),
+    x='g2_ci_lower_simultaneous:Q', x2='g2_ci_upper_simultaneous:Q',
+)
+_pts5 = alt.Chart(_f).mark_circle(size=140).encode(
+    y=alt.Y('term:N', sort=_order),
+    x='g2:Q',
+    color=alt.Color('era:N',
+                     scale=alt.Scale(domain=['pre-anchor (MR 2005-2009)', 'post-anchor (ID 2013+)'],
+                                      range=['#e76f51', '#264653'])),
+    tooltip=['term', 'g2', 'g2_ci_lower', 'g2_ci_upper',
+              'g2_ci_lower_simultaneous', 'g2_ci_upper_simultaneous'],
+)
+_zero = alt.Chart(pd.DataFrame({'x': [0]})).mark_rule(strokeDash=[3, 3], color='#888').encode(x='x:Q')
+(_bar_per + _bar_sim + _pts5 + _zero).properties(width=560, height=360,
+    title='§5a MR->ID keyness: top-15 G^2 with bootstrap 95% per-term + simultaneous max-T CIs')
 """))
 
 
@@ -923,6 +1035,31 @@ print(f'it shifted from clinical usage into stigma-research usage. Inversion rat
 print(f'  slur 2020s / clinical 2020s = {s65_slur_2020s / max(s65_mr_2020s, 1):.1f}x')
 """))
 
+# Chart §6.5.1: word-sense stacked-area decomposition (chart 5/11)
+A(code(r"""
+# Stacked area showing all 7 senses across 1990-2024. Process-verb senses
+# dominate; slur sense is essentially absent. This is the headline visual
+# evidence behind the §6.5.1 audit-resolved interpretation.
+_sense_long = (sense_counts.reset_index()
+                            .melt(id_vars='year', var_name='sense', value_name='records')
+                            .sort_values(['year', 'sense']))
+# Order: scientific senses first (largest), clinical compound middle, slur last
+_sense_order = (sense_counts.sum(axis=0)
+                            .sort_values(ascending=False).index.tolist())
+_palette = ['#264653', '#2a9d8f', '#8ab17d', '#e9c46a',
+            '#f4a261', '#e76f51', '#9d2424']
+_sense_chart = alt.Chart(_sense_long).mark_area(opacity=0.85).encode(
+    x=alt.X('year:O', title='Year', axis=alt.Axis(values=list(range(1990, 2025, 5)), labelOverlap=True)),
+    y=alt.Y('records:Q', title='records / year (stacked by sense)', stack='zero'),
+    color=alt.Color('sense:N', sort=_sense_order, title='Sense',
+                     scale=alt.Scale(domain=_sense_order, range=_palette[:len(_sense_order)])),
+    order=alt.Order('sense:N', sort='ascending'),
+    tooltip=['year:O', 'sense:N', 'records:Q'],
+).properties(width=720, height=300,
+    title='§6.5.1 retard* sense-decomposition 1990-2024 (audit-resolved): process-verb senses dominate; slur essentially absent')
+_sense_chart
+"""))
+
 
 # ----- §6.5.1b: polysemy-audited survey -----
 A(md(r"""
@@ -971,6 +1108,40 @@ s651b_valid_era = int((polysemy['verdict'] == 'VALID-ERA-CLINICAL').sum())
 s651b_valid_persistent = int((polysemy['verdict'] == 'VALID-PERSISTENT').sum())
 s651b_unmeasurable = int((polysemy['verdict'] == 'UNMEASURABLE').sum())
 s651b_unclassifiable = int((polysemy['verdict'] == 'UNCLASSIFIABLE').sum())
+"""))
+
+# Chart §6.5.1b: polysemy verdict bar with intended-percentage gradient (chart 6/11)
+A(code(r"""
+_pal_verdict = {
+    'VALID-ERA-CLINICAL': '#2a9d8f',
+    'VALID-PERSISTENT':   '#264653',
+    'COLLISION':          '#e63946',
+    'DRIFT':              '#f4a261',
+    'UNMEASURABLE':       '#bbbbbb',
+    'UNCLASSIFIABLE':     '#dddddd',
+}
+_p = polysemy.copy()
+_p['intended_pct_clean'] = pd.to_numeric(_p['intended_pct'], errors='coerce').fillna(0.0)
+# Order: COLLISION at top (red, eye-catching), then DRIFT, then VALIDs
+_verdict_rank = {'COLLISION': 0, 'DRIFT': 1, 'VALID-ERA-CLINICAL': 2,
+                 'VALID-PERSISTENT': 3, 'UNMEASURABLE': 4, 'UNCLASSIFIABLE': 5}
+_p['vrk'] = _p['verdict'].map(_verdict_rank).fillna(99)
+_p = _p.sort_values(['vrk', 'intended_pct_clean'], ascending=[True, False]).reset_index(drop=True)
+_label_order = _p['label'].tolist()
+_pbar = alt.Chart(_p).mark_bar().encode(
+    y=alt.Y('label:N', sort=_label_order, title=None),
+    x=alt.X('intended_pct_clean:Q', title='% sampled PMIDs in INTENDED sense (random-20 audit)',
+            scale=alt.Scale(domain=[0, 100])),
+    color=alt.Color('verdict:N', title='Verdict',
+                     scale=alt.Scale(domain=list(_pal_verdict.keys()),
+                                      range=list(_pal_verdict.values()))),
+    tooltip=['label', 'verdict', 'intended_pct', 'sampled_n', 'dominant_alternative_sense'],
+).properties(width=560, height=420,
+    title=f'§6.5.1b polysemy survey: {s651b_collision}/{s651b_total} = {100*s651b_collision/s651b_total:.0f}% COLLISION rate; intended-sense % per label')
+# 75% reference line — the threshold for VALID classification
+_thresh = alt.Chart(pd.DataFrame({'x': [75]})).mark_rule(
+    strokeDash=[4, 4], color='#444').encode(x='x:Q')
+_pbar + _thresh
 """))
 
 
@@ -1051,6 +1222,38 @@ print(ext_df.to_string(index=False))
 s65_n_extinct = len(ext_df)
 """))
 
+# Chart §6.5.2: extinction lollipop — peak count -> 0 by 2020s (chart 7/11)
+A(code(r"""
+_e = ext_df.sort_values('peak_year').reset_index(drop=True)
+_e['label_short'] = _e['label'].str.replace(r'^T[23]_', '', regex=True)
+_order_e = _e['label'].tolist()
+_lolli_line = alt.Chart(_e).mark_rule(stroke='#bbb', strokeWidth=2).encode(
+    y=alt.Y('label:N', sort=_order_e, title=None,
+            axis=alt.Axis(labelExpr="replace(datum.label, /^T[23]_/, '')")),
+    x=alt.X('peak_year:Q', title='Year', scale=alt.Scale(domain=[1950, 2024])),
+    x2=alt.value(720),  # placeholder; replaced via transform below
+)
+# Use a calc to put a horizontal lollipop: peak_year -> 2024
+_e['end_year'] = 2024
+_lolli_line = alt.Chart(_e).mark_rule(stroke='#bbb', strokeWidth=2).encode(
+    y=alt.Y('label:N', sort=_order_e, title=None),
+    x='peak_year:Q', x2='end_year:Q',
+)
+_peak_pts = alt.Chart(_e).mark_circle(size=180, color='#e76f51').encode(
+    y=alt.Y('label:N', sort=_order_e),
+    x=alt.X('peak_year:Q', title='Peak year (red) -> extinction (grey rule to 2020s)'),
+    size=alt.Size('peak_n:Q', title='Peak count',
+                   scale=alt.Scale(range=[50, 500])),
+    tooltip=['label', 'peak_year', 'peak_n', 'total', 'last_5y'],
+)
+_zero_pts = alt.Chart(_e).mark_tick(thickness=3, color='#264653').encode(
+    y=alt.Y('label:N', sort=_order_e),
+    x=alt.value(720),
+)
+(_lolli_line + _peak_pts).properties(width=560, height=max(180, 22*len(_e)),
+    title=f'§6.5.2 clean extinctions: {len(_e)} loaded-vocab labels peaking pre-1990 with zero 2020s records')
+"""))
+
 
 # ----- §6.5.3: indexing-curation evidence (ZERO-hit terms) -----
 A(md(r"""
@@ -1116,6 +1319,37 @@ pers_df = pd.DataFrame(persistent_rows).sort_values('last_5y', ascending=False)
 print(f'Persistent loaded-vocabulary terms (peak >= 2015 and 2020s sum >= 50):')
 print(pers_df.to_string(index=False))
 s65_n_persistent = len(pers_df)
+"""))
+
+# Chart §6.5.4: persistent labels with polysemy-verdict overlay (chart 8/11)
+A(code(r"""
+# Join persistence counts to polysemy classifications so each persistent bar
+# is colour-coded by whether the persistence is REAL (VALID-PERSISTENT) or
+# an artefact of polysemy collision (COLLISION).
+_pers_vd = pers_df.merge(
+    polysemy[['label', 'verdict', 'dominant_alternative_sense']],
+    on='label', how='left',
+)
+_pers_vd['verdict'] = _pers_vd['verdict'].fillna('NOT-AUDITED')
+_pers_palette = {
+    'VALID-PERSISTENT':   '#2a9d8f',
+    'VALID-ERA-CLINICAL': '#8ab17d',
+    'COLLISION':          '#e63946',
+    'DRIFT':              '#f4a261',
+    'NOT-AUDITED':        '#bbbbbb',
+}
+_pers_vd = _pers_vd.sort_values('last_5y', ascending=False).reset_index(drop=True)
+_ord_p = _pers_vd['label'].tolist()
+_perc = alt.Chart(_pers_vd).mark_bar().encode(
+    y=alt.Y('label:N', sort=_ord_p, title=None),
+    x=alt.X('last_5y:Q', title='2020s record count'),
+    color=alt.Color('verdict:N', title='Polysemy verdict (from §6.5.1b)',
+                     scale=alt.Scale(domain=list(_pers_palette.keys()),
+                                      range=list(_pers_palette.values()))),
+    tooltip=['label', 'last_5y', 'peak_year', 'verdict', 'dominant_alternative_sense'],
+).properties(width=560, height=max(180, 22*len(_pers_vd)),
+    title='§6.5.4 "persistent" labels: red = polysemy collision (apparent persistence is wrong sense); teal = genuine clinical persistence')
+_perc
 """))
 
 
@@ -1202,6 +1436,57 @@ cross_corpus = pd.DataFrame(rows)
 print(cross_corpus.to_string(index=False))
 """))
 
+# Chart §7: dual-corpus normalised overlay per shift (chart 9/11)
+A(code(r"""
+# For each shift, normalise both PubMed and Books to peak-of-the-pair = 1
+# so the two corpora overlay on the same chart. The lag is the visual
+# distance between the crossover marker on each line.
+_books_agg = (books.groupby(['shift', 'year', 'side'])['frequency']
+                    .sum().reset_index())
+_pubmed_yearly = []
+for shift, parts in frames.items():
+    for side, df in parts.items():
+        if not len(df): continue
+        g = df.groupby('year').size().reset_index(name='n_records')
+        g['shift'] = shift; g['side'] = side; g['corpus'] = 'PubMed'
+        g = g.rename(columns={'n_records': 'value'})
+        _pubmed_yearly.append(g)
+_pubmed_yr = pd.concat(_pubmed_yearly, ignore_index=True) if _pubmed_yearly else pd.DataFrame()
+_books_agg = _books_agg.rename(columns={'frequency': 'value'})
+_books_agg['corpus'] = 'GoogleBooks'
+
+# Normalize: per (shift, corpus), divide by max across both sides
+def _norm(group):
+    m = group['value'].max() or 1.0
+    group['norm'] = group['value'] / m
+    return group
+_pn = (_pubmed_yr.groupby(['shift', 'corpus'], group_keys=False).apply(_norm))
+_bn = (_books_agg.groupby(['shift', 'corpus'], group_keys=False).apply(_norm))
+_cc = pd.concat([_pn, _bn], ignore_index=True)
+_cc = _cc[_cc['shift'].isin(['1960s_down', '1980s_ptsd', '1990s_did', '2010s_id'])]
+
+_cc_charts = []
+for sh in ['1960s_down', '1980s_ptsd', '1990s_did', '2010s_id']:
+    sub = _cc[_cc['shift'] == sh].copy()
+    if not len(sub): continue
+    sub['series'] = sub['corpus'] + ' / ' + sub['side']
+    ch = alt.Chart(sub).mark_line(strokeWidth=2).encode(
+        x=alt.X('year:O', axis=alt.Axis(labelOverlap=True), title=None),
+        y=alt.Y('norm:Q', title='norm to peak'),
+        color=alt.Color('series:N', title=None,
+                         scale=alt.Scale(domain=[
+                             'PubMed / old', 'PubMed / new',
+                             'GoogleBooks / old', 'GoogleBooks / new',
+                         ],
+                         range=['#e76f51', '#264653', '#f4a261', '#8ab17d'])),
+        strokeDash=alt.condition(alt.FieldOneOfPredicate('corpus', ['GoogleBooks']),
+                                  alt.value([4, 4]), alt.value([1, 0])),
+        tooltip=['shift', 'corpus', 'side', 'year', 'value', 'norm'],
+    ).properties(width=720, height=160, title=f'§7 {sh}: PubMed (solid) vs Books (dashed), normalised')
+    _cc_charts.append(ch)
+alt.vconcat(*_cc_charts).resolve_scale(y='shared')
+"""))
+
 A(md(r"""
 ### 7.1 The "died by suicide" cross-corpus contrast
 
@@ -1221,6 +1506,25 @@ s7_books_died_2019 = float(sui_pivot.loc[2019, 'died by suicide']) if 'died by s
 s7_books_growth_ratio = s7_books_died_2019 / max(s7_books_died_2000, 1e-15)
 print(f'\\n"died by suicide" growth 2000 -> 2019 in Books: {s7_books_growth_ratio:.1f}x')
 print(f'PubMed records of "died by suicide" 2000-2024: 0 (zero growth)')
+"""))
+
+# Chart §7.1: books "died by suicide" rise vs PubMed-floor-zero (chart 10/11)
+A(code(r"""
+# Books frequencies are per-million-word rates; PubMed is record-counts.
+# Show Books on log-scale alongside an explicit "PubMed = 0" annotation.
+_b_long = (sui_pivot.reset_index()
+                     .melt(id_vars='year', var_name='ngram', value_name='freq'))
+_b_long = _b_long[_b_long['year'] >= 1970]
+_books_line = alt.Chart(_b_long).mark_line(strokeWidth=2).encode(
+    x=alt.X('year:O', axis=alt.Axis(values=list(range(1970, 2020, 5))), title='Year'),
+    y=alt.Y('freq:Q', title='Google Books frequency (log scale)',
+            scale=alt.Scale(type='log', domainMin=1e-10)),
+    color=alt.Color('ngram:N', title='Phrase',
+                     scale=alt.Scale(range=['#e76f51', '#264653'])),
+    tooltip=['ngram', 'year', 'freq'],
+).properties(width=720, height=240,
+    title=f'§7.1 books: "died by suicide" grew {s7_books_growth_ratio:.0f}x 2000-2019 — PubMed: 0 records (advocacy phrase didn\'t cross into peer-reviewed medical literature)')
+_books_line
 """))
 
 
@@ -1597,6 +1901,42 @@ scoreboard = pd.DataFrame([
 
 with pd.option_context('display.max_colwidth', 100, 'display.width', 200):
     print(scoreboard.to_string(index=False))
+"""))
+
+# Chart §9: scoreboard verdict strip (chart 11/11)
+A(code(r"""
+_sb = scoreboard.copy()
+_sb['check_short'] = _sb['Check'].str.replace(r'^(§[\d\.a-z]+)\s+', r'\1 ', regex=True).str.slice(0, 70)
+def _verdict_class(v):
+    s = str(v)
+    if s.startswith('PASS'): return 'PASS'
+    if s.startswith('AUDIT-RESOLVED') or 'AUDIT-RESOLVED' in s: return 'AUDIT-RESOLVED'
+    if s.startswith('META-FINDING'): return 'META-FINDING'
+    if s.startswith('PARTIAL'): return 'PARTIAL'
+    if s.startswith('FAIL'): return 'FAIL'
+    if s.startswith('OBSERVED'): return 'OBSERVED'
+    return 'OTHER'
+_sb['verdict_class'] = _sb['Verdict'].apply(_verdict_class)
+_sb['row_idx'] = range(len(_sb))
+_pal_sb = {
+    'PASS':            '#2a9d8f',
+    'PARTIAL':         '#e9c46a',
+    'FAIL':            '#e63946',
+    'AUDIT-RESOLVED':  '#9d4edd',
+    'META-FINDING':    '#3a86ff',
+    'OBSERVED':        '#888888',
+    'OTHER':           '#cccccc',
+}
+_strip_sb = alt.Chart(_sb).mark_rect(stroke='white', strokeWidth=1).encode(
+    y=alt.Y('check_short:N', sort=_sb['check_short'].tolist(), title=None),
+    x=alt.value(0), x2=alt.value(540),
+    color=alt.Color('verdict_class:N', title='Verdict class',
+                     scale=alt.Scale(domain=list(_pal_sb.keys()),
+                                      range=list(_pal_sb.values()))),
+    tooltip=['Check', 'Observed', 'Verdict'],
+).properties(width=540, height=max(22*len(_sb), 200),
+    title='§9 scoreboard verdicts (green PASS, yellow PARTIAL, red FAIL, purple AUDIT-RESOLVED, blue META, grey OBSERVED)')
+_strip_sb
 """))
 
 A(md(r"""
