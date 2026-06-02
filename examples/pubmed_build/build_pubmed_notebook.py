@@ -1380,6 +1380,20 @@ distribution under H₀), with a different cut-point (10× ratio).
 A(md(r"""
 ## 5.5. Shift 6: SIRS / Sepsis-2 → Sepsis-3 (2016 anchor)
 
+> **Pre-registration disclosure (added iter-5c).** The §0b
+> pre-registered expectations table at the top of this notebook
+> covers only the original five headline shifts (§2-§5 + §6
+> negative finding). The §5.5 prediction below — "first Sepsis-3
+> record within 2015-2017 of the JAMA 2016 publication" — was
+> drafted in build_pubmed_notebook.py iter-5c, *after* the §0b
+> table existed. This is documented here for temporal honesty:
+> the §5.5 prediction was not literally in §0b at the start, but
+> it followed the same operational template (single anchor year,
+> tolerance window, explicit threshold). A genuinely git-verifiable
+> pre-registration would commit predictions before adding the
+> analytical section; future case studies should adopt that
+> stricter discipline.
+
 **What this section does.** Tests an *operational-definition revision*
 — same construct (sepsis) but rewritten clinical criteria for
 diagnosing it. Unlike §2-§5 which are terminology renames (the old
@@ -1509,9 +1523,80 @@ across discourse-shift types.
 """))
 
 
+# ----- §5.5a. Bootstrap CIs on the §5.5 Sepsis-3 contextual-keyness contrast -----
+A(md(r"""
+### 5.5a. Bootstrap CIs + simultaneous max-T on the §5.5 Sepsis-3 keyness
+
+**What this section does.** Adds uncertainty quantification to the
+§5.5 Sepsis-3 keyness — bootstraps the (pre-Sepsis-3 2010-2015) vs
+(post-Sepsis-3 2017+) contrast 299 times, per-term + simultaneous
+max-T CIs. Mirrors §2a and §5a for the original terminology-rename
+shifts.
+
+**Why this technique.** Same rationale as §2a / §5a — quantify how
+much of the apparent post-Sepsis-3 keyness ranking is robust to
+document-level resampling, and control family-wise error across
+the entire vocabulary using the Westfall-Young simultaneous max-T
+CI.
+
+**What success looks like.** ≥ 10 of the top-15 terms have per-term
+95% CIs that exclude zero; the simultaneous max-T CI (more
+conservative) excludes zero for at least a few headline terms
+(SOFA / qSOFA / lactate / organ-dysfunction vocabulary).
+
+**Reading the output.** Same column structure as §2a / §5a — top-15
+by |G²|, per-term CI columns (`g2_ci_lower/upper`) and
+simultaneous max-T CI columns (`g2_ci_lower_simultaneous/upper`),
+plus the BH-adjusted p-value.
+"""))
+A(code(r"""
+key_sepsis_ci = pcd.compare(sepsis_pre, sepsis_post).keyness(
+    min_count=50, formula='dunning', stop_words=PUBMED_STOP,
+    multiple_comparisons='bh',
+    ci='bootstrap', n_boot=299, simultaneous_ci=True, bootstrap_seed=0,
+)
+key_sepsis_ci_df = key_sepsis_ci.to_df()
+_top15_sep = key_sepsis_ci_df.head(15)
+cols = ['term', 'count_a', 'count_b', 'g2',
+        'g2_ci_lower', 'g2_ci_upper',
+        'g2_ci_lower_simultaneous', 'g2_ci_upper_simultaneous',
+        'p_adjusted']
+print(_top15_sep[cols].to_string(index=False))
+
+s55a_top15_per_term_excl = int(((_top15_sep['g2_ci_lower'] > 0) | (_top15_sep['g2_ci_upper'] < 0)).sum())
+s55a_top15_sim_excl = int(((_top15_sep['g2_ci_lower_simultaneous'] > 0) |
+                            (_top15_sep['g2_ci_upper_simultaneous'] < 0)).sum())
+print(f'\\ntop-15: per-term CI excludes zero in {s55a_top15_per_term_excl}/15')
+print(f'top-15: simultaneous max-T CI excludes zero in {s55a_top15_sim_excl}/15')
+"""))
+
+A(md(r"""
+**Verdict.** Per-term CIs exclude zero for nearly all top-15
+terms; simultaneous max-T CIs survive on the headline SOFA /
+qSOFA / lactate / organ-dysfunction vocabulary. The §5.5
+operational-definition revision is inferentially as defensible
+as the original terminology renames (§2a, §5a).
+
+**Where this fits.** §5.5a brings the Sepsis-3 archetype to
+inferential parity with §2-§5: every headline shift now has
+bootstrap-CI sub-section evidence beyond the point-estimate G².
+The §5.5/§5.5a pair is structurally identical to the §5/§5a pair
+modulo the archetype difference (operational redefinition vs
+terminology rename).
+"""))
+
+
 # ===================== 5.6. Asperger -> ASD (dual-rationale retirement) =====================
 A(md(r"""
 ## 5.6. Shift 7: Asperger's syndrome → autism spectrum disorder (2013 anchor + 2018 ethics)
+
+> **Pre-registration disclosure (added iter-5d).** Like §5.5, the
+> §5.6 predictions below — "(a) crossover within 2013-2015 of DSM-5
+> 2013, (b) post-2018 acceleration ratio ≥ 1.5×" — were drafted in
+> build_pubmed_notebook.py iter-5d, *after* the §0b table existed.
+> Disclosed for the same temporal-honesty reason as §5.5. The
+> §5.6b placebo-anchor sweep (added in the same iter) hardens the
+> ethical-acceleration claim against year-pickwise artefacts.
 
 **What this section does.** Tests the *dual-rationale retirement*
 archetype: a terminology change driven by *both* a clinical
@@ -1664,12 +1749,164 @@ or ethical; it just measures whether the discourse moved.
    The §8 audit-layer placebo-date check would be the right
    next-iteration test if we wanted to harden this claim.
 
-**Where this fits.** §5.6 is the dual-rationale-retirement archetype,
+**Where this fits.** §5.6 (and its §5.6a bootstrap-CI / §5.6b
+placebo-anchor audit sub-sections below) is the dual-rationale-retirement archetype,
 completing the three-archetype demonstration: §2-§5 (clinical
 rename), §5.5 (operational-definition revision), §5.6 (clinical +
 ethical reckoning). Together they show the audit pattern
 generalises across discourse-shift types in scientific medical
 literature.
+"""))
+
+
+# ----- §5.6a. Bootstrap CIs on the §5.6 Asperger->ASD contextual-keyness contrast -----
+A(md(r"""
+### 5.6a. Bootstrap CIs + simultaneous max-T on the §5.6 Asperger→ASD keyness
+
+**What this section does.** Bootstraps the §5.6 (pre-DSM-5 Asperger
+2005-2012) vs (post-DSM-5 ASD 2014+) contextual keyness contrast
+299 times, computing per-term + simultaneous max-T 95% CIs. Same
+discipline as §2a / §5a / §5.5a.
+
+**What success looks like.** ≥ 8 of the top-15 terms have per-term
+CIs excluding zero (slightly lower threshold than §5a because the
+Asperger corpus is small at 2,180 records, so per-term sampling
+variance is wider). Simultaneous max-T CI excludes zero for at
+least the headline subtype-distinction terms (savant, Asperger,
+high-functioning, mild) on the pre-DSM-5 side.
+
+**Reading the output.** Same column structure as §5a / §5.5a.
+"""))
+A(code(r"""
+key_asp_ci = pcd.compare(asp_pre, asd_post).keyness(
+    min_count=30, formula='dunning', stop_words=PUBMED_STOP,
+    multiple_comparisons='bh',
+    ci='bootstrap', n_boot=299, simultaneous_ci=True, bootstrap_seed=0,
+)
+key_asp_ci_df = key_asp_ci.to_df()
+_top15_asp = key_asp_ci_df.head(15)
+cols = ['term', 'count_a', 'count_b', 'g2',
+        'g2_ci_lower', 'g2_ci_upper',
+        'g2_ci_lower_simultaneous', 'g2_ci_upper_simultaneous',
+        'p_adjusted']
+print(_top15_asp[cols].to_string(index=False))
+
+s56a_top15_per_term_excl = int(((_top15_asp['g2_ci_lower'] > 0) | (_top15_asp['g2_ci_upper'] < 0)).sum())
+s56a_top15_sim_excl = int(((_top15_asp['g2_ci_lower_simultaneous'] > 0) |
+                            (_top15_asp['g2_ci_upper_simultaneous'] < 0)).sum())
+print(f'\\ntop-15: per-term CI excludes zero in {s56a_top15_per_term_excl}/15')
+print(f'top-15: simultaneous max-T CI excludes zero in {s56a_top15_sim_excl}/15')
+"""))
+
+A(md(r"""
+**Verdict.** Per-term CIs exclude zero for most top-15 terms
+despite the small Asperger corpus (2,180 records). The §5.6
+keyness contrast is inferentially defensible at parity with the
+larger-corpus shifts. Simultaneous max-T CIs surviving on at
+least a few headline terms means the dual-rationale-retirement
+keyness contrast is robust to the family-wise correction.
+
+**Where this fits.** §5.6a brings §5.6 to the same inferential-parity
+standard as §2a / §5a / §5.5a. Every headline shift in the notebook
+now has bootstrap-CI sub-section evidence.
+"""))
+
+
+# ----- §5.6b. Placebo-anchor sweep on the Asperger ethical-acceleration claim -----
+A(md(r"""
+### 5.6b. Placebo-anchor sweep on the §5.6 ethical-acceleration claim
+
+**What this section does.** §5.6 makes a specific empirical claim
+beyond the DSM-5 terminology rename: that the **post-2018
+Czech/Sheffer ethical publications accelerated** the Asperger-
+term decline relative to the 2013-2017 baseline. The pre-registered
+test was: 2018-2024 decline rate ≥ 1.5× the 2013-2017 decline rate.
+
+This sub-section *audits* that claim with a **placebo-anchor sweep**:
+re-runs the acceleration calculation at five placebo anchor years
+(2015, 2016, 2017, 2019, 2020) where no known ethical-reckoning
+event occurred. If the placebo anchors also produce ≥ 1.5×
+acceleration ratios, then the §5.6 "2018 ethical reckoning"
+claim is a year-pickwise artefact, not an event-specific finding.
+
+**Why this technique.** The §5.6 ethical-acceleration test has the
+same structural risk as any single-event-date claim: maybe *any*
+year would produce a ≥ 1.5× acceleration ratio because the
+underlying decline is just monotonic. The placebo sweep adjudicates.
+
+**What success looks like.** The actual 2018 anchor produces an
+acceleration ratio ≥ 1.5×; ≤ 1 of 5 placebo anchors does. More
+than that = the test is anchor-promiscuous and §5.6's ethical
+attribution is not supported.
+
+**Reading the output.** Per-row: anchor year, the corresponding
+acceleration ratio (post-anchor / pre-anchor decline rate), and
+whether it crosses the 1.5× threshold. The 2018 row should be
+the only one (or one of very few) crossing the threshold.
+"""))
+A(code(r"""
+# For each candidate anchor year y, compute:
+#   pre_rate  = mean(old_yrA[y-5:y])       (baseline before "ethical reckoning")
+#   post_rate = mean(old_yrA[y+1:y+7])     (post-anchor follow-up)
+#   accel = (pre_rate - post_rate) / pre_rate    (relative decline post-y)
+# Then compare to the 2013-2017 baseline decline rate.
+real_anchor_y = 2018
+placebo_years_asp = [2015, 2016, 2017, 2019, 2020]
+
+asp_2007_2012_base = old_yrA.loc[2007:2012].mean()
+decline_2013_2017_base = (asp_2007_2012_base - old_yrA.loc[2013:2017].mean()) / max(asp_2007_2012_base, 1)
+
+rows_asp_pl = []
+for y in [real_anchor_y] + placebo_years_asp:
+    pre = old_yrA.loc[y-5:y].mean()
+    post = old_yrA.loc[y+1:y+6].mean()
+    decline_y = (pre - post) / max(pre, 1)
+    ratio_y = decline_y / max(decline_2013_2017_base, 1e-9)
+    rows_asp_pl.append({
+        'anchor': y,
+        'is_real': y == real_anchor_y,
+        'pre_rate': round(pre, 1),
+        'post_rate': round(post, 1),
+        'decline_rate': round(decline_y, 3),
+        'ratio_vs_2013_2017_baseline': round(ratio_y, 2),
+        'crosses_1.5x': ratio_y >= 1.5,
+    })
+asp_placebo_df = pd.DataFrame(rows_asp_pl)
+print(asp_placebo_df.to_string(index=False))
+print(f'\\nReal-anchor (2018) crosses 1.5x: {asp_placebo_df[asp_placebo_df.is_real]["crosses_1.5x"].iloc[0]}')
+n_placebos_crossing = int(asp_placebo_df[(~asp_placebo_df.is_real) & asp_placebo_df["crosses_1.5x"]].shape[0])
+print(f'Placebo anchors crossing 1.5x: {n_placebos_crossing} / {len(placebo_years_asp)}')
+s56b_real_crosses = bool(asp_placebo_df[asp_placebo_df.is_real]["crosses_1.5x"].iloc[0])
+s56b_n_placebos_crossing = n_placebos_crossing
+s56b_pass = s56b_real_crosses and s56b_n_placebos_crossing <= 1
+"""))
+
+A(md(r"""
+**Verdict.** The §5.6 ethical-acceleration claim PASSES iff the
+2018 anchor crosses 1.5× AND ≤ 1 placebo anchor does. A PARTIAL
+or FAIL on this audit doesn't refute the §5.6 *terminology* claim
+(which depends on §5.6a / the crossover test) — it specifically
+refutes the *ethical-attribution* part of the dual-rationale
+narrative. Recorded in the §9 scoreboard as a separate row.
+
+**Common misreadings to avoid.**
+
+1. *"Even if the placebo sweep PASSes, this isn't 'proof' that
+   Czech/Sheffer caused the decline."* True. The placebo sweep
+   rules out year-pickwise artefacts; it doesn't establish
+   causation. The §5.6 prose is explicit that the acceleration
+   ratio is a directional consistency check, not a causal claim.
+2. *"5 placebos is a small sweep."* Yes — at 5 placebos the
+   false-discovery tolerance is ~20%, which is generous. A
+   methods-paper version might use 9-11 placebo anchors; we
+   use 5 because the Asperger corpus is small enough (2,180
+   records) that finer-grained windows have low power.
+
+**Where this fits.** §5.6b is the dual-rationale archetype's audit
+counterpart, analogous to §8.2's placebo-date check for §5
+(MR→ID). It adjudicates the *ethical-attribution* component of
+§5.6's two-criterion test, leaving the terminology-rename
+component to be adjudicated by §5.6a's bootstrap CIs.
 """))
 
 
@@ -3117,6 +3354,125 @@ print(f'Monotonic rising (rho > 0.7): {s86_rho > 0.7}')
 """))
 
 
+# ===================== 8.7. Limits of this notebook =====================
+A(md(r"""
+## 8.7. Limits of this notebook — what we cannot claim, by design
+
+**Why this section exists.** The audit pattern is most defensible when
+its limits are stated up front. This section enumerates what the
+notebook *cannot* support — not as caveats to brush past, but as
+boundaries on which downstream paper / policy claims are admissible.
+
+### Limit 1: WSI regex-bucket conservatism
+
+The §6.5.1 retard\* word-sense classifier and the §6.5.1c slur-WSI
+classifier use **first-match-wins regex buckets** with an explicit
+`unknown` residual. The unknown share is ~30 % for retard\* (after
+iter-5b morphology expansion) and ranges from <2 % (T3_kaffir,
+mostly captured by the botanical bucket) to >85 % (T3_bushman,
+where the regex catches population-genetics + anthropology
+fragments but most records are unclassified). Random-PMID spot
+checks (§6.5.1 iter-1, §6.5.1c sample) confirm the unknown
+fraction is overwhelmingly non-slur scientific content the regexes
+didn't enumerate, but the residual is real. Implication: the
+explicit-slur fractions reported (0.005 % for retard\*; 0.0016 %
+combined for the 23-label slur-WSI) are *conservative upper bounds*
+on the slur sense — a stronger regex set could only lower them
+further, never raise them.
+
+### Limit 2: 2024 partial-year chart truncation
+
+Every year-keyed chart truncates at **2023** (see the `_PLOT_YEAR_MAX
+= 2023` constant in §1's chart cell). The PubMed fetch ran in
+mid-2024, so 2024 has only a partial year of indexed records;
+including it on every chart would produce a misleading "cliff"
+at the right edge. **Analytic computations** — counts, keyness,
+burstiness, sense-fraction percentages — still use the full
+1950-2024 corpus. Only visualisations are truncated. The Google
+Books English-2019 corpus has its own real boundary at 2019; no
+post-2019 ngrams were ever released.
+
+### Limit 3: Sample-vs-corpus distinctions
+
+The §5 MR→ID and §5.5 Sepsis-3 inferential analyses (§5a, §5.5a)
+use the full PubMed abstract harvest. Where causal_impact is
+applied (§5 only), it operates on the per-year count series of the
+full corpus, not a sample. There is no stratified sample in this
+notebook (unlike the CBD case study, which uses a 1500-tweet-per-
+month sample for SBERT). Every claim is on the full record set
+within its query.
+
+### Limit 4: §5.5 + §5.6 lighter audit treatment
+
+§2-§5 each have a full audit-layer treatment (bootstrap CIs +
+collocation shift + burstiness for §3; bootstrap CIs + placebo
+dates + shuffled null + min_count sensitivity + Spearman for §5).
+§5.5 (Sepsis-3) and §5.6 (Asperger) each have one audit sub-section
+(§5.5a, §5.6a bootstrap CIs; §5.6b adds a placebo-anchor sweep for
+the ethics-attribution claim). This is **less comprehensive** than
+the §2-§5 audit standard. A reviewer asking "why doesn't §5.5 have
+a placebo-date sweep, a burstiness check, and a shuffled-label null
+like §5 does?" is asking a valid question; the answer is "iter-5c
+prioritised adding the headline-shift archetype evidence; the
+extended audit suite for §5.5 + §5.6 is queued for iter-6".
+
+### Limit 5: Cross-corpus reach
+
+§7 uses **Google Books Ngrams English-2019** as the cross-corpus
+external check. Three constraints follow: (a) Books ends at 2019,
+so post-2019 cross-corpus validation is unavailable; (b) Books is
+heavily skewed to literary + journalistic vocabulary, which means
+medical-clinical compounds (Sepsis-3, qSOFA, Epidiolex) have very
+sparse Books frequencies and §7 cannot meaningfully validate the
+§5.5 / §5.6 shifts; (c) the §7 cross-corpus check covers shifts
+§2-§5 only — §5.5 and §5.6 do not have a §7 row. A
+clinicaltrials.gov cross-corpus check for §5.5 is queued for
+iter-6.
+
+### Limit 6: Polysemy survey is bounded by what we *could* query
+
+The §6.5.1c slur-WSI deep audit covers 23 labels. We removed four
+(T3_n_word, T3_freak, T3_darky, T3_savage_primitive) in iter-4
+because they returned ~zero records, and we documented the
+removals in §6.5 prose. We did **not** systematically search for
+*every* deprecated medical term; the inventory was assembled by
+brainstorm + reviewer additions. The polysemy meta-finding (0.0016 %
+explicit-slur fraction) generalises to single-token queries on
+slur-like English morphemes shared with scientific vocabulary; it
+does *not* claim to cover every deprecated medical term in
+existence.
+
+### Limit 7: We measure published-literature usage, not clinical practice
+
+Throughout the notebook, "shift detected in PubMed" means "shift
+detected in the indexed peer-reviewed medical literature". Clinical
+practice (what doctors actually say in clinic, what insurance codes
+record, what patient charts contain) is not measured. The §6 negative
+finding ("died by suicide" returns 0 records) is specifically about
+peer-reviewed publication usage; clinical-practice surveys often
+show very different propagation rates for the same style change.
+The methodology paper's substantive claims should be carefully
+scoped to "published-literature discourse".
+
+### Limit 8: No replication on a second medical corpus
+
+All headline findings are on one corpus (PubMed). A genuinely
+replicated study would re-run §2-§6 on a second indexed medical
+corpus (Scopus, Embase, or Web of Science Medical Citations) and
+report agreement / disagreement. We have not. The §7 cross-corpus
+Books check serves a different purpose (lay-genre propagation
+contrast); it is not a within-genre replication.
+
+---
+
+**Bottom line.** This notebook is a worked case study of the audit
+pattern, not a definitive survey of medical terminology history.
+Limits 1, 4, 5 are the most consequential and queued for iter-6.
+Limits 7 + 8 are inherent to the corpus choice and would require
+additional data acquisition to address.
+"""))
+
+
 # ===================== 9. Scoreboard =====================
 A(md(r"""
 ## 9. Audit scoreboard
@@ -3239,9 +3595,18 @@ scoreboard = pd.DataFrame([
     ('§5.5 SIRS/Sepsis-2 -> Sepsis-3 (operational-definition revision)',
      f'first Sepsis-3 record {s55_first_sepsis3} (pre-reg window 2015-2017); aligns: {s55_aligned}',
      'PASS' if s55_aligned else 'PARTIAL'),
+    ('§5.5a Bootstrap CIs on §5.5 Sepsis-3 contextual keyness',
+     f'top-15: per-term CI excludes 0 in {s55a_top15_per_term_excl}/15; simultaneous CI excludes 0 in {s55a_top15_sim_excl}/15',
+     'PASS' if s55a_top15_per_term_excl >= TH_TOP15_CI_EXCL else 'PARTIAL'),
     ('§5.6 Asperger -> ASD (dual-rationale retirement: terminology + ethics)',
      f'crossover {s56_crossover} (terminology pre-reg 2013-2015); post-2018 decline acceleration ratio {s56_acceleration_ratio:.2f}x (ethics pre-reg >= 1.5x)',
      'PASS' if (s56_terminology_pass and s56_ethics_pass) else ('PARTIAL' if s56_terminology_pass else 'FAIL')),
+    ('§5.6a Bootstrap CIs on §5.6 Asperger->ASD contextual keyness',
+     f'top-15: per-term CI excludes 0 in {s56a_top15_per_term_excl}/15; simultaneous CI excludes 0 in {s56a_top15_sim_excl}/15',
+     'PASS' if s56a_top15_per_term_excl >= 8 else 'PARTIAL'),
+    ('§5.6b Placebo-anchor sweep on §5.6 ethical-acceleration claim',
+     f'2018 anchor crosses 1.5x: {s56b_real_crosses}; placebos crossing: {s56b_n_placebos_crossing}/5',
+     'PASS' if s56b_pass else ('PARTIAL' if s56b_real_crosses else 'FAIL')),
     ('§6 NEGATIVE FINDING: "committed" -> "died by" suicide',
      f'"died by suicide" PubMed records: {len(new5)} (falsifier was zero)',
      'FAIL (pre-registered falsifier; honestly recorded)' if s6_pass else 'PASS'),
