@@ -84,7 +84,9 @@ SLUR_WSI_CONFIGS: dict[str, SlurWSIConfig] = {
 
     "T3_dwarf_clinical": SlurWSIConfig(
         label="T3_dwarf_clinical",
-        esearch_terms=["dwarfism", "dwarf", '"primordial dwarf"'],
+        esearch_terms=["dwarfism", "dwarf", "dwarfs", "dwarves",
+                       "dwarfed", "dwarfing",
+                       '"primordial dwarf"'],
         sense_patterns=[
             ("plant_breeding",
              r"\b(semi[\-\s]?dwarf|dwarf\s+(wheat|rice|sorghum|maize|barley|rye|tomato|"
@@ -210,7 +212,7 @@ SLUR_WSI_CONFIGS: dict[str, SlurWSIConfig] = {
 
     "T3_imbecile_clinical": SlurWSIConfig(
         label="T3_imbecile_clinical",
-        esearch_terms=["imbeciles", "imbecility"],
+        esearch_terms=["imbecile", "imbeciles", "imbecility", "imbecilic"],
         sense_patterns=[
             ("historical_iq_classification",
              r"\b(imbecile\s+(grade|class|level|category|range|child(ren)?|patient|adult)|"
@@ -351,8 +353,10 @@ SLUR_WSI_CONFIGS: dict[str, SlurWSIConfig] = {
 
     "T2_hermaphrodite": SlurWSIConfig(
         label="T2_hermaphrodite",
-        esearch_terms=["hermaphrodite", "hermaphroditism",
-                       '"pseudohermaphrodite"', '"pseudohermaphroditism"',
+        esearch_terms=["hermaphrodite", "hermaphrodites", "hermaphroditism",
+                       "hermaphroditic",
+                       '"pseudohermaphrodite"', '"pseudohermaphrodites"',
+                       '"pseudohermaphroditism"',
                        '"true hermaphrodite"'],
         sense_patterns=[
             ("dsd_intersex_modern",
@@ -388,8 +392,8 @@ SLUR_WSI_CONFIGS: dict[str, SlurWSIConfig] = {
 
     "T2_transsexual_xvest": SlurWSIConfig(
         label="T2_transsexual_xvest",
-        esearch_terms=["transsexual", "transsexualism",
-                       "transvestite", "transvestism",
+        esearch_terms=["transsexual", "transsexuals", "transsexualism", "transsexuality",
+                       "transvestite", "transvestites", "transvestism", "transvestic",
                        '"gender identity disorder"'],
         sense_patterns=[
             ("gender_affirming_clinical_modern",
@@ -423,7 +427,7 @@ SLUR_WSI_CONFIGS: dict[str, SlurWSIConfig] = {
 
     "T3_cripple": SlurWSIConfig(
         label="T3_cripple",
-        esearch_terms=["cripple", "crippled",
+        esearch_terms=["cripple", "cripples", "crippled", "crippling",
                        '"crippled child"', '"crippled children"'],
         sense_patterns=[
             ("crippled_childrens_services_program",
@@ -453,7 +457,8 @@ SLUR_WSI_CONFIGS: dict[str, SlurWSIConfig] = {
 
     "T3_lazar_leper": SlurWSIConfig(
         label="T3_lazar_leper",
-        esearch_terms=["leper", "lepers", '"leper colony"',
+        esearch_terms=["leper", "lepers", "leprosy", "lazar", "lazars",
+                       '"leper colony"',
                        "lazaretto", "leprous"],
         sense_patterns=[
             ("hansens_disease_modern_clinical",
@@ -486,8 +491,9 @@ SLUR_WSI_CONFIGS: dict[str, SlurWSIConfig] = {
 
     "T3_maniac_madhouse": SlurWSIConfig(
         label="T3_maniac_madhouse",
-        esearch_terms=["maniac", "madman", "madmen", "madhouse",
-                       "madhouses"],
+        esearch_terms=["maniac", "maniacs", "maniacal",
+                       "madman", "madmen", "madwoman", "madwomen",
+                       "madhouse", "madhouses"],
         sense_patterns=[
             ("historical_asylum_madhouse",
              r"\b(madhouse|madhouses|bedlam|bethlem|"

@@ -182,8 +182,13 @@ def fetch_retard_abstracts(
         return pd.read_parquet(out_parquet)
 
     out_parquet.parent.mkdir(parents=True, exist_ok=True)
+    # iter-5b morphological-completeness pass: add "retarding", "retardations",
+    # "retardant", "retardants" so the WSI corpus captures the full morpheme
+    # family rather than just the verb + noun + past-participle.
     pmids = esearch_pmids(
-        ["retarded", '"retards"', '"retard"', '"retardation"'],
+        ["retarded", "retards", "retard", "retardation",
+         "retarding", "retardations",
+         "retardant", "retardants"],
         start_year=start_year,
         end_year=end_year,
         api_key=api_key,

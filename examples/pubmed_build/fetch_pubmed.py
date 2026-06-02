@@ -369,30 +369,40 @@ TIER2_INVENTORY: dict[str, tuple[list[str], int, int]] = {
     # --- Era-clinical psychiatric categories that drifted/retired ---
     "T2_hysteria":           (["hysteria", "hysterical", "hysterics",
                                '"hysterical neurosis"'],                                                 1950, 2024),
-    "T2_neurasthenia":       (["neurasthenia", "neurasthenic"],                                          1950, 2024),
+    # iter-5b: add plural form.
+    "T2_neurasthenia":       (["neurasthenia", "neurasthenic", "neurasthenics"],                         1950, 2024),
     "T2_moral_insanity":     (['"moral insanity"', '"moral imbecile"',
                                '"moral imbecility"'],                                                    1950, 2024),
     "T2_puerperal_insanity": (['"puerperal insanity"', '"puerperal psychosis"',
                                '"puerperal mania"'],                                                     1950, 2024),
-    "T2_psychopath_socio":   (["psychopath", "sociopath",
+    # iter-5b: add plurals + derivational forms.
+    "T2_psychopath_socio":   (["psychopath", "psychopaths", "psychopathy", "psychopathic",
+                               "sociopath", "sociopaths", "sociopathy", "sociopathic",
                                '"psychopathic personality"'],                                            1950, 2024),
 
     # --- Intersex / trans clinical terms (DSM-IV->DSM-5 + 2006 Chicago intersex consensus) ---
-    "T2_hermaphrodite":      (["hermaphrodite", "hermaphroditism",
-                               '"pseudohermaphrodite"', '"pseudohermaphroditism"',
+    # iter-5b morphological-completeness pass: add singular/plural/adjective forms.
+    "T2_hermaphrodite":      (["hermaphrodite", "hermaphrodites", "hermaphroditism",
+                               "hermaphroditic",
+                               '"pseudohermaphrodite"', '"pseudohermaphrodites"',
+                               '"pseudohermaphroditism"',
                                '"true hermaphrodite"'],                                                  1950, 2024),
-    "T2_transsexual_xvest":  (["transsexual", "transsexualism",
-                               "transvestite", "transvestism",
+    "T2_transsexual_xvest":  (["transsexual", "transsexuals", "transsexualism", "transsexuality",
+                               "transvestite", "transvestites", "transvestism", "transvestic",
                                '"gender identity disorder"'],                                            1950, 2024),
 
     # --- Substance-use historical ---
-    "T2_drunkard_inebriate": (["drunkard", "drunkards", "inebriate", "inebriates",
-                               "dipsomania", "dipsomaniac"],                                             1950, 2024),
+    # iter-5b: add plurals + -ness/-y derivational forms.
+    "T2_drunkard_inebriate": (["drunkard", "drunkards", "drunkenness",
+                               "inebriate", "inebriates", "inebriety",
+                               "dipsomania", "dipsomaniac", "dipsomaniacs"],                             1950, 2024),
 
     # --- Race-medicine descriptors that have measurable clinical-literature footprint ---
     "T2_mongolian_spot":     (['"Mongolian spot"', '"Mongolian spots"',
                                '"Mongolian blue spot"'],                                                 1950, 2024),
-    "T2_negroid_descriptor": (['"Negroid race"', '"Negroid descent"',
+    # iter-5b: add bare "Negroid" case-descriptor in addition to phrase forms.
+    "T2_negroid_descriptor": (["Negroid",
+                               '"Negroid race"', '"Negroid descent"',
                                '"Negroid ancestry"', '"Negroid patient"',
                                '"Negroid subject"'],                                                     1950, 2024),
 
@@ -403,7 +413,9 @@ TIER2_INVENTORY: dict[str, tuple[list[str], int, int]] = {
                                '"pentylenetetrazol convulsive"'],                                        1940, 2024),
     "T2_deep_sleep_therapy": (['"deep sleep therapy"', '"continuous narcosis"',
                                '"sleep cure"'],                                                          1940, 2024),
-    "T2_psychosurgery":      (["psychosurgery", '"prefrontal leucotomy"',
+    # iter-5b: add adjective + plural derivational forms.
+    "T2_psychosurgery":      (["psychosurgery", "psychosurgical", "psychosurgeries",
+                               '"prefrontal leucotomy"',
                                '"prefrontal leukotomy"'],                                                1940, 2024),
 }
 
@@ -423,7 +435,12 @@ TIER3_INVENTORY: dict[str, tuple[list[str], int, int]] = {
     # disambiguation; this label measures the verb/adjective morpheme across
     # all senses, dominated by scientific process-verb uses). Renamed from
     # T3_retarded_slur after the iter-1 audit refutation. ---
-    "T3_retarded_morpheme": (["retarded", '"retards"', '"retard"'],                                    1950, 2024),
+    # iter-5b morphological-completeness pass: include all common inflectional
+    # and derivational forms of `retard*` so the WSI corpus captures the full
+    # morpheme rather than just the verb + noun + past-participle.
+    "T3_retarded_morpheme": (["retarded", "retards", "retard", "retardation",
+                              "retarding", "retardations",
+                              "retardant", "retardants"],                                                1950, 2024),
 
     # --- 19th-c racial anthropology / colonial tropical medicine ---
     "T3_hottentot":         (["Hottentot", "Hottentots", '"Hottentot Venus"', '"Hottentot apron"'],   1950, 2024),
@@ -443,7 +460,10 @@ TIER3_INVENTORY: dict[str, tuple[list[str], int, int]] = {
 
     # --- Short-stature informal terms ---
     "T3_midget":            (["midget", "midgets"],                                                     1950, 2024),
-    "T3_dwarf_clinical":    (["dwarfism", "dwarf", '"primordial dwarf"'],                              1950, 2024),
+    # iter-5b: add plurals + verb forms.
+    "T3_dwarf_clinical":    (["dwarfism", "dwarf", "dwarfs", "dwarves",
+                              "dwarfed", "dwarfing",
+                              '"primordial dwarf"'],                                                    1950, 2024),
 
     # --- Legal-medical with stigma ---
     "T3_bastard":           (['"bastard child"', '"bastard children"', '"bastardy"'],                  1950, 2024),
@@ -458,8 +478,9 @@ TIER3_INVENTORY: dict[str, tuple[list[str], int, int]] = {
     # NOTE: iter-2 audit (random 20-PMID inspection of peak year) found this
     # label's records were 7/8 era-clinical IQ classification, NOT slur usage.
     # Renamed _slur -> _clinical to reflect the validated construct.
-    "T3_imbecile_clinical": (["imbeciles", "imbecility"],
-                                                                                                        1950, 2024),
+    # iter-5b: add singular form (previously missing!) and adjective.
+    "T3_imbecile_clinical": (["imbecile", "imbeciles", "imbecility",
+                              "imbecilic"],                                                             1950, 2024),
 
     # === iter-4 additions (Jun 2026) — Tier-3 entries missed in the
     # original brainstorm.
@@ -469,11 +490,14 @@ TIER3_INVENTORY: dict[str, tuple[list[str], int, int]] = {
     "T3_oriental_disease":   (['"Oriental sore"', '"Oriental cholera"',
                                '"Oriental schistosomiasis"',
                                '"Oriental boil"'],                                                       1950, 2024),
-    "T3_lazar_leper":        (["leper", "lepers", '"leper colony"',
+    # iter-5b: add bare "lazar" + "leprosy" (the disease name).
+    "T3_lazar_leper":        (["leper", "lepers", "leprosy", "lazar", "lazars",
+                               '"leper colony"',
                                "lazaretto", "leprous"],                                                  1950, 2024),
 
     # --- Disability/orthopedic clinical-era stigma ---
-    "T3_cripple":            (["cripple", "crippled",
+    # iter-5b: add plurals + -ing form.
+    "T3_cripple":            (["cripple", "cripples", "crippled", "crippling",
                                '"crippled child"', '"crippled children"',
                                '"Crippled Children\'s Services"'],                                       1950, 2024),
     "T3_deaf_mute":          (['"deaf-mute"', '"deaf mute"', '"deaf-mutes"',
@@ -482,8 +506,10 @@ TIER3_INVENTORY: dict[str, tuple[list[str], int, int]] = {
     "T3_hunchback":          (["hunchback", "hunchbacked", "hunchbacks"],                                1950, 2024),
 
     # --- Older psychiatric / mental-illness vocabulary ---
-    "T3_maniac_madhouse":    (["maniac", "madman", "madmen", "madhouse",
-                               "madhouses"],                                                             1950, 2024),
+    # iter-5b: add plurals + adjective + feminine forms.
+    "T3_maniac_madhouse":    (["maniac", "maniacs", "maniacal",
+                               "madman", "madmen", "madwoman", "madwomen",
+                               "madhouse", "madhouses"],                                                 1950, 2024),
 }
 
 
