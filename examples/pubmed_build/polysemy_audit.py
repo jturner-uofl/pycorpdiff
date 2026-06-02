@@ -45,7 +45,7 @@ from fetch_pubmed import FULL_INVENTORY, TIER2_INVENTORY, TIER3_INVENTORY  # noq
 #
 # Iter-1 audited: T3_retarded_slur (REFUTED) — repaired to T3_retarded_morpheme
 # Iter-2 audited: T3_dwarf_clinical (10%), T3_lunatic (15-25%), T3_freak (zero),
-#                 T3_midget (0%), T3_imbecile_slur (era-clinical 7/8),
+#                 T3_midget (0%), T3_imbecile_clinical (era-clinical 7/8),
 #                 T2_spastic_clinical (100%); plus G.1 spot checks on extinct
 #                 labels
 #

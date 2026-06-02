@@ -4,7 +4,7 @@ T3_dwarf_clinical,iter-2,2,20,10.0,COLLISION,plant breeding (wheat/sorghum semi-
 T3_lunatic,iter-2,4,20,20.0,COLLISION,Lunatic Fringe Notch-signaling gene
 T3_freak,iter-2,0,0,,UNMEASURABLE,zero records 1990-2024
 T3_midget,iter-2,0,18,0.0,COLLISION,retinal midget bipolar cells + ice hockey midget league
-T3_imbecile_slur,iter-2,7,8,87.5,VALID-ERA-CLINICAL,1954 clinical-era IQ classification (label misnamed: should be _clinical not _slur)
+T3_imbecile_clinical,iter-2,7,8,87.5,VALID-ERA-CLINICAL,1954 clinical-era IQ classification (label renamed iter-3: _slur -> _clinical)
 T2_spastic_clinical,iter-2,20,20,100.0,VALID-PERSISTENT,cerebral palsy clinical literature (still active clinical use)
 T2_mongoloid_idiot,iter-2,3,3,100.0,VALID-ERA-CLINICAL,1963 Down-syndrome cytogenetics era
 T2_dope_fiend,iter-2,2,2,100.0,VALID-ERA-CLINICAL,1972 addiction historical

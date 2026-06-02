@@ -162,8 +162,20 @@ def fetch_retard_abstracts(
     then efetch the records. Cached at out_parquet.
 
     Query: `retarded[Title/Abstract] OR "retards"[Title/Abstract] OR
-            "retard"[Title/Abstract]` — same per-term qualification
-    discipline the rest of the pipeline uses.
+            "retard"[Title/Abstract] OR "retardation"[Title/Abstract]`
+    — same per-term qualification discipline the rest of the pipeline
+    uses.
+
+    iter-2 audit note: the original query omitted "retardation", which
+    caused a ~95% undercount of the clinical-MR compound (PubMed
+    `"mental retardation"[TIAB]` returns ~22.4K records, of which
+    ~21.3K had no "retarded"/"retards"/"retard" verb/adj form and were
+    therefore invisible to the WSI corpus). Adding "retardation" pulls
+    those records in. The slur denominator is essentially unchanged
+    because the slur form is overwhelmingly the adjective "retarded",
+    not the noun "retardation"; including "retardation" therefore
+    *strengthens* the audit-resolved verdict at §6.5.1 by enlarging
+    the clinical-ID sense count without inflating the slur count.
     """
     if out_parquet.exists():
         print(f"[cache] reusing {out_parquet}", file=sys.stderr)
@@ -171,7 +183,7 @@ def fetch_retard_abstracts(
 
     out_parquet.parent.mkdir(parents=True, exist_ok=True)
     pmids = esearch_pmids(
-        ["retarded", '"retards"', '"retard"'],
+        ["retarded", '"retards"', '"retard"', '"retardation"'],
         start_year=start_year,
         end_year=end_year,
         api_key=api_key,

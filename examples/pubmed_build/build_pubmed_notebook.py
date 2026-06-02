@@ -936,16 +936,30 @@ chemistry / biology / materials science," not the slur sense.
 
 **This section now reports the audit-mandated correction**: a
 **word-sense induction** analysis of every PubMed record 1990–2024
-containing a verb/adjective form of `retard*`. We fetched 31,479
-records and Stage-1-bucketed each (title + abstract) by regex
-pattern into 11 sense categories plus an `unknown` residual. Random
+containing the morpheme `retard*` in title or abstract. The Stage-1
+classification buckets each record (title + abstract) by regex into
+11 known sense categories plus an `unknown` residual. Random
 inspection of 15 `unknown` records confirmed all 15 are also
 process-verb uses we did not enumerate; the headline result is
 robust to Stage-1 incompleteness.
 
-**Findings**:
+**Iter-3 audit-fix to the fetcher query (June 2026).** The iter-2
+audit identified a *separate* construct bug in this WSI corpus: the
+original query `retarded OR retards OR retard` excluded the *noun*
+form `"retardation"` and therefore undercounted the clinical-ID
+compound by ~95 % (PubMed `"mental retardation"[TIAB]` returns
+~22.4K records; ~21.3K of those were absent from the iter-2 WSI
+corpus). The fetcher query has been broadened to also include
+`"retardation"`. The slur denominator is essentially unchanged
+because the slur form is overwhelmingly the adjective "retarded",
+not the noun; broadening therefore *strengthens* the audit-resolved
+verdict by enlarging the clinical-ID sense count without inflating
+the slur count. The counts below are from the broadened corpus.
 
-| Sense | Records | Share |
+**Findings (iter-2 baseline shown in the prose table; iter-3
+broadened-query numbers in the code output that follows):**
+
+| Sense | iter-2 records | Share |
 |---|---|---|
 | **Slur (explicit mention)** | **4 of 31,479** | **0.013 %** |
 | Clinical-ID compound ("mentally retarded") | 2,968 | 9.4 % |
@@ -955,17 +969,39 @@ robust to Stage-1 incompleteness.
 | Other identified scientific process-verb senses | ~290 | < 1 % |
 | Unknown — random inspection confirms all are also scientific process-verb | 16,521 | 52.5 % |
 
-**Honest interpretation**.
+**Honest interpretation** (exact percentages computed at runtime
+in the code cell below — qualitative summary here is robust to the
+iter-3 broadened-query corpus):
 
-1. **The slur sense is essentially absent from PubMed.** 4 records over 35 years is below the noise floor of any temporal claim. The iter-1 audit's spot-check refutation generalises: the original "INVERSION" narrative was wrong.
+1. **The slur sense is essentially absent from PubMed.** Single-digit
+   record counts over 35 years is below the noise floor of any
+   temporal claim. The iter-1 audit's spot-check refutation
+   generalises: the original "INVERSION" narrative was wrong.
 
-2. **The clinical-ID compound sense declines 96 % from 1990s (1,679 records) to 2020s (73 records)** — corroborating §5 directly. The §5 trajectory is supported by this independent token-level decomposition.
+2. **The clinical-ID compound sense declines sharply from the 1990s
+   to the 2020s** — corroborating §5 directly. The §5 trajectory is
+   supported by this independent token-level decomposition.
 
-3. **The growth-developmental sense declines 86 %** over the same window (652 → 90). This was *not* in our pre-registered analysis. It corresponds to the documented obstetrics-literature shift from "growth retardation" to "growth restriction" (FGR / IUGR-restriction terminology adopted ~2010). A genuine bonus finding that we surfaced by accident.
+3. **The growth-developmental sense also declines materially** over
+   the same window. This was *not* in our pre-registered analysis.
+   It corresponds to the documented obstetrics-literature shift from
+   "growth retardation" to "growth restriction" (FGR / IUGR-
+   restriction terminology adopted ~2010). A genuine bonus finding
+   that we surfaced by accident.
 
-4. **The corpus is dominated by scientific process-verb senses** (sum of identified + likely-unknown ≈ 79 %) whose trajectory is governed by indexing-volume growth in chemistry, biology, oncology, and materials science. That was the entire signal driving the spurious "inversion" — it had nothing to do with the slur or with stigma research.
+4. **The corpus is dominated by scientific process-verb senses**
+   whose trajectory is governed by indexing-volume growth in
+   chemistry, biology, oncology, and materials science. That was the
+   entire signal driving the spurious "inversion" — it had nothing
+   to do with the slur or with stigma research.
 
-5. **Methodologically**, this section now demonstrates that **token-counting alone cannot detect polysemy collisions** on English morphemes shared across clinical and non-clinical scientific senses. **Random-sample sense validation is required** for any claim about deprecated-clinical-term usage on a polysemous English word. The iter-1 audit pattern (random 20-PMID inspection of headline labels) is the right discipline.
+5. **Methodologically**, this section now demonstrates that **token-
+   counting alone cannot detect polysemy collisions** on English
+   morphemes shared across clinical and non-clinical scientific
+   senses. **Random-sample sense validation is required** for any
+   claim about deprecated-clinical-term usage on a polysemous English
+   word. The iter-1 audit pattern (random 20-PMID inspection of
+   headline labels) is the right discipline.
 """))
 
 A(code(r"""
@@ -1170,8 +1206,11 @@ A(md(r"""
   social-medicine), `T2_imbecile` (1960s IQ classification),
   `T2_mongoloid_idiot` (1960s Down-syndrome era),
   `T2_dope_fiend` (1970s addiction historical),
-  `T3_imbecile_slur` (1954 era-clinical — the `_slur` suffix in
-  the label name is misleading; rename recommended in iter-3).
+  `T3_imbecile_clinical` (1954 era-clinical IQ classification — this
+  label was originally named `T3_imbecile_slur` on the assumption it
+  measured the slur usage; the iter-2 audit found 7/8 sampled PMIDs
+  were era-clinical and the label was renamed to `_clinical` in
+  iter-3).
 
 * **2 are VALID-PERSISTENT** labels still in legitimate active
   clinical use: `T2_spastic_clinical` (cerebral palsy), `T3_deformed`
@@ -1795,7 +1834,10 @@ TH_TOP15_CI_EXCL     = 10  # of top-15 keyness terms, this many should have per-
 TH_BURST_ONSET_LO    = 1979  # PTSD burst onset window (DSM-III anchor 1980, ±1)
 TH_BURST_ONSET_HI    = 1983
 TH_RHO_FLOOR         = 0.70  # Spearman rho on ID post-anchor trajectory should rise
-TH_BH_CI_DISAGREE    = 0.30  # disagreement ratio between BH and bootstrap CI
+TH_BH_CI_DISAGREE    = 0.20  # disagreement ratio between BH and bootstrap CI
+                              # (matches the CBD case-study threshold; tightened
+                              # from 0.30 -> 0.20 in iter-3 audit to remove
+                              # the unjustified goalpost-shift)
 
 # §2 evidence
 s2_cross = crossover

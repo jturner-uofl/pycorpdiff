@@ -414,7 +414,10 @@ TIER3_INVENTORY: dict[str, tuple[list[str], int, int]] = {
     # --- Disability slurs (more explicit than DIS_old_*) ---
     "T3_deformed":          (['"deformed child"', '"deformed children"', '"hideously deformed"',
                               '"facial deformity"'],                                                    1950, 2024),
-    "T3_imbecile_slur":     (["imbeciles", "imbecility"],   # the slur usage as distinct from clinical
+    # NOTE: iter-2 audit (random 20-PMID inspection of peak year) found this
+    # label's records were 7/8 era-clinical IQ classification, NOT slur usage.
+    # Renamed _slur -> _clinical to reflect the validated construct.
+    "T3_imbecile_clinical": (["imbeciles", "imbecility"],
                                                                                                         1950, 2024),
 }
 
