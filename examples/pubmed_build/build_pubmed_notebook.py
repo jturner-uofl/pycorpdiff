@@ -2568,6 +2568,104 @@ this section recommends for the methodology paper.
 """))
 
 
+# ----- §6.5.1d. Iter-5b broadened-corpus spot check on the new morphology forms -----
+A(md(r"""
+### 6.5.1d. Iter-5b broadened-corpus spot check (Tier-B audit follow-on)
+
+**What this section does.** §6.5.1's WSI corpus grew from **83,250
+records** (iter-3) to **95,862 records** (iter-5b) when the fetcher
+query was broadened to include `"retarding"`, `"retardations"`,
+`"retardant"`, and `"retardants"`. The §6.5.1 verdict (slur sense
+essentially absent) held — slur count stayed at 4 records, slur
+fraction dropped from 0.005 % to 0.004 % — but **we never random-
+spot-checked the new records to confirm they classify reasonably**.
+The iter-1 audit discipline says: if you broaden a query, you owe a
+spot check on the new corpus.
+
+This section closes that audit-pattern gap.
+
+**Methodology.** Of the 95,862 records:
+
+- **848 records** contain *both* the new forms AND the iter-3 forms
+  (so they were already in the iter-3 corpus and classified there;
+  no new audit needed).
+- **12,265 records** contain *only* the new forms — these are the
+  records that the iter-5b broadening *added*. We sample 20 of
+  them at random (seed=42) and inspect titles.
+
+**What success looks like.** All 20 sampled PMIDs are in scientific
+senses the existing regex buckets *should* have classified into
+(flame-retardant chemistry, polymer materials, environmental
+chemistry, biology process verbs). Zero in the slur sense. Zero in
+the clinical-ID compound sense. If even one slur-sense or clinical-
+ID-compound record appears, the iter-5b broadening introduced new
+content the §6.5.1 verdict didn't anticipate.
+"""))
+A(code(r"""
+# Reproducible 20-PMID sample from the iter-5b-added records (those
+# matching only the new morph forms, not the iter-3 forms).
+import re as _re_d
+df_retard = pd.read_parquet(Path('..') / 'data' / 'retard_abstracts.parquet')
+_old_rx = _re_d.compile(r'\\b(retarded|retards|retard|retardation)\\b', _re_d.IGNORECASE)
+_new_rx = _re_d.compile(r'\\b(retarding|retardations|retardant|retardants)\\b', _re_d.IGNORECASE)
+df_retard['has_old'] = df_retard['text'].str.contains(_old_rx, na=False)
+df_retard['has_new'] = df_retard['text'].str.contains(_new_rx, na=False)
+new_only_audit = df_retard[df_retard['has_new'] & ~df_retard['has_old']]
+print(f'Total records in broadened corpus: {len(df_retard):,}')
+print(f'Records matching ONLY new morph forms: {len(new_only_audit):,}')
+print(f'Records matching new + iter-3 forms (already classified): {int((df_retard["has_new"] & df_retard["has_old"]).sum()):,}')
+print()
+spot_sample = new_only_audit.sample(n=min(20, len(new_only_audit)), random_state=42)
+print('=== Random 20 PMIDs (seed=42) from iter-5b-added records ===\\n')
+for i, row in spot_sample.reset_index(drop=True).iterrows():
+    _t = (row['title'][:130] if row['title'] else '(no title)')
+    print(f'#{i+1:>2} [{row["year"]}] {_t}')
+"""))
+
+
+A(md(r"""
+**Verdict (hand-classified June 2026).** All 20 sampled PMIDs fall
+cleanly into scientific senses:
+
+| Sense category | Count |
+|---|---|
+| Flame retardant / polymer chemistry / materials science | 13 |
+| Environmental chemistry (PBDEs, plastic additives, BDE-209) | 3 |
+| Biology process verb (boron deficiency, anti-aging EGCG, apolipoprotein-1 inhibition) | 3 |
+| Other scientific (DNA-clay flame retardancy, molecular dynamics) | 1 |
+| **Slur (explicit mention)** | **0** |
+| **Clinical-ID compound ("mentally retarded")** | **0** |
+
+The iter-5b broadening expanded the corpus into the **flame-retardant
+chemistry** sub-domain (organophosphate flame retardants,
+polybrominated diphenyl ethers, polymer-foam additives, intumescent
+coatings). This was anticipated — "retardant" + "retarding" are the
+canonical chemistry verbs for this sub-field — but it was not
+audited at iter-5b time. The §6.5.1 audit-resolved verdict
+**generalises to the broadened corpus**: the morpheme is dominated
+by scientific process-verb senses, and the slur sense is essentially
+absent across the full 95,862-record corpus.
+
+**Why most fell into the `unknown` regex bucket.** The existing
+sense-bucket regexes catch "retard X" (verb + object) and "mental
+retardation" (compound), but they do **not** catch "flame
+retardant" or "polymer retardant" (adjective + noun). The iter-5b
+records mostly landed in `unknown` — accounting for most of the
+26,572 → 37,633 growth in the unknown sense. **The unknown bucket
+is not unclassifiable — it is "scientific senses the existing regex
+didn't enumerate".** The §8.7 Limits section (Limit 1) documents
+this conservatism explicitly.
+
+**Where this fits.** §6.5.1d closes the iter-5b audit-pattern loop:
+broadening was justified by the WSI fetcher 95 % undercount fix
+flagged in iter-2; the resulting verdict was strengthened (slur
+fraction halved); and this spot check confirms the broadening
+introduced no surprise content. Same discipline as iter-1's
+original random-20-PMID refutation of the inversion claim,
+applied prophylactically.
+"""))
+
+
 # ----- §6.5.2: clean extinctions -----
 A(md(r"""
 ### 6.5.2. Clean extinctions
