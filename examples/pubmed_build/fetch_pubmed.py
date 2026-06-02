@@ -362,6 +362,49 @@ TIER2_INVENTORY: dict[str, tuple[list[str], int, int]] = {
     "T2_illegitimate":       (['"illegitimate child"', '"illegitimate children"',
                                "illegitimacy"],                                                          1950, 2024),
     "T2_unwed_mother":       (['"unwed mother"', '"unwed mothers"', '"out of wedlock"'],              1950, 2024),
+
+    # === iter-4 additions (Jun 2026) — labels missed in the original
+    # iter-1/2/3 inventory, added after the iter-4 brainstorm pass.
+
+    # --- Era-clinical psychiatric categories that drifted/retired ---
+    "T2_hysteria":           (["hysteria", "hysterical", "hysterics",
+                               '"hysterical neurosis"'],                                                 1950, 2024),
+    "T2_neurasthenia":       (["neurasthenia", "neurasthenic"],                                          1950, 2024),
+    "T2_moral_insanity":     (['"moral insanity"', '"moral imbecile"',
+                               '"moral imbecility"'],                                                    1950, 2024),
+    "T2_puerperal_insanity": (['"puerperal insanity"', '"puerperal psychosis"',
+                               '"puerperal mania"'],                                                     1950, 2024),
+    "T2_psychopath_socio":   (["psychopath", "sociopath",
+                               '"psychopathic personality"'],                                            1950, 2024),
+
+    # --- Intersex / trans clinical terms (DSM-IV->DSM-5 + 2006 Chicago intersex consensus) ---
+    "T2_hermaphrodite":      (["hermaphrodite", "hermaphroditism",
+                               '"pseudohermaphrodite"', '"pseudohermaphroditism"',
+                               '"true hermaphrodite"'],                                                  1950, 2024),
+    "T2_transsexual_xvest":  (["transsexual", "transsexualism",
+                               "transvestite", "transvestism",
+                               '"gender identity disorder"'],                                            1950, 2024),
+
+    # --- Substance-use historical ---
+    "T2_drunkard_inebriate": (["drunkard", "drunkards", "inebriate", "inebriates",
+                               "dipsomania", "dipsomaniac"],                                             1950, 2024),
+
+    # --- Race-medicine descriptors that have measurable clinical-literature footprint ---
+    "T2_mongolian_spot":     (['"Mongolian spot"', '"Mongolian spots"',
+                               '"Mongolian blue spot"'],                                                 1950, 2024),
+    "T2_negroid_descriptor": (['"Negroid race"', '"Negroid descent"',
+                               '"Negroid ancestry"', '"Negroid patient"',
+                               '"Negroid subject"'],                                                     1950, 2024),
+
+    # --- Retired-treatment vocabulary ---
+    "T2_electroshock":       (["electroshock", '"electric shock therapy"',
+                               '"shock therapy"'],                                                       1940, 2024),
+    "T2_metrazol":           (["metrazol", "cardiazol", '"convulsive therapy"',
+                               '"pentylenetetrazol convulsive"'],                                        1940, 2024),
+    "T2_deep_sleep_therapy": (['"deep sleep therapy"', '"continuous narcosis"',
+                               '"sleep cure"'],                                                          1940, 2024),
+    "T2_psychosurgery":      (["psychosurgery", '"prefrontal leucotomy"',
+                               '"prefrontal leukotomy"'],                                                1940, 2024),
 }
 
 
@@ -419,6 +462,30 @@ TIER3_INVENTORY: dict[str, tuple[list[str], int, int]] = {
     # Renamed _slur -> _clinical to reflect the validated construct.
     "T3_imbecile_clinical": (["imbeciles", "imbecility"],
                                                                                                         1950, 2024),
+
+    # === iter-4 additions (Jun 2026) — Tier-3 entries missed in the
+    # original brainstorm.
+
+    # --- Race-medicine: colonial anthropology + retired clinical compounds ---
+    "T3_bushman":            (["Bushman", "Bushmen"],                                                    1950, 2024),
+    "T3_oriental_disease":   (['"Oriental sore"', '"Oriental cholera"',
+                               '"Oriental schistosomiasis"',
+                               '"Oriental boil"'],                                                       1950, 2024),
+    "T3_lazar_leper":        (["leper", "lepers", '"leper colony"',
+                               "lazaretto", "leprous"],                                                  1950, 2024),
+
+    # --- Disability/orthopedic clinical-era stigma ---
+    "T3_cripple":            (["cripple", "crippled",
+                               '"crippled child"', '"crippled children"',
+                               '"Crippled Children\'s Services"'],                                       1950, 2024),
+    "T3_deaf_mute":          (['"deaf-mute"', '"deaf mute"', '"deaf-mutes"',
+                               '"deaf and dumb"'],                                                       1950, 2024),
+    "T3_siamese_twins":      (['"Siamese twins"', '"Siamese twin"'],                                     1950, 2024),
+    "T3_hunchback":          (["hunchback", "hunchbacked", "hunchbacks"],                                1950, 2024),
+
+    # --- Older psychiatric / mental-illness vocabulary ---
+    "T3_maniac_madhouse":    (["maniac", "madman", "madmen", "madhouse",
+                               "madhouses"],                                                             1950, 2024),
 }
 
 
