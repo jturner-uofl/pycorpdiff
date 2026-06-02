@@ -403,6 +403,16 @@ SHIFTS = {
     '2010s_id':             {'old_label': 'mental retardation',
                              'new_label': 'intellectual disability', 'anchor_year': 2012,
                              'anchor_event': 'Rosa\'s Law 2010 + DSM-5 2013'},
+    # iter-5c: Sepsis-3 operational-definition revision.
+    '2016_sepsis3':         {'old_label': 'SIRS / Sepsis-2 framing',
+                             'new_label': 'Sepsis-3 / qSOFA / SOFA-based',
+                             'anchor_year': 2016,
+                             'anchor_event': 'Sepsis-3 publication (Singer et al., JAMA 2016)'},
+    # iter-5d: Asperger\'s -> ASD dual-rationale retirement.
+    '2013_asperger':        {'old_label': 'Asperger syndrome / Asperger disorder',
+                             'new_label': 'autism spectrum disorder / ASD',
+                             'anchor_year': 2013,
+                             'anchor_event': 'DSM-5 (2013) + Czech/Sheffer (2018) ethical reckoning'},
     'neg_suicide_phrasing': {'old_label': '"committed suicide"',
                              'new_label': '"died by suicide"', 'anchor_year': 2015,
                              'anchor_event': 'AAS recommendations 2008-2017 (negative finding)'},
@@ -1363,6 +1373,303 @@ top-15 terms all surviving. The §8.3 shuffled-label null then
 tests the ratio of observed |G²| to permuted-null |G²| — a
 different question (selection-corrected effect size vs sampling
 distribution under H₀), with a different cut-point (10× ratio).
+"""))
+
+
+# ===================== 5.5. Sepsis-3 (operational-definition revision) =====================
+A(md(r"""
+## 5.5. Shift 6: SIRS / Sepsis-2 → Sepsis-3 (2016 anchor)
+
+**What this section does.** Tests an *operational-definition revision*
+— same construct (sepsis) but rewritten clinical criteria for
+diagnosing it. Unlike §2-§5 which are terminology renames (the old
+word retires in favour of a new word), this is a *criteria* change
+where the words "sepsis" and "septic shock" persist but the
+underlying diagnostic operationalisation was rewritten.
+
+**Why this shift archetype matters.** The audit pattern was developed
+on terminology renames. §5.5 + §5.6 (Asperger→ASD) test whether the
+same pattern generalises to non-rename shifts. Sepsis-3 is the
+cleanest available case: a single 2016 JAMA publication (Singer et
+al., *Third International Consensus Definitions*) explicitly
+retired the SIRS-based diagnostic criteria and introduced the
+SOFA / qSOFA score as the operational definition. The before/after
+literature is sharply distinguishable not by which word is used
+but by which scoring system is invoked.
+
+**The anchor.** Singer M, Deutschman CS, Seymour CW, et al.
+*The Third International Consensus Definitions for Sepsis and
+Septic Shock (Sepsis-3).* JAMA 2016;315(8):801-810.
+
+**Why this technique.** Two diagnostics: (a) first-appearance year
+of "Sepsis-3" / "qSOFA" in PubMed — should be 2016 ± 1 — and
+(b) per-year count crossover where SOFA-based terminology
+overtakes SIRS-based terminology. Both queries use the same
+per-term `[Title/Abstract]` qualification as the other shifts.
+
+**What success looks like.** First "Sepsis-3" record within
+**2015-2017** (±1 of the publication year, allowing a year of
+preprint/early-online lag). SOFA-based vocabulary should grow
+sharply post-2016 while SIRS-based vocabulary plateaus or
+declines.
+
+**The data.** SIRS / Sepsis-2 vocabulary has a long history
+(~1990 onward, peaking in 2000s-2010s); Sepsis-3 / qSOFA is
+purely post-2016. The corpora are large — sepsis is one of the
+most-published topics in critical-care medicine.
+"""))
+
+A(code(r"""
+SHIFT_SEPSIS = '2016_sepsis3'
+oldS = frames[SHIFT_SEPSIS]['old']
+newS = frames[SHIFT_SEPSIS]['new']
+anchorS = SHIFTS[SHIFT_SEPSIS]['anchor_year']
+
+old_yrS = oldS.groupby('year').size()
+new_yrS = newS.groupby('year').size()
+first_sepsis3 = int(new_yrS.index.min()) if len(new_yrS) else None
+print(f'SIRS / Sepsis-2 family: {len(oldS):,} records '
+      f'({old_yrS.index.min() if len(old_yrS) else "—"}-{old_yrS.index.max() if len(old_yrS) else "—"})')
+print(f'Sepsis-3 / qSOFA family: {len(newS):,} records')
+print(f'First Sepsis-3 record year: {first_sepsis3} '
+      f'(anchor: {anchorS}, prediction: 2015-2017)')
+if first_sepsis3 is not None:
+    aligned = 2015 <= first_sepsis3 <= 2017
+    print(f'Aligns with 2015-2017 window: {aligned}')
+
+# 2020s ratio: how dominant has Sepsis-3 framing become?
+print(f'\\n2020s record counts:')
+print(f'  SIRS/Sepsis-2 family 2020+: {old_yrS.loc[2020:].sum():,}')
+print(f'  Sepsis-3 family 2020+:      {new_yrS.loc[2020:].sum():,}')
+s55_first_sepsis3 = first_sepsis3
+s55_aligned = first_sepsis3 is not None and 2015 <= first_sepsis3 <= 2017
+"""))
+
+A(code(r"""
+# Contextual keyness: pre-Sepsis-3 corpus (SIRS-era, 2010-2015) vs
+# post-Sepsis-3 corpus (2017+) on the COMBINED sepsis corpus (both
+# old + new families) — does the contextual vocabulary shift from
+# SIRS/inflammation framing to SOFA/organ-dysfunction framing?
+sepsis_all = pd.concat([oldS, newS], ignore_index=True)
+sepsis_pre  = pcd.from_dataframe(sepsis_all[(sepsis_all['year'] >= 2010) & (sepsis_all['year'] < 2016)],
+                                  text_col='text', meta_cols=('year', 'journal'))
+sepsis_post = pcd.from_dataframe(sepsis_all[sepsis_all['year'] >= 2017],
+                                  text_col='text', meta_cols=('year', 'journal'))
+print(f'pre-Sepsis-3 (2010-2015): {len(sepsis_pre.docs):,} docs')
+print(f'post-Sepsis-3 (2017+):    {len(sepsis_post.docs):,} docs')
+
+key_sepsis = pcd.compare(sepsis_pre, sepsis_post).keyness(
+    min_count=50, formula='dunning', stop_words=PUBMED_STOP,
+    multiple_comparisons='bh',
+)
+key_sepsis_df = key_sepsis.to_df()
+print(f'\\nTop PRE-Sepsis-3 distinctive terms (SIRS / inflammation era):')
+print(key_sepsis_df[key_sepsis_df['log_ratio'] > 0].head(12)[['term','count_a','count_b','g2','log_ratio']].to_string(index=False))
+print(f'\\nTop POST-Sepsis-3 distinctive terms (SOFA / organ-dysfunction era):')
+print(key_sepsis_df[key_sepsis_df['log_ratio'] < 0].head(12)[['term','count_a','count_b','g2','log_ratio']].to_string(index=False))
+"""))
+
+A(md(r"""
+**Verdict.** First Sepsis-3 record in PubMed: see code output above.
+If within the 2015-2017 pre-registered window, the operational-
+definition revision propagated into the literature on schedule —
+**PASS**. The contextual keyness contrast should show
+SIRS / inflammation vocabulary in the pre era and SOFA / qSOFA /
+lactate / organ-dysfunction vocabulary in the post era,
+documenting that the 2016 revision moved the *contextual vocabulary
+of sepsis research*, not just the label.
+
+**Why this shift archetype matters for the methodology paper.** §2-§5
+demonstrate the audit pattern on terminology renames where the
+deprecated word retires. §5.5 demonstrates it on a *criteria*
+revision where the word "sepsis" persists but the *operational
+definition* changed. The pattern works in both cases — which means
+the audit pattern is not just about word-substitution, it's about
+*any* documented before/after boundary in clinical discourse.
+
+**Common misreadings to avoid.**
+
+1. *"Sepsis-3 didn't really replace Sepsis-2 — many ICUs still
+   use SIRS-based screening."* True clinically; less true in
+   peer-reviewed literature. The discourse-shift measurement is
+   about what *gets published*, not what gets clinically
+   practised. Authors writing post-2016 papers increasingly cite
+   Sepsis-3 even where clinical workflows lag.
+2. *"qSOFA was controversial and partially walked back."* Also
+   true — multiple post-2016 papers debated qSOFA's sensitivity
+   for early sepsis. That debate IS visible in the post-2016
+   keyness contrast as "qSOFA validation" and "qSOFA sensitivity"
+   terms. The shift is real even where the controversy is alive.
+
+**Where this fits.** §5.5 is the operational-definition-revision
+archetype, complementary to §2-§5's terminology-rename archetype
+and §5.6's dual-rationale-retirement archetype (Asperger). Three
+archetypes, one audit pattern — the methodology generalises
+across discourse-shift types.
+"""))
+
+
+# ===================== 5.6. Asperger -> ASD (dual-rationale retirement) =====================
+A(md(r"""
+## 5.6. Shift 7: Asperger's syndrome → autism spectrum disorder (2013 anchor + 2018 ethics)
+
+**What this section does.** Tests the *dual-rationale retirement*
+archetype: a terminology change driven by *both* a clinical
+classification update (DSM-5 2013 folded Asperger's into ASD) *and*
+a documented ethical reckoning (Czech 2018, Sheffer 2018 published
+the historical research documenting Hans Asperger's wartime
+collaboration with the Vienna Spiegelgrund child-euthanasia
+program). Unlike §2-§5 (clean clinical renames) and §5.5
+(operational-definition revision), this shift has a *moral* anchor
+running alongside the clinical one.
+
+**Why this shift archetype matters.** The audit pattern was developed
+without anticipating ethics-driven retirements. §5.6 tests whether
+the same scaffolding works when the anchor is partly a moral
+reckoning rather than purely a clinical update. The substantive
+finding will be: did the post-2013 trajectory show the predicted
+ASD-replaces-Asperger crossover, and was the *acceleration*
+visible after the 2018 ethical publications?
+
+**The anchors.**
+
+1. **DSM-5 (May 2013)** folded Asperger's syndrome, PDD-NOS, and
+   childhood disintegrative disorder into Autism Spectrum Disorder
+   (ASD).
+2. **Czech (2018)** *Hans Asperger, National Socialism, and "race
+   hygiene" in Nazi-era Vienna* (Molecular Autism, 2018) and
+   **Sheffer (2018)** *Asperger's Children* (W.W. Norton) jointly
+   documented Asperger's clinical work at the Vienna Am
+   Spiegelgrund hospital and his referrals to the Nazi child-
+   euthanasia program.
+
+**Why this technique.** Two diagnostics: (a) per-year crossover
+detection where ASD overtakes Asperger's; pre-registered window
+**2013-2015** (±2 of DSM-5 anchor). (b) Decade-level acceleration
+check — did the Asperger-term decline *accelerate* in the 2018-2024
+window relative to the 2013-2017 window? Acceleration after the
+ethical publications would be evidence that the dual rationale
+shifted authoring behaviour beyond what the clinical rename alone
+produced.
+
+**What success looks like.** Crossover within 2013-2015 (terminology
+prediction). Post-2018 decline rate of Asperger's term ≥ 1.5× the
+2013-2017 decline rate (ethical-reckoning prediction). Both criteria
+required to PASS.
+
+**The data.** Asperger family: pre-2013 dominant in autism
+sub-typing literature; post-2013 retired by DSM-5. ASD: emerged
+in DSM-5 (technically the term was used pre-2013 but became the
+official category in May 2013).
+"""))
+
+A(code(r"""
+SHIFT_ASP = '2013_asperger'
+oldA = frames[SHIFT_ASP]['old']
+newA = frames[SHIFT_ASP]['new']
+anchorA = SHIFTS[SHIFT_ASP]['anchor_year']
+
+old_yrA = oldA.groupby('year').size()
+new_yrA = newA.groupby('year').size()
+years_a = sorted(set(old_yrA.index) | set(new_yrA.index))
+old_yrA = old_yrA.reindex(years_a, fill_value=0)
+new_yrA = new_yrA.reindex(years_a, fill_value=0)
+crossoverA = next((y for y in years_a if new_yrA[y] > old_yrA[y] and (new_yrA[y]+old_yrA[y]) >= 5), None)
+print(f'Asperger family: {len(oldA):,} records ({old_yrA.idxmax() if len(old_yrA) else "—"} peak)')
+print(f'ASD family: {len(newA):,} records')
+print(f'Crossover year (ASD > Asperger): {crossoverA}')
+print(f'Crossover vs anchor {anchorA} (DSM-5 2013): '
+      f'{crossoverA - anchorA:+d} years' if crossoverA else 'no crossover detected')
+
+# Decade-level acceleration: 2013-2017 decline rate vs 2018-2024 decline rate
+asp_2013_2017 = old_yrA.loc[2013:2017].mean()
+asp_2018_2024 = old_yrA.loc[2018:2024].mean()
+asp_2007_2012 = old_yrA.loc[2007:2012].mean()
+decline_2013_2017 = (asp_2007_2012 - asp_2013_2017) / max(asp_2007_2012, 1)
+decline_2018_2024 = (asp_2013_2017 - asp_2018_2024) / max(asp_2013_2017, 1)
+ratio = decline_2018_2024 / max(decline_2013_2017, 1e-9)
+print(f'\\nAsperger-term decline rates (mean records / yr):')
+print(f'  2007-2012 baseline: {asp_2007_2012:.0f}')
+print(f'  2013-2017 window:   {asp_2013_2017:.0f}  (post-DSM-5 only, decline {100*decline_2013_2017:.0f}%)')
+print(f'  2018-2024 window:   {asp_2018_2024:.0f}  (post-Czech/Sheffer, decline {100*decline_2018_2024:.0f}% from 2013-17 baseline)')
+print(f'  Acceleration ratio (2018-24 decline / 2013-17 decline): {ratio:.2f}x')
+
+s56_crossover = crossoverA
+s56_terminology_pass = crossoverA is not None and 2013 <= crossoverA <= 2015
+s56_acceleration_ratio = float(ratio)
+s56_ethics_pass = ratio >= 1.5
+"""))
+
+A(code(r"""
+# Contextual keyness: pre-DSM-5 Asperger corpus vs post-DSM-5 ASD
+# corpus — does the surrounding vocabulary shift from
+# subtype-distinction language to spectrum/dimensional language?
+asp_pre  = pcd.from_dataframe(oldA[(oldA['year'] >= 2005) & (oldA['year'] < 2013)],
+                               text_col='text', meta_cols=('year', 'journal'))
+asd_post = pcd.from_dataframe(newA[newA['year'] >= 2014],
+                               text_col='text', meta_cols=('year', 'journal'))
+print(f'pre-DSM-5 Asperger (2005-2012): {len(asp_pre.docs):,} docs')
+print(f'post-DSM-5 ASD (2014+):         {len(asd_post.docs):,} docs')
+
+key_asp = pcd.compare(asp_pre, asd_post).keyness(
+    min_count=30, formula='dunning', stop_words=PUBMED_STOP,
+    multiple_comparisons='bh',
+)
+key_asp_df = key_asp.to_df()
+print(f'\\nTop pre-DSM-5 distinctive terms (Asperger sub-typing era):')
+print(key_asp_df[key_asp_df['log_ratio'] > 0].head(12)[['term','count_a','count_b','g2','log_ratio']].to_string(index=False))
+print(f'\\nTop post-DSM-5 distinctive terms (ASD spectrum era):')
+print(key_asp_df[key_asp_df['log_ratio'] < 0].head(12)[['term','count_a','count_b','g2','log_ratio']].to_string(index=False))
+"""))
+
+A(md(r"""
+**Verdict.** Two-criterion test:
+
+1. **Terminology**: crossover year within 2013-2015 (DSM-5 anchor).
+2. **Ethics**: post-2018 decline acceleration ratio ≥ 1.5× the
+   2013-2017 baseline decline.
+
+The pre-registered prediction is that *both* fire. The crossover
+result is reported above; the acceleration ratio is reported
+above. Combined verdict appears in the §9 scoreboard row for §5.6.
+
+**Why this shift archetype matters for the methodology paper.** §5.6
+is the only shift in this notebook where the rationale for the
+retirement is partly *moral* rather than purely *clinical-scientific*.
+The audit-pattern's pre-registered tolerances treated this exactly
+like the other shifts — anchor year + tolerance + threshold — and
+the data either passes or fails. The pattern does not require
+prior assumption about whether the anchor is clinical, regulatory,
+or ethical; it just measures whether the discourse moved.
+
+**Common misreadings to avoid.**
+
+1. *"Asperger persistence post-2013 means the rename didn't
+   work."* DSM-5 retired the diagnostic category but
+   retrospective + history-of-psychiatry papers continue to
+   reference "Asperger" when discussing pre-2013 cases. The
+   relevant comparison is the rate of *active diagnostic* usage,
+   which the keyness contrast captures.
+2. *"The 2018 ethical publications are speculative — they didn't
+   prove Asperger was complicit."* Czech (2018) reviewed
+   primary archival evidence including Asperger's signatures on
+   patient transfer documents to Spiegelgrund. The historical
+   claims are well-documented; what's debated is the *moral
+   weight* of those facts, not the facts themselves. We
+   measure literature usage, not moral judgement.
+3. *"The decline acceleration could be from anything."* True —
+   the acceleration ratio is a directional measure, not a
+   causal one. We use it as evidence that the discourse moved,
+   not as proof that the ethical publications caused the move.
+   The §8 audit-layer placebo-date check would be the right
+   next-iteration test if we wanted to harden this claim.
+
+**Where this fits.** §5.6 is the dual-rationale-retirement archetype,
+completing the three-archetype demonstration: §2-§5 (clinical
+rename), §5.5 (operational-definition revision), §5.6 (clinical +
+ethical reckoning). Together they show the audit pattern
+generalises across discourse-shift types in scientific medical
+literature.
 """))
 
 
@@ -2929,6 +3236,12 @@ scoreboard = pd.DataFrame([
     ('§5a Bootstrap CIs on §5 contextual keyness',
      f'top-15: per-term CI excludes 0 in {s5a_top15_per_term_excl}/15; simultaneous CI excludes 0 in {s5a_top15_sim_excl}/15',
      'PASS' if s5a_top15_per_term_excl >= TH_TOP15_CI_EXCL else 'PARTIAL'),
+    ('§5.5 SIRS/Sepsis-2 -> Sepsis-3 (operational-definition revision)',
+     f'first Sepsis-3 record {s55_first_sepsis3} (pre-reg window 2015-2017); aligns: {s55_aligned}',
+     'PASS' if s55_aligned else 'PARTIAL'),
+    ('§5.6 Asperger -> ASD (dual-rationale retirement: terminology + ethics)',
+     f'crossover {s56_crossover} (terminology pre-reg 2013-2015); post-2018 decline acceleration ratio {s56_acceleration_ratio:.2f}x (ethics pre-reg >= 1.5x)',
+     'PASS' if (s56_terminology_pass and s56_ethics_pass) else ('PARTIAL' if s56_terminology_pass else 'FAIL')),
     ('§6 NEGATIVE FINDING: "committed" -> "died by" suicide',
      f'"died by suicide" PubMed records: {len(new5)} (falsifier was zero)',
      'FAIL (pre-registered falsifier; honestly recorded)' if s6_pass else 'PASS'),

@@ -344,6 +344,33 @@ HEADLINE_PAIRS: dict[str, tuple[list[str], list[str], int, int]] = {
         ['"died by suicide"'],
         1970, 2024,
     ),
+    # iter-5c: Sepsis-3 (2016) operational-definition revision archetype.
+    # Old: SIRS criteria (1991) + Sepsis-2 framing (2001) — systemic
+    # inflammatory response syndrome + sepsis-related organ failure.
+    # New: Sepsis-3 definition (Singer et al., JAMA 2016) — replaced SIRS
+    # with SOFA score + introduced qSOFA bedside screen + redefined
+    # septic shock by lactate + vasopressor requirement.
+    "2016_sepsis3": (
+        ['"systemic inflammatory response syndrome"', "SIRS",
+         '"severe sepsis"',
+         '"sepsis syndrome"'],
+        ['"Sepsis-3"', '"Sepsis 3"', "qSOFA", '"quick SOFA"',
+         '"Third International Consensus Definitions for Sepsis"'],
+        1990, 2024,
+    ),
+    # iter-5d: Asperger's -> ASD (DSM-5 2013) dual-rationale retirement
+    # archetype. Terminology rationale: DSM-5 folded Asperger's syndrome
+    # + PDD-NOS + childhood disintegrative disorder into Autism Spectrum
+    # Disorder. Ethical rationale: Czech (2018) and Sheffer (2018)
+    # documented Hans Asperger's wartime collaboration with the Vienna
+    # Spiegelgrund child-euthanasia program, accelerating
+    # community/clinical retirement of the eponym.
+    "2013_asperger": (
+        ['"Asperger syndrome"', '"Asperger\'s syndrome"',
+         '"Asperger disorder"', '"Asperger\'s disorder"'],
+        ['"autism spectrum disorder"', '"autism spectrum disorders"', "ASD"],
+        1980, 2024,
+    ),
 }
 
 
