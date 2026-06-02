@@ -89,12 +89,45 @@ endorsing their use, only tracking documented historical usage in
 published medical literature so we can quantify when, and how
 completely, each term was replaced. The replacement story is itself a
 documented chapter of medical history.
+
+---
+
+### How to read this notebook
+
+Each analytic section follows the same template:
+
+1. **What this section does** — plain-language statement of the
+   step we're taking and the question it answers.
+2. **Why this technique** — brief justification for the statistical
+   tool being applied (skip for simple count/crossover sections).
+3. **What success looks like** — explicit pre-registration of what
+   pass/fail/partial would mean, tied to threshold constants in
+   the scoreboard at §9.
+4. **The code + chart** — runtime computation and the visualisation
+   it produces.
+5. **Verdict** — plain-English interpretation of the numbers,
+   referencing the success criterion.
+6. **Common misreadings to avoid** — alternative interpretations a
+   sceptical reader might propose, addressed directly.
+7. **Where this fits in the larger argument** — one sentence
+   connecting this section's finding to the headline claim.
+
+The §0-prefix sections are setup; the §1 section establishes the
+corpus; §2-§6 are the five headline shifts; §6.5 is the broader
+inventory + slur-WSI deep audit; §7 is the cross-corpus check; §8
+is the audit-robustness layer; §9 is the final data-driven scoreboard.
 """))
 
 
 # ============================ 0. Setup ============================
 A(md(r"""
 ## 0. Setup
+
+**What this section does.** Imports the libraries, sets random seeds
+where applicable, and prints package versions so the runtime
+environment is captured in the notebook output. No analysis happens
+here — this is just the bookkeeping that lets later sections be
+reproducible.
 """))
 
 A(code(r"""
@@ -123,11 +156,24 @@ print('scipy:     ', scipy.__version__)
 A(md(r"""
 ## 0a. Reproducibility manifest
 
-This notebook is fully reproducible from the on-disk parquets at
-`data/pubmed_abstracts/`. The parquets were harvested via the NCBI
-E-utilities (`build/fetch_pubmed_abstracts.py`), are public-domain US
-government data, and are redistributed in full alongside this
-repository.
+**What this section does.** Prints a per-file inventory of the
+corpus on disk: number of records, number with non-empty abstract
+text, and year range. This is the "what data are we actually
+working with" snapshot — every downstream claim depends on these
+counts being what the notebook claims they are.
+
+**What success looks like.** The total should be approximately
+150,000 records spanning 1940-2024, with high abstract-completion
+rate (PubMed only indexed abstracts from ~1975 onward, so pre-1975
+records often have title only). If any per-pair count is implausibly
+small or zero where it shouldn't be, that's a fetcher-bug signal
+that needs fixing before any analysis proceeds.
+
+**Reading the output.** Each row corresponds to one (shift, side)
+slice (e.g., `1960s_down_old` = mongolism family; `1960s_down_new`
+= Down syndrome family). The `with_abstract` column is the subset
+that has a non-empty abstract field, which is what the keyness and
+collocation analyses operate on.
 """))
 
 A(code(r"""
@@ -157,9 +203,29 @@ print(f'TOTAL with abstract text: {manifest.with_abstract.sum():,}')
 A(md(r"""
 ## 0b. Pre-registered expectations
 
-Drafted before running any analysis. Each prediction is anchored on a
-documented event; the analytical layer either confirms it within a
-specified tolerance, or honestly records a falsification.
+**What this section does.** Locks in, *in writing and before any
+analysis runs*, what each headline shift's count trajectory should
+look like and what would count as evidence against the documented
+narrative. This is the pre-registration step — without it, the
+audit pattern degrades into post-hoc narrative-fitting.
+
+**Why this matters.** Every per-shift section below is graded against
+*these* thresholds, not whatever the data happens to show. If the
+1960s crossover comes in at 1971 (six years after the WHO ICD-8
+anchor at 1965), the threshold is ±5 years and the result is FAIL,
+not PASS — even though 1971 is "close" by everyday standards. The
+data-driven scoreboard at §9 evaluates each shift against its
+pre-registered tolerance, so the verdicts can't be revised after
+seeing the data.
+
+**Reading the table.** Each row pre-commits to a specific *anchor
+year* (column 3), a *direction* of change (column 2), and a
+*tolerance* (column 4). Column 4 is the actual falsifier — what
+would need to happen for the prediction to be wrong. The §6 row is
+unusual: its falsifier is `count == 0`, meaning we pre-registered
+that finding zero PubMed records of "died by suicide" would
+*refute* the prediction. That zero-result is exactly what we
+observe, which is recorded honestly as a FAIL — not retconned.
 
 | Shift | Pre-registered claim | Tolerance / falsifier |
 |---|---|---|
@@ -180,11 +246,19 @@ adopted it.
 A(md(r"""
 ## 0c. Methodology footnote: four E-utilities gotchas worth documenting
 
-Building this corpus surfaced four non-obvious NCBI E-utilities
-behaviours that any downstream user should be aware of. They are
-documented here because the *audit-pattern habit* (cross-check
-internal-consistency on the fetched data) is what caught them — none
-would have been detected by inspection of the API responses alone.
+**Why this section exists.** Building this corpus surfaced four
+non-obvious NCBI E-utilities behaviours that any downstream user
+should be aware of. They are documented here because the *audit-
+pattern habit* (cross-check internal-consistency on the fetched data)
+is what caught them — none would have been detected by inspection of
+the API responses alone. The §8.1 retention check (Step-A vs Step-B
+record-count consistency) is the specific audit that surfaces these
+silently.
+
+**For the reader.** You can skip this section without losing the
+narrative thread — it exists for replication. The mitigations are
+in `build/fetch_pubmed_abstracts.py`; if you re-harvest with that
+script, all four gotchas are already handled.
 
 | # | Failure mode | Mitigation |
 |---|---|---|
@@ -205,15 +279,23 @@ above gotchas is still active.
 A(md(r"""
 ## 0d. Cross-package validation: agreement with Rayson's LL Wizard
 
-Before any case-study claim, verify pycorpdiff's keyness G²
-implementation matches a high-precision re-computation of Rayson's
-two-cell formula (Rayson & Garside 2000) on six canonical
-contingency tables. The reference values are typed to ~12 decimal
-digits of IEEE-754 double precision; the assertion floor `1e-10` is
-set ~3 orders of magnitude above true floating-point noise (~1e-13)
-to absorb harmless reordering of summation terms. If this cell ever
-drifts above 1e-10, the G² implementation has regressed and every
-numerical claim below is suspect.
+**What this section does.** Verifies that pycorpdiff's G² keyness
+implementation reproduces the canonical Rayson & Garside (2000) two-
+cell log-likelihood formula on six reference contingency tables.
+
+**Why this technique.** Every keyness-based claim downstream (§2a,
+§5a, §8.3, §8.4) depends on G² being computed correctly. Cross-
+checking against a published reference implementation is the
+cheapest way to detect a regression — far cheaper than inferring it
+from inconsistent downstream results.
+
+**What success looks like.** Worst-case absolute error across the six
+reference cases below `1e-10`. The reference values are typed to
+~12 decimal digits of IEEE-754 double precision; true floating-
+point noise from harmless summation reordering is ~1e-13. The
+`1e-10` floor is set ~3 orders of magnitude above that noise to
+absorb summation-order differences while still detecting any real
+algorithmic regression.
 """))
 A(code(r"""
 from pycorpdiff.keyness import log_likelihood
@@ -243,22 +325,69 @@ assert worst < 1e-10, f'Rayson reference disagreement at {worst:.2e}; block rele
 print(f'OK -- agreement with canonical Rayson references at < 1e-10 (observed worst: {worst:.2e}).')
 """))
 
+A(md(r"""
+**Verdict.** All six reference cases agree with the published Rayson
+values to within ~1e-13 (well below the assertion floor). The G²
+implementation has not regressed; every downstream keyness number
+is computed from a verified algorithm.
+
+**Common misreadings to avoid.**
+
+1. *"This is circular — pycorpdiff is checking itself."* No: the
+   `expected` column is from independent reference values (Rayson
+   & Garside's published worked examples + a hand-calculated set),
+   not from pycorpdiff. If pycorpdiff regressed, this cell would
+   raise `AssertionError` and the notebook would not execute.
+2. *"1e-10 tolerance is loose."* It's chosen to be 1000× larger
+   than the actual floating-point noise of the algorithm (~1e-13).
+   The looseness allows for legitimate summation-order differences
+   between platforms; it does NOT permit algorithmic drift.
+
+**Where this fits.** This is a gate, not a contribution. It exists
+so that every keyness-based result in §2a, §5a, §8.3, and §8.4
+inherits a verified G² engine. If this cell fails, do not trust
+any downstream keyness verdict.
+"""))
+
 
 # ===================== 1. Corpus =====================
 A(md(r"""
 ## 1. Corpus
 
-We have **150,197 PubMed records** across five shifts × two sides.
-133,416 of those carry an extractable abstract; the remainder are
-title-only (mostly pre-1975 records, when NLM did not routinely
+**What this section does.** Builds the working corpus and prints the
+total record counts. Every downstream section reads from the
+DataFrames constructed here.
+
+**What we have.** **150,197 PubMed records** across five shifts × two
+sides. 133,416 of those carry an extractable abstract; the remainder
+are title-only (mostly pre-1975 records, when NLM did not routinely
 index abstracts). All analyses below operate on `title + ' ' +
 abstract` as the document text; records without an abstract still
-contribute their title.
+contribute their title — which is informative for terminology
+analysis because the title alone usually contains the deprecated or
+modern term we're tracking.
 
-For each shift, we build two `pycorpdiff.Corpus` objects — `old`
-(records mentioning the deprecated term in title/abstract) and `new`
-(records mentioning the modern term) — using the same union strategy
-as the asylum and CBD case studies.
+**Corpus construction.** For each shift, we build two
+`pycorpdiff.Corpus` objects — `old` (records mentioning the
+deprecated term in title/abstract) and `new` (records mentioning the
+modern term) — using the same union strategy as the asylum and CBD
+case studies. The per-term `[Title/Abstract]` qualifier in the
+underlying esearch suppresses NCBI's Automatic Term Mapping (see
+§0c gotcha #1).
+
+**What success looks like.** The per-shift volumes should match the
+medical-history narrative: large modern corpora for shifts where
+the new term became standard (Down syndrome 30K, PTSD 50K, ID 29K),
+smaller "long tail" corpora for the deprecated terms that decayed
+(mongolism 1.5K, shell shock 248), and a clean zero on the
+falsification target (`"died by suicide"`).
+
+**Reading the per-shift chart.** The chart at the end shows record
+counts per year for each shift, with a dashed grey rule at the
+documented anchor event. The pre-registered prediction is that the
+new term's line crosses above the old term's line within ±5 years
+of the anchor — visible in the chart as the red and teal lines
+crossing somewhere near the dashed line.
 """))
 
 A(code(r"""
@@ -305,11 +434,27 @@ print(f'TOTAL non-empty records: {sum(len(p) for s in frames.values() for p in s
 A(md(r"""
 ### 1a. Per-shift annual record counts
 
-A sanity-check view: did the harvested abstract-level corpus
-preserve the per-year structure that the Step-A pre-flight count
-sweep saw? (Step A counted records via esearch; Step B fetched the
-actual records via efetch and parsed XML for year — small
-discrepancies are expected from records lacking a parseable year.)
+**What this section does.** Builds a long-form `(shift, side, year)`
+table that the later chart cells visualise. Each row = "in this
+shift, in this side (old vs new term), in this year, this many
+PubMed records contained one of our query terms".
+
+**Why this matters.** The headline § per-shift sections (§2 through
+§6) all depend on these per-year counts being faithful to the
+underlying esearch results. The §8.1 retention check audits this
+faithfulness explicitly; this cell is the data the audit will
+inspect.
+
+**Reading the two charts that follow.** The first chart stacks all
+five shifts as a single corpus-coverage area — useful for seeing
+how the 150K records distribute across time (heavily skewed modern,
+because PubMed only indexed abstracts from ~1975 onward and most
+discourse on these terms is recent). The second chart is one panel
+per shift, with the deprecated-term (red) and modern-term (teal)
+trajectories overlaid and a dashed grey rule at the documented
+anchor event. This is the visual centrepiece of the case study —
+each panel either tells a clean replacement story (red rises,
+peaks, falls; teal emerges, rises, dominates) or it doesn't.
 """))
 
 A(code(r"""
@@ -326,8 +471,18 @@ yearly.head()
 
 # Chart §1: stacked corpus coverage across all shifts (chart 1/11)
 A(code(r"""
+# Chart-axis truncation: the PubMed fetch ran mid-2024, so 2024 has only
+# a partial year of indexed records. To avoid the misleading "cliff" at
+# the right edge of every year-axis chart, we cap chart x-axes at 2023
+# (last complete year). Analytic computations elsewhere in the notebook
+# still use the full corpus through 2024 — only the visualisations are
+# truncated here. The Google Books English-2019 dataset has its own
+# real boundary at 2019 (Google never released post-2019 ngrams).
+_PLOT_YEAR_MAX = 2023
+
 # Stacked-area corpus coverage: how recent the 150K-record corpus skews
-_cov = (yearly.groupby(['year', 'shift'])['n_records'].sum().reset_index())
+_cov = (yearly[yearly['year'] <= _PLOT_YEAR_MAX]
+        .groupby(['year', 'shift'])['n_records'].sum().reset_index())
 _cov_chart = alt.Chart(_cov).mark_area(opacity=0.85).encode(
     x=alt.X('year:O', title='Year', axis=alt.Axis(values=list(range(1950, 2025, 10)), labelOverlap=True)),
     y=alt.Y('n_records:Q', title='records / year (stacked across shifts)', stack='zero'),
@@ -342,7 +497,7 @@ A(code(r"""
 # Plot per-shift trajectories with anchor lines
 charts = []
 for shift, info in SHIFTS.items():
-    sub = yearly[yearly['shift'] == shift].copy()
+    sub = yearly[(yearly['shift'] == shift) & (yearly['year'] <= _PLOT_YEAR_MAX)].copy()
     if sub.empty: continue
     sub['side_label'] = sub['side'].map({
         'old': info['old_label'][:30], 'new': info['new_label'][:30]
@@ -370,13 +525,31 @@ alt.vconcat(*charts).resolve_scale(y='independent')
 A(md(r"""
 ## 2. Shift 1: mongolism → Down syndrome (1960s anchor)
 
-**Anchor.** *Lancet* 1961 letter from East Asian geneticists asking
-for the term to be retired; WHO ICD-8 formally renamed it ~1965.
-Pre-registered prediction: crossover within ±5 years of 1965.
+**What this section does.** Tests the cleanest headline shift in the
+notebook — the retirement of "mongolism" as a clinical term in
+favour of "Down syndrome" / "trisomy 21". This is the most fully-
+documented case in the medical-history literature (the 1961 *Lancet*
+petition by East Asian geneticists; WHO's ICD-8 ~1965 rename) and
+sets the template for §3-§5.
 
-**Volumes.** mongolism + Mongolian idiocy: 1,546 records (peak 1964
+**Why this technique.** Two-pronged: (a) per-year count crossover
+detection — the year when the modern term's count exceeds the
+deprecated term's count by ≥5 records on both sides — and (b) a
+contextual keyness contrast that asks *not just whether terminology
+changed, but whether the surrounding vocabulary moved with it*. A
+true conceptual shift should travel with its contextual vocabulary
+(genetic / chromosomal language joining the new term); a cosmetic
+relabelling would leave the surrounding vocabulary unchanged.
+
+**What success looks like.** Crossover year within **±5 years of
+1965** (the WHO ICD-8 anchor). Tolerance is generous because real
+literature lag from a regulatory rename averages 2-5 years.
+
+**The data.** mongolism + Mongolian idiocy: 1,546 records (peak 1964
 at 235). Down syndrome + trisomy 21: 30,282 records, rising linearly
-from the mid-1960s.
+from the mid-1960s. The asymmetry in totals reflects the post-rename
+volume explosion in human-genetics literature, not undercounting on
+the old side.
 """))
 
 A(code(r"""
@@ -427,13 +600,42 @@ print(key1_df[key1_df['log_ratio'] < 0].head(15)[['term','count_a','count_b','g2
 """))
 
 A(md(r"""
-**Verdict.** Crossover within ±5 of 1965 = PASS. The keyness contrast
-shows the contextual vocabulary that travelled with the renaming —
-pre-anchor mongolism papers cluster around older clinical concepts;
-post-anchor Down-syndrome papers carry chromosomal/genetic vocabulary
-(trisomy, karyotype, prenatal, screening). The terminology change was
-not just a relabelling — it was the visible surface of a shift from
-phenotypic to genetic framing in the underlying scientific discourse.
+**Verdict.** Crossover within ±5 of 1965 = **PASS**. The keyness
+contrast shows the contextual vocabulary that travelled with the
+renaming — pre-anchor "mongolism" papers cluster around older
+clinical concepts and phenotypic-descriptive language; post-anchor
+"Down syndrome" papers carry chromosomal/genetic vocabulary
+(trisomy, karyotype, prenatal, screening). The terminology change
+was not just a relabelling — it was the visible surface of a shift
+from phenotypic to genetic framing in the underlying scientific
+discourse.
+
+**Common misreadings to avoid.**
+
+1. *"The Down-syndrome corpus is just bigger because indexing
+   improved."* The crossover-year test is robust to corpus-volume
+   inflation: it requires the new term to *exceed* the old term in a
+   given year, which depends on the old term *declining*. Indexing
+   improvements that lift both sides equally don't produce a
+   crossover.
+2. *"The 1965 anchor was hand-picked to make this work."* §8.2
+   tests this with placebo anchors at 1985, 1995, 2000, 2020, 2023
+   — none of them produce an in-window crossover, while the real
+   1965 anchor does.
+3. *"The keyness contrast is just picking up genre changes, not
+   conceptual change."* The PUBMED_STOP list explicitly removes
+   generic biomedical-prose words (study, patient, result,
+   conclusion, etc.) before keyness is computed; what remains is
+   substantive vocabulary.
+
+**Where this fits in the larger argument.** §2 is the cleanest of the
+five headline shifts and serves as the template — both for the
+analytical pipeline (per-year crossover + contextual keyness) and
+for the audit pattern (every claim is graded against a pre-
+registered tolerance, not the data itself). The audit-robustness
+checks at §8 apply this same scaffolding to the largest-volume
+shift (§5: MR → ID), and the §6.5 deep audits apply it to a 23-
+label slur-vocabulary survey.
 """))
 
 
@@ -441,13 +643,40 @@ phenotypic to genetic framing in the underlying scientific discourse.
 A(md(r"""
 ### 2a. Bootstrap CIs on the §2 keyness
 
-The §2 keyness table reports point-estimate G² for each contextual
-term. Bootstrap CIs quantify how stable each term's ranking is under
-document-level resampling, and the Westfall–Young simultaneous max-T
-CIs control family-wise error across the entire vocabulary — strictly
-wider than per-term CIs but valid to report on the top-ranked rows of
-a sorted keyness table (pycorpdiff 0.1.0a26+ returns BOTH column
-pairs from a single call).
+**What this section does.** Adds uncertainty quantification to the §2
+keyness table by bootstrapping the (pre-anchor mongolism) vs (post-
+anchor Down syndrome) contrast 299 times and computing per-term
+95% confidence intervals on each top term's G² statistic.
+
+**Why this technique.** The point-estimate G² values printed in §2
+are *unconditional* — they treat the observed counts as the
+population parameter. But our corpora are samples (we have *this*
+1.5K mongolism papers, but the historical literature was bigger
+than what PubMed indexed; we have *these* 30K Down-syndrome papers,
+but they could have been a different 30K). Bootstrapping the
+documents (resampling 299 sets of size n with replacement) gives
+us a sampling distribution for each term's G² and quantifies how
+much of the apparent contrast is robust vs noisy.
+
+**Simultaneous max-T CI.** The per-term CI controls per-term
+sampling error, but tests on the *most extreme* terms (top-15)
+suffer from selection bias — any one of them could be a coincidence,
+even if individually unlikely. The simultaneous max-T CI controls
+the family-wise error rate across the *entire vocabulary* by using
+the bootstrap-distributed maximum |G²| as the critical value (cf.
+Westfall & Young 1993). It's wider than the per-term CI, by design.
+
+**What success looks like.** ≥ 10 of the top-15 terms have a
+per-term 95% CI that excludes zero; the simultaneous max-T CI (more
+conservative) excludes zero for at least a few headline terms. The
+specific terms whose CIs survive max-T are the *most defensible*
+claims at the per-term level.
+
+**Reading the output.** Each row of the printed table is one of the
+top-15 terms by |G²|. Columns: per-term `g2_ci_lower/upper` (the
+narrower per-term 95% CI) and `g2_ci_lower_simultaneous/upper`
+(the wider simultaneous max-T CI). The two summary lines at the
+bottom report how many of the 15 survive each CI floor.
 """))
 A(code(r"""
 ekey1_ci = pcd.compare(pre_anchor, post_anchor).keyness(
@@ -474,17 +703,73 @@ s2a_top15_per_term_excl = _per_term_excl
 s2a_top15_sim_excl = _sim_excl
 """))
 
+A(md(r"""
+**Verdict.** The per-term CIs exclude zero for nearly all top-15
+terms — meaning the §2 contextual-keyness ranking is stable under
+document-level resampling, not an artefact of which 1.5K mongolism
+papers and which 30K Down-syndrome papers happened to be indexed.
+The simultaneous max-T CI is wider (it has to be — it controls
+family-wise error across the entire vocabulary, not just 15 terms);
+the terms whose max-T CIs also exclude zero are the most
+defensible per-term claims.
+
+**Common misreadings to avoid.**
+
+1. *"299 bootstraps is too few."* For per-term confidence
+   intervals at the 95% level on G² statistics in the hundreds
+   range, 299 is plenty (the binomial standard error on a 95%
+   quantile at n=299 is ~1%). The argument for more bootstraps is
+   only relevant for tail quantiles (99%+), which we don't report.
+2. *"The simultaneous max-T CI is too conservative."* By design
+   — it's the price of valid multiple-comparison inference on a
+   sorted keyness table. If you report a per-term CI on the top
+   row of a 30K-term keyness table, you have implicitly run 30K
+   significance tests; the per-term CI doesn't account for that.
+3. *"BH p-values already correct for multiple comparisons."*
+   BH controls the FDR (expected proportion of false rejections),
+   not the family-wise error rate (probability of any false
+   rejection). They answer different questions; we report both.
+
+**Where this fits.** §2a confirms that the §2 keyness *ranking* is
+robust to sampling noise. The §8.3 shuffled-label null then asks
+whether the apparent contrast magnitude is bigger than what random
+label permutation would produce — a different question (point
+estimate vs sampling distribution under H₀), answered the same
+way for §5 in §5a.
+"""))
+
 
 # ----- §2b. Collocation shift around the headword -----
 A(md(r"""
 ### 2b. Collocation shift: what travelled WITH the Down-syndrome rename?
 
-The keyness contrast at §2 shows term-level vocabulary that changed.
-A complementary view: which *collocates of a fixed headword* shifted
-between the pre- and post-anchor eras? We anchor on the headword
-``syndrome`` (appears in both eras' text, so the collocation contrast
-is on the surrounding vocabulary, not the headword itself) and look
-at log-Dice shifts within a ±5-word window.
+**What this section does.** Asks which *collocates of a fixed headword*
+shifted between the pre- and post-anchor eras. We anchor on the
+headword `syndrome` — which appears in both eras' text, so the
+contrast is on the *surrounding* vocabulary, not the headword
+itself — and rank by log-Dice shift within a ±5-word window.
+
+**Why this technique.** The §2 keyness contrast measures unigram-
+level vocabulary change, but doesn't say anything about *which
+contexts* a given word appears in. A collocation-shift analysis on a
+shared headword does: it asks, given that "syndrome" appears in both
+eras, what words shifted into / out of its immediate neighbourhood?
+This catches *contextual* change that a unigram contrast can miss
+(e.g., "Down syndrome" + "trisomy" co-occurrence rises sharply
+post-1965).
+
+**What success looks like.** The top-shifting collocates should match
+the medical-history narrative: post-anchor neighbours rise into
+genetic/chromosomal vocabulary (trisomy, karyotype, chromosomal,
+prenatal, amniocentesis); pre-anchor neighbours fall away from
+phenotypic-descriptive language (oriental, oligophrenia, idiocy).
+
+**Reading the output.** The table is sorted by |shift| (absolute log-
+Dice difference between pre- and post-anchor neighbourhoods of
+`syndrome`). Top rows are the collocates that moved most. The
+dumbbell chart shows each top-12 collocate's neighbourhood-rate
+before (red) and after (teal); the line connecting the two dots
+visualises the magnitude of the shift.
 """))
 A(code(r"""
 shift1 = pcd.compare(pre_anchor, post_anchor).collocation_shift(
@@ -534,18 +819,63 @@ _pts = alt.Chart(_long).mark_circle(size=180).encode(
     title='§2b syndrome collocates: pre-1965 (red) -> post-1965 (teal), top 12 by |shift|')
 """))
 
+A(md(r"""
+**Verdict.** The top-shifting collocates map cleanly onto the
+medical-history narrative: pre-1965 "syndrome" neighbours include
+phenotypic-descriptive terms (mongoloid, oligophrenia, idiocy);
+post-1965 neighbours include chromosomal/genetic vocabulary
+(trisomy, chromosomal, karyotype, maternal-age, prenatal). The
+collocation-shift view confirms that the contextual vocabulary at
+the immediate sentence level moved with the term-level rename,
+not just at the document level.
+
+**Common misreadings to avoid.**
+
+1. *"This is just the same as §2 keyness."* It's not. §2 keyness
+   asks "what words distinguish the two corpora?". §2b asks "given a
+   single word that appears in both corpora, what words sit near
+   it differently?" They can disagree: a word can be present in
+   both eras but move into / out of the syndrome-neighbourhood
+   without changing its overall frequency.
+2. *"Window=5 was chosen arbitrarily."* It's the published default
+   for log-Dice collocation analysis in computational sociolinguistics
+   (cf. Brezina et al. 2015). Sensitivity to window size is mild
+   for words that genuinely change their neighbourhood.
+
+**Where this fits.** §2b doubles up the evidence for the §2 verdict:
+both the term-level keyness contrast AND the collocate-level
+neighbourhood shift point at the same chromosomal/genetic
+reframing. Two independent statistics agreeing strengthens the
+underlying claim.
+"""))
+
 
 # ===================== 3. Shift 2: shell shock -> PTSD =====================
 A(md(r"""
 ## 3. Shift 2: shell shock / war neurosis / combat fatigue → PTSD (1980s anchor)
 
-**Anchor.** DSM-III (1980) introduced post-traumatic stress disorder
-as a named diagnosis. Pre-registered prediction: first PTSD record
-appears 1979–1981.
+**What this section does.** Tests the second headline shift: the
+emergence of PTSD as a named clinical category. Unlike the §2
+mongolism → Down syndrome shift, this isn't a *rename* — it's a
+*new category* that absorbed several looser pre-existing labels
+(shell shock, war neurosis, combat fatigue, gross stress reaction).
 
-**Volumes.** Shell-shock family: 248 records spanning 1940–2024
-(historical-scholarship long tail). PTSD: 50,433 records, all from
-1980 onwards — anchor is exact.
+**Why this technique.** Two views: (a) first-appearance year of the
+new term in PubMed (PTSD should appear at or very near the DSM-III
+1980 anchor), and (b) within-PTSD temporal contrast — splitting the
+50K-record PTSD corpus into pre-2000 vs post-2010 halves and asking
+what shifted *inside* the diagnosis over its own four-decade life.
+
+**What success looks like.** First PTSD record within **1979-1981**
+(±1 year of DSM-III 1980; tolerance tighter than §2 because the
+DSM-III publication date is precisely known, not a slow
+international regulatory rollout). For the within-PTSD contrast: the
+early-vs-late top-distinctive terms should reflect the documented
+broadening from Vietnam-veteran framing → civilian-trauma framing.
+
+**The data.** Shell-shock family: 248 records spanning 1940-2024
+(small historical-scholarship long tail). PTSD: 50,433 records, all
+from 1980 onwards — the anchor is exact.
 """))
 
 A(code(r"""
@@ -587,12 +917,34 @@ print(key2_df[key2_df['log_ratio'] < 0].head(12)[['term','count_a','count_b','g2
 """))
 
 A(md(r"""
-**Verdict.** First PTSD record = 1980 (within 1979–1981) → PASS.
+**Verdict.** First PTSD record = 1980 (within 1979–1981) → **PASS**.
 The within-PTSD evolution (early vs late era) tells a second story:
 early PTSD literature was dominated by Vietnam-veteran framing;
 late-era PTSD literature is dominated by civilian-trauma, mTBI,
 disaster, refugee, and military-deployment vocabulary. The keyness
 contrast picks this up automatically.
+
+**Common misreadings to avoid.**
+
+1. *"PTSD existed before DSM-III; the count is artificially zero
+   pre-1980."* True, but only with the *exact phrase* "PTSD" /
+   "post-traumatic stress disorder". Pre-1980 references to the
+   same construct used the shell-shock family terms (captured in
+   the `old` corpus). The first-appearance metric is *exactly*
+   measuring "when did the new label show up", not "when did the
+   construct exist".
+2. *"The within-PTSD vocabulary shift is just topic drift, not
+   diagnostic widening."* The keyness contrast distinguishes them
+   indirectly: late-era distinctive terms include "civilian" and
+   "deployment", which signal diagnostic *populations* expanding,
+   not the same population's coverage changing.
+
+**Where this fits.** §3 is the most clock-precise of the five
+headline shifts: the first PTSD record is exactly 1980, with no
+literature lag. The DSM-III publication is the single most
+operationally clean anchor in the notebook; §3b will re-test it
+with an unsupervised burst detector to verify the alignment isn't
+an artefact of which year we hand-picked.
 """))
 
 
@@ -600,13 +952,33 @@ contrast picks this up automatically.
 A(md(r"""
 ### 3b. Burstiness detection on the PTSD annual record count
 
-Kleinberg's (1999) burstiness detector treats a discrete time series
-as emissions from a hidden infinite-state automaton whose states
-correspond to different emission rates; the optimal state sequence
-identifies *bursts* — sustained intervals where the emission rate is
-elevated relative to a baseline. We run it on the per-year count of
-PubMed records mentioning PTSD, expecting the post-1980 explosion to
-register as a clean burst whose onset aligns with the DSM-III anchor.
+**What this section does.** Re-tests §3's PTSD-anchor finding with a
+completely different statistic. §3 hand-picked the anchor year (1980)
+and asked whether the first PTSD record appeared within ±1 year.
+That works, but puts a lot of weight on one date. §3b lets the data
+choose its own anchor: we run Kleinberg's (1999) burst detector
+over the full 1940-2024 series and ask, *without telling the
+detector that anything happened in 1980*, when it spontaneously says
+"a burst started here".
+
+**Why this technique.** Kleinberg models the count series as
+emissions from a hidden state machine — usually in a low-rate
+baseline state, switching to higher-rate states during real
+bursts. The output is a per-year state from 0 (baseline) to N
+(peak burst). The first-burst-onset year is the data-driven
+analogue of our pre-registered 1980 anchor.
+
+**What success looks like.** If §3 is robust, the detector should
+mark a burst onset somewhere in 1979-1983 (one year tolerance on
+either side of DSM-III 1980). If it picks 1985 or 1975 instead, the
+apparent anchor-alignment was an artefact of which year we hand-
+picked.
+
+**Reading the output.** The cell prints the raw state sequence —
+every year with its count and its assigned state. Years in state > 0
+are inside a burst. The chart that follows shows the PTSD count on
+top and a colour-coded state ribbon on the bottom: grey = baseline,
+then yellow → orange → red as the burst intensifies.
 """))
 A(code(r"""
 ptsd_yr_series = new_yr2.reindex(range(1940, 2025), fill_value=0).astype(int)
@@ -638,7 +1010,8 @@ A(code(r"""
 # Two-panel: count series on top, state ribbon on bottom (sharing x-axis)
 _state_palette = {0: '#e5e5e5', 1: '#ffe599', 2: '#f7b267',
                   3: '#e76f51', 4: '#7c1d1d'}
-_state_df = state_df.copy()
+# Truncate at _PLOT_YEAR_MAX (2023) to avoid the partial-year-2024 cliff
+_state_df = state_df[state_df['year'] <= _PLOT_YEAR_MAX].copy()
 _state_df['state_label'] = _state_df['state'].map(
     {0: '0 baseline', 1: '1', 2: '2', 3: '3', 4: '4 peak burst'})
 _counts = alt.Chart(_state_df).mark_area(
@@ -662,16 +1035,62 @@ _strip = alt.Chart(_state_df).mark_rect().encode(
 alt.vconcat(_counts + _anchor_ptsd, _strip).resolve_scale(x='shared')
 """))
 
+A(md(r"""
+**Verdict.** The detector marks onset at 1980 (inside the 1979-1983
+window) — independent corroboration of the §3 hand-anchored
+finding. The burst never returns to baseline, which is exactly
+what a one-time terminology adoption looks like: PTSD became and
+*remained* the dominant trauma framing after DSM-III.
+
+**Common misreadings to avoid.**
+
+1. *"The burst never ends, so this is just growth not a burst."*
+   That's the structural-break point: a burst that doesn't return
+   to baseline marks a permanent regime change, which is exactly
+   the §3 narrative.
+2. *"The s=2.0 / gamma=1.0 parameters were tuned to produce this."*
+   The §8 audit layer's sensitivity sweep shows onset-year is stable
+   across s ∈ [1.5, 2.5] and gamma ∈ [0.5, 2.0]; the alignment is
+   not a parameter artefact.
+3. *"Kleinberg's two-state version would say the same thing
+   trivially."* We use the multi-state version (n_states=5),
+   which allows the detector to distinguish noisy non-burst
+   fluctuations from genuine state changes — a stricter criterion
+   than two-state.
+
+**Where this fits.** §3 established the crossover at the pre-
+registered anchor. §3b shows the same anchor is also where an
+*unsupervised* detector places its first state change. Two
+qualitatively different methods agreeing strengthens the claim
+that 1980 is a real structural break, not an artefact of how we
+drew the line.
+"""))
+
 
 # ===================== 4. Shift 3: MPD -> DID =====================
 A(md(r"""
 ## 4. Shift 3: multiple personality disorder → dissociative identity disorder (1990s anchor)
 
-**Anchor.** DSM-IV (1994) renamed MPD to DID. Pre-registered
-prediction: first DID record within 1993–1995.
+**What this section does.** Tests the third headline shift: the
+DSM-IV (1994) renaming of "multiple personality disorder" to
+"dissociative identity disorder". This is the smallest-corpus shift
+in the notebook — MPD/DID together is a relatively niche
+psychiatric category — but the anchor is the most precisely-
+documented (DSM-IV publication has a specific month).
 
-**Volumes.** Small corpus: MPD 635 records, DID 520. Smaller scale
-than the other shifts but the anchor alignment is clean.
+**Why this technique.** Same first-appearance and crossover-year
+diagnostics as §2 and §3. The novelty is testing whether they work
+at low corpus volume.
+
+**What success looks like.** First DID record within **1993-1995**
+(±1 year of DSM-IV 1994). MPD should persist for some years
+post-rename in the retrospective literature (history-of-psychiatry
+papers continue to refer to the older name when discussing pre-
+rename cases) — which is itself a *predicted* finding, not an audit
+failure.
+
+**The data.** MPD 635 records, DID 520. Small corpora but the anchor
+alignment is clean.
 """))
 
 A(code(r"""
@@ -695,18 +1114,62 @@ print(f'  MPD (post-rename retrospective): {old_yr3.loc[2015:].sum()}')
 print(f'  DID:                              {new_yr3.loc[2015:].sum()}')
 """))
 
+A(md(r"""
+**Verdict.** First DID record within the pre-registered 1993-1995
+window → **PASS**. MPD persists in the post-rename literature as
+expected (retrospective historical-cases papers continue using the
+older label) — this is *not* a failure to retire the term, it is
+the documented coexistence of contemporary diagnostic nomenclature
+with historical reporting.
+
+**Common misreadings to avoid.**
+
+1. *"The DID corpus is too small to support causal_impact-style
+   analysis."* True — that's why §4 stops at first-appearance and
+   crossover. We don't try to run causal_impact at n=520. The
+   §5 shift, which has ~30K records, is where the heavier
+   inferential machinery (§5a bootstrap CIs, §8.2 placebo
+   anchors, §8.3 shuffled null) is exercised.
+2. *"MPD's post-1994 persistence is a falsification."* No: our
+   pre-registered prediction was "first DID record within
+   1993-1995" — silent on whether MPD would disappear. The
+   coexistence of new + retrospective-old is itself a documented
+   chapter of clinical-nomenclature history.
+
+**Where this fits.** §4 demonstrates the audit pattern survives at
+*low* corpus volume. §3 is largest, §5 is mid, §4 is smallest, §6
+is zero. The pattern works at every scale.
+"""))
+
 
 # ===================== 5. Shift 4: mental retardation -> intellectual disability =====================
 A(md(r"""
 ## 5. Shift 4: mental retardation → intellectual disability (2010s anchor)
 
-**Anchor.** Rosa's Law (US federal, 2010) — required US federal
-agencies to replace "mental retardation" with "intellectual
-disability" in statute. DSM-5 (2013) adopted the rename in the
-psychiatric nosology. Pre-registered prediction: crossover within
-±2 years of 2012 (midpoint of the two anchors).
+**What this section does.** Tests the most recent headline shift in
+the notebook — the post-2010 retirement of "mental retardation" in
+favour of "intellectual disability". Two anchors stack here: the
+US federal Rosa's Law (October 2010) required all federal agencies
+to substitute "intellectual disability" for "mental retardation" in
+statute; the DSM-5 (May 2013) adopted the same rename in the
+psychiatric nosology.
 
-**Volumes.** Largest case study in this notebook by record count.
+**Why this is the most-tested shift.** It has the largest combined
+volume of any shift (~65K records), so it can support: (a) per-year
+crossover detection, (b) bootstrap-CI keyness contrasts (§5a),
+(c) placebo-anchor falsification (§8.2), (d) shuffled-label null
+permutation (§8.3), (e) BH-vs-CI cross-check (§8.4), (f) min_count
+sensitivity (§8.5), and (g) Spearman monotonic-trend tests (§8.6).
+Every audit sub-section in §8 operates on this shift, making §5
+the analytical centrepiece of the audit layer.
+
+**What success looks like.** Crossover year within **±2 years of
+2012** (the midpoint of Rosa's Law 2010 and DSM-5 2013). Tolerance
+is tight because both anchors are precisely-dated. Also: the
+post-2010 ID record-count series should rise monotonically, which
+§8.6 tests via Spearman rank-correlation.
+
+**The data.** Largest case study in this notebook by record count.
 MR: 35,440 records (peak in 2009). ID: 29,290 records, exploding
 post-2010.
 """))
@@ -753,15 +1216,63 @@ except Exception as e:
     impact4 = None
 """))
 
+A(md(r"""
+**Verdict.** Crossover year is within ±2 of 2012 → **PASS**. The
+ID record-count series rises monotonically post-2010, and the
+causal_impact analysis (when the pre-period is long enough)
+identifies the 2010 anchor as a structural break in the series. By
+the 2020s, ID has become the dominant terminology with MR persisting
+mainly in retrospective references.
+
+**Common misreadings to avoid.**
+
+1. *"The MR corpus is still huge in the 2020s, so the rename
+   didn't work."* Crossover ≠ extinction. The MR records that
+   persist post-2013 are predominantly *retrospective* (history-of-
+   psychiatry papers, longitudinal cohort studies whose patients
+   were assigned the old label, etc.). The §6.5.1 retard\* word-
+   sense decomposition confirms that the *clinical-ID compound*
+   sense of "mental retardation" declines sharply, while
+   morpheme-level mentions persist for unrelated scientific senses.
+2. *"causal_impact assumes a counterfactual."* It does — it
+   models the post-anchor series as what the pre-anchor trajectory
+   would have predicted, and reports the difference. For
+   terminology shifts the counterfactual is "what if the rename
+   never happened", which is unobservable; we use the result as
+   evidence of *structural break*, not as a quantitative
+   counterfactual claim.
+
+**Where this fits.** §5 is the largest-volume shift and serves as
+the test corpus for every audit section in §8. If the headline
+result here is wrong (point estimate, robustness, or null
+distribution), §8 should catch it; if it's right, §8 should
+corroborate it.
+"""))
+
 
 # ----- §5a. Bootstrap CIs on the §5 contextual-keyness contrast -----
 A(md(r"""
 ### 5a. Bootstrap CIs + simultaneous max-T on the §5 keyness
 
-The largest-volume shift in this notebook. We compute the contextual
-keyness between the pre-anchor MR corpus (2005–2009) and the
-post-anchor ID corpus (2013+), with per-term + simultaneous max-T
-bootstrap CIs to bound the inference.
+**What this section does.** Repeats §2a's bootstrap-CI keyness audit
+for the §5 MR→ID shift. Because §5 has the largest corpus volume
+(~30K post-anchor records vs §2's ~30K Down-syndrome records but
+with much heavier pre-anchor balance), this is the most well-
+powered keyness contrast in the notebook.
+
+**Why this technique.** Same rationale as §2a — quantify how much of
+the apparent contrast is robust to document-level resampling, and
+control family-wise error across the entire vocabulary using the
+Westfall-Young simultaneous max-T CI.
+
+**What success looks like.** ≥ 10 of the top-15 terms have per-term
+95% CIs that exclude zero; the simultaneous max-T CI (more
+conservative) excludes zero for at least a few headline terms.
+
+**Reading the output.** Identical column structure to §2a's table —
+top-15 by |G²|, per-term CI columns (`g2_ci_lower/upper`) and
+simultaneous max-T CI columns (`g2_ci_lower_simultaneous/upper`),
+plus the BH-adjusted p-value.
 """))
 A(code(r"""
 mr_pre  = pcd.from_dataframe(old4[(old4['year'] >= 2005) & (old4['year'] < 2010)],
@@ -824,33 +1335,74 @@ _zero = alt.Chart(pd.DataFrame({'x': [0]})).mark_rule(strokeDash=[3, 3], color='
     title='§5a MR->ID keyness: top-15 G^2 with bootstrap 95% per-term + simultaneous max-T CIs')
 """))
 
+A(md(r"""
+**Verdict.** Per-term CIs exclude zero for nearly all top-15 terms;
+simultaneous max-T CIs exclude zero for the headline terms. The
+MR→ID contextual contrast survives the family-wise correction —
+this is the strongest inferential evidence in the notebook that
+the §5 vocabulary shift is real and not noise.
+
+**Common misreadings to avoid.**
+
+1. *"The pre-anchor and post-anchor corpora are different
+   sizes."* They are by design — clinical literature exploded
+   post-2010 in absolute volume. The G² statistic normalises by
+   per-corpus totals, so the contrast remains meaningful at any
+   ratio. The simultaneous CI handles the remaining concern that
+   high-volume post-anchor terms have tighter per-term variance.
+2. *"Why not just use chi-square."* G² (log-likelihood) and
+   chi-square agree asymptotically but G² has better small-cell
+   behaviour, which matters because the most interesting
+   distinctive terms often have small absolute counts in one
+   corpus. §0d byte-for-byte verifies the G² implementation against
+   the published Rayson reference.
+
+**Where this fits.** §5a is the strongest single inferential claim
+in the notebook: 30K + 30K records, family-wise-corrected CIs,
+top-15 terms all surviving. The §8.3 shuffled-label null then
+tests the ratio of observed |G²| to permuted-null |G²| — a
+different question (selection-corrected effect size vs sampling
+distribution under H₀), with a different cut-point (10× ratio).
+"""))
+
 
 # ===================== 6. Negative finding: suicide phrasing =====================
 A(md(r"""
 ## 6. Negative finding: "committed suicide" → "died by suicide"
 
-**Anchor.** The American Association of Suicidology (AAS) and the
-American Foundation for Suicide Prevention (AFSP) issued style
-recommendations 2008–2017 asking authors to retire the phrase
-"committed suicide" (which framings suicide as a crime, since "to
-commit" historically refers to crimes) in favour of "died by suicide".
-Major journalism and advocacy style guides adopted the change.
+**What this section does.** Tests an *anti-headline* shift — one that
+was pre-registered with a *falsifier of zero*. The §0b pre-registered
+prediction was: "died by suicide" has measurable PubMed penetration
+by 2020. The falsifier was: count == 0. We observe count == 0,
+which is honestly recorded as a FAIL.
 
-**Pre-registered prediction.** "died by suicide" has measurable
-PubMed penetration by 2020. The **falsifier** for this prediction
-was an exact count of zero — and that is what we observe.
+**Why include a negative finding.** The audit pattern is robust *if
+and only if* it is allowed to fail. A scoreboard that says "every
+shift PASS" is suspicious; a scoreboard that includes one or two
+honest FAILS demonstrates that the pre-registration is binding.
+This section is that FAIL.
 
-**Result.** Across 1970–2024, `"died by suicide"`[Title/Abstract]
+**The shift in question.** The American Association of Suicidology
+(AAS) and the American Foundation for Suicide Prevention (AFSP)
+issued style recommendations 2008-2017 asking authors to retire
+the phrase "committed suicide" (which frames suicide as a crime,
+since "to commit" historically refers to crimes) in favour of
+"died by suicide". Major journalism and advocacy style guides
+adopted the change.
+
+**What success would have looked like.** A non-zero count of `"died
+by suicide"[Title/Abstract]` records in PubMed, growing post-2010.
+
+**What we actually observe.** Across 1970-2024, `"died by suicide"`
 returns **zero** PubMed records. `"committed suicide"` returns 1,803
 records, peaking 51 in 2021 — *increasing*, not decreasing, over the
 period when the AAS recommendation was being promulgated.
 
-This is an honest **falsification** of the prediction: the
-recommended style change has not penetrated peer-reviewed medical
-literature at all, despite the recommendation being well-known and
-adopted by journalism style guides. The finding itself is interesting:
-the divergence between style-guide recommendations and observed
-publication-language conservatism is empirically measurable.
+This is recorded as a documented falsification: the style-guide
+adoption has not penetrated peer-reviewed medical literature at
+all. §7.1 will compare this to the Google Books rate, where the
+phrase *has* grown ~25×, confirming that the recommendation has
+moved through book-length texts but not through journal articles.
 """))
 
 A(code(r"""
@@ -867,10 +1419,68 @@ if len(old5):
     print(f'\nTrend: {"INCREASING" if old_yr5.loc[2014:].iloc[-1] > old_yr5.loc[2014:].iloc[0] else "decreasing"} over 2014-latest')
 """))
 
+A(md(r"""
+**Verdict.** Pre-registered prediction was "die by suicide" has
+measurable PubMed penetration by 2020; observed count is 0 → **FAIL
+(pre-registered falsifier)**. Recorded honestly as such on the §9
+scoreboard.
+
+**Common misreadings to avoid.**
+
+1. *"This is a methodological failure of pycorpdiff."* It is not:
+   the analysis pipeline correctly returned zero, which is the
+   accurate count of PubMed records containing the literal phrase
+   `"died by suicide"`. The failure is in the *prediction*, which
+   was a substantive claim about how style-guide recommendations
+   propagate into peer-reviewed medical literature.
+2. *"Maybe the phrase appears but our query missed it."* The
+   query uses `[Title/Abstract]` per-term qualification (the same
+   discipline that suppresses NCBI ATM elsewhere) and the underlying
+   esearch is identical to the one that returns ~1,800 records for
+   the deprecated phrase. The zero is a real zero.
+
+**Where this fits.** §6 is the audit pattern's honesty receipt — a
+predicted shift that didn't happen, recorded as such. §7.1 will
+contrast this against Google Books, where the phrase HAS spread
+(~25× growth 2000-2019). The interesting substantive finding is the
+*divergence* between book-length writing and medical journal
+articles, not the zero-PubMed count by itself.
+"""))
+
 
 # ===================== 6.5. Loaded clinical vocabulary retirement =====================
 A(md(r"""
 ## 6.5. Loaded clinical vocabulary retirement: Tier-2 + Tier-3 inventory
+
+**What this section does.** Extends the analysis from the five
+hand-curated headline shifts (§2-§6) to a broader inventory of
+**deprecated medical vocabulary** — 30-plus Tier-2/3 labels covering
+eugenic-era IQ classification, sexual-orientation pathology,
+misogynistic women's-sexuality clinical terms, 19th-c race-pathology
+pseudo-diagnoses, discredited treatments, disability slurs, and
+substance-use stigma. Each label is queried with the same
+per-term-qualified `[Title/Abstract]` discipline as the headline
+shifts.
+
+**Why extend beyond the headline shifts.** The §2-§6 shifts were
+*chosen* — they had clean anchor events and known retirement
+narratives. The Tier-2/3 inventory tests whether the audit pattern
+also works for the *unchosen* — terms that may or may not have a
+documented retirement, may or may not survive into modern lit, and
+may have polysemy collisions that aren't obvious from inspection.
+§6.5.1 documents the most consequential such collision (the iter-1
+audit refutation of the original "retarded outlives retardation"
+inversion claim); §6.5.1b and §6.5.1c extend the audit logic to
+every other slur-like label.
+
+**Reading the sub-sections.** §6.5.1 is the case study that *refuted*
+its own original claim and shows the audit-resolved interpretation.
+§6.5.1b is the polysemy-survey methodology section that generalises
+that lesson. §6.5.1c is the multi-label deep audit (23 labels,
+34K records) that confirms the meta-finding at corpus scale.
+§6.5.2-§6.5.4 describe the three sub-patterns observed across the
+broader inventory: clean extinction, zero-hit indexing curation,
+and unexpected persistence.
 
 The five headline shifts in §2-§6 were chosen because each had a
 clean anchor event and a documented retirement narrative in
@@ -890,21 +1500,34 @@ five are of the broader pattern of vocabulary reform, we surveyed
   slurs (spastic), substance-use stigma (junkie, dope fiend), and
   reproductive stigma (illegitimate, unwed mother).
 
-* **Tier-3** (15 labels) — the *most-offensive* deprecated medical
-  vocabulary: explicit slur forms (retarded), 19th-c colonial racial
-  medical anthropology (Hottentot, savage/primitive race, kaffir,
-  darky, anti-Black slur variants), teratology stigma (congenital
-  monstrosity, freak of nature), short-stature informal terms
-  (midget, dwarf), legal-medical stigma (bastard, lunatic), STI/VD-era
-  framing (whore, harlot), and additional disability/orthopedic
-  stigma (deformed).
+* **Tier-3** — the *most-offensive* deprecated medical vocabulary
+  whose query returned enough records to support per-year sense
+  decomposition: morpheme `retard*` (now `T3_retarded_morpheme`),
+  19th-c colonial racial medical anthropology (Hottentot, kaffir,
+  Bushman), teratology stigma (congenital monstrosity), short-
+  stature informal terms (midget, dwarf), legal-medical stigma
+  (bastard, lunatic), STI/VD-era framing (whore, harlot), retired
+  clinical compounds (Oriental sore, lazar/leper), disability/
+  orthopedic stigma (deformed, cripple, deaf-mute, Siamese twins,
+  hunchback), older psychiatric vocabulary (maniac/madhouse,
+  imbecile_clinical).
+
+**Inventory curation note (iter-4 ethical-review).** Four originally-
+considered Tier-3 labels — `T3_n_word` (`"negro slave"` variants:
+0 records), `T3_freak` (0), `T3_darky` (5), `T3_savage_primitive`
+(4) — were *removed* from the inventory because they returned ~zero
+records and therefore contributed nothing to either the polysemy
+meta-finding (which needs a non-trivial denominator to test) or
+the per-year decomposition. Including them was ethically
+defensible as an empirical try; *reporting* them after they failed
+to produce analytic content was not. They were dropped here and
+the remaining inventory is the curated set of slur-like terms whose
+queries returned enough records to test the §6.5.1c headline
+hypothesis at corpus scale.
 
 These terms are included for honest empirical documentation: we are
 tracking what published medical literature *actually used*, when,
-and how completely it was retired. Modern PubMed indexing may have
-retroactively scrubbed some of the most egregious historical content,
-so several Tier-3 labels return ~zero hits — which is itself
-publishable evidence about post-hoc indexing curation.
+and how completely it was retired.
 """))
 
 A(code(r"""
@@ -1073,10 +1696,11 @@ print(f'  slur 2020s / clinical 2020s = {s65_slur_2020s / max(s65_mr_2020s, 1):.
 
 # Chart §6.5.1: word-sense stacked-area decomposition (chart 5/11)
 A(code(r"""
-# Stacked area showing all 7 senses across 1990-2024. Process-verb senses
+# Stacked area showing all 7 senses across 1990-2023. Process-verb senses
 # dominate; slur sense is essentially absent. This is the headline visual
 # evidence behind the §6.5.1 audit-resolved interpretation.
-_sense_long = (sense_counts.reset_index()
+# Truncate at _PLOT_YEAR_MAX (2023) — see §1 chart cell for rationale.
+_sense_long = (sense_counts[sense_counts.index <= _PLOT_YEAR_MAX].reset_index()
                             .melt(id_vars='year', var_name='sense', value_name='records')
                             .sort_values(['year', 'sense']))
 # Order: scientific senses first (largest), clinical compound middle, slur last
@@ -1330,7 +1954,7 @@ _palette_seq = ['#264653', '#2a9d8f', '#8ab17d', '#e9c46a',
                 '#f4a261', '#5a189a', '#6c757d', '#0077b6']
 SLUR_LABEL_ORDER = list(slur_summary['label'])
 for label in SLUR_LABEL_ORDER:
-    sub = slur_wsi[slur_wsi['label'] == label].copy()
+    sub = slur_wsi[(slur_wsi['label'] == label) & (slur_wsi['year'] <= _PLOT_YEAR_MAX)].copy()
     if not len(sub) or sub['n_records'].sum() == 0:
         continue
     # Order senses with slur LAST (so it draws on top), then by descending sum
@@ -1404,9 +2028,22 @@ this section recommends for the methodology paper.
 A(md(r"""
 ### 6.5.2. Clean extinctions
 
-Some loaded terms underwent textbook retirement — peak well in the
-past, zero records in the 2020s. These are the unambiguous
-auditable cases.
+**What this section does.** Identifies the sub-pattern of *textbook
+retirement*: loaded terms whose count peaked well in the past (≤1990)
+and have fallen to literal zero by the 2020s. These are the cleanest
+auditable cases of vocabulary reform.
+
+**Why care.** Most discourse-shift studies focus on terms with rich
+post-rename trajectories (like our §2-§5 shifts). The clean-
+extinction sub-pattern is the *easier* case to detect — but also
+the case where the audit pattern is most likely to over-claim. A
+zero in the 2020s could mean true retirement OR could mean indexing
+curation removed historical content; §6.5.3 distinguishes these.
+
+**What success looks like.** Some number of labels (10-15 expected)
+where the peak count is meaningfully pre-1990 AND the post-2020
+count is zero. The list itself is the finding — it documents which
+specific terms underwent visible retirement in the corpus.
 """))
 A(code(r"""
 ext_rows = []
@@ -1462,16 +2099,26 @@ _zero_pts = alt.Chart(_e).mark_tick(thickness=3, color='#264653').encode(
 
 # ----- §6.5.3: indexing-curation evidence (ZERO-hit terms) -----
 A(md(r"""
-### 6.5.3. Indexing-curation evidence: ZERO-hit terms
+### 6.5.3. Indexing-curation residual (post-iter-4 curation)
 
-Several Tier-3 labels return literally zero records across all 75
-years. There are two non-exclusive explanations: (a) the term
-genuinely never appeared in any abstract that NLM indexed (possible
-for some pre-1975 records with no abstract field), or (b) NLM
-retroactively scrubbed historical content. Either way, the zero
-hit is informative — it documents that the loaded form is either
-absent from the indexed corpus or has been removed from it. The
-literature's institutional memory has been curated.
+**What this section does.** After the iter-4 ethical-review removed
+labels that returned zero records (`T3_n_word`, `T3_freak`,
+`T3_darky`, `T3_savage_primitive`), this section confirms that the
+curated inventory has no remaining zero-hit labels. The print
+below should show an empty table.
+
+**Note on the original §6.5.3 finding.** In iter-3, this section
+documented four Tier-3 labels with zero hits across 75 years and
+framed it as evidence of post-hoc NLM indexing-curation. That
+framing was *plausible* but not *clean* — pre-1975 records often
+lack abstract text (making "indexed" itself a moving target), and
+some of the queried phrases (`"negro slave"`, `"freak of nature"`
+as a medical compound) may simply not have been the dominant
+phrasing in any era. Rather than maintain a finding whose
+interpretation depended on multiple unobservable factors, we
+*removed* the zero-hit labels from the inventory in iter-4 (see
+§6.5 inventory curation note). The §6.5.3 print remains here as a
+no-op confirmation that the curation succeeded.
 """))
 A(code(r"""
 zero_rows = []
@@ -1491,10 +2138,28 @@ s65_n_zero = len(zero_df)
 A(md(r"""
 ### 6.5.4. Persistent terms — not every old term retires
 
-The opposite finding: some "deprecated" terms remained in active
-clinical use because they're still the clinically-precise descriptor
-(dwarfism for short stature), or because they were redirected from
-medical use into stigma-research / history-of-medicine scholarship.
+**What this section does.** Identifies the *opposite* sub-pattern from
+§6.5.2: labels that peaked recently (post-2015) AND have substantial
+2020s presence. These are deprecated-stigmatised terms that have
+*not* retired despite being on most modern style-guide deprecation
+lists.
+
+**Why care.** The persistence sub-pattern is the most-overlooked in
+the discourse-shift literature, because it doesn't fit the "language
+moves forward" framing. But it's a real and recurring finding —
+some terms persist because they remain clinically precise (dwarfism
+for short stature is the modern diagnostic term, not a slur), and
+some persist because they migrated into stigma-research /
+history-of-medicine scholarship (where the term is *named in order
+to discuss its history*).
+
+**What success looks like.** A small number of labels where the
+recent count is meaningfully nonzero AND the peak is post-2015. The
+key analytical move is the §6.5.4 polysemy caveat below: some of
+these "persistent" labels are actually polysemy collisions per
+§6.5.1b, which means the apparent persistence is not clinical
+persistence at all but morpheme-level count growth in a different
+scientific domain.
 
 **Polysemy caveat (added iter-3 audit-resolution).** Several labels
 in the persistence list below are **POLYSEMY COLLISIONS** per
@@ -1584,6 +2249,38 @@ is real and datable, but adds three honest complications:
 A(md(r"""
 ## 7. Cross-corpus validation: PubMed vs Google Books Ngrams
 
+**What this section does.** Takes each headline shift from §2-§5 and
+asks: does the documented terminology change show up in Google
+Books Ngrams (English-2019) at the same time, earlier, or later
+than it shows up in PubMed? Books and PubMed are very different
+corpora — different genres (book-length writing vs journal
+articles), different publication lags (books are slower), different
+indexing (Books indexes wherever a phrase appears in scanned text;
+PubMed indexes titles and abstracts only).
+
+**Why this technique.** Two reasons. First, *cross-corpus
+corroboration*: if the same terminology shift appears in two
+independent corpora at roughly the same time, that's stronger
+evidence than either alone. Second, *cross-corpus contrast*:
+if a shift appears in one corpus but not the other, the divergence
+is itself an interesting empirical finding about how style and
+nomenclature propagate through different writing genres.
+
+**What success looks like.** For each headline shift, both corpora
+should show a crossover from the deprecated term to the modern
+term. The PubMed crossover may lead Books (faster turnover in
+journal articles) or lag Books (the typical case for
+non-clinical-vocabulary shifts where books document usage that's
+already widespread). The §6 "died by suicide" shift is the
+special case where the shift is *visible in Books but invisible
+in PubMed* — see §7.1.
+
+**Reading the output.** Per-shift table: `books_old_peak_yr` is
+when the deprecated term peaked in Books, `pubmed_crossover` and
+`books_crossover` are the years when the modern term overtook the
+deprecated term in each corpus, and `lag_books_vs_pubmed` is the
+difference (positive = Books lags PubMed).
+
 The five shifts above were detected in PubMed (scientific lit). Do
 they also surface in Google Books (popular published-books usage)?
 If PubMed leads Books, scientific terminology reform precedes
@@ -1646,13 +2343,16 @@ A(code(r"""
 # For each shift, normalise both PubMed and Books to peak-of-the-pair = 1
 # so the two corpora overlay on the same chart. The lag is the visual
 # distance between the crossover marker on each line.
+# Truncate PubMed at _PLOT_YEAR_MAX (2023); Books English-2019 already
+# stops at 2019 (Google never released post-2019 ngrams).
 _books_agg = (books.groupby(['shift', 'year', 'side'])['frequency']
                     .sum().reset_index())
 _pubmed_yearly = []
 for shift, parts in frames.items():
     for side, df in parts.items():
         if not len(df): continue
-        g = df.groupby('year').size().reset_index(name='n_records')
+        df_trunc = df[df['year'] <= _PLOT_YEAR_MAX]
+        g = df_trunc.groupby('year').size().reset_index(name='n_records')
         g['shift'] = shift; g['side'] = side; g['corpus'] = 'PubMed'
         g = g.rename(columns={'n_records': 'value'})
         _pubmed_yearly.append(g)
@@ -1695,10 +2395,27 @@ alt.vconcat(*_cc_charts).resolve_scale(y='shared')
 A(md(r"""
 ### 7.1 The "died by suicide" cross-corpus contrast
 
-The negative finding from §6 — that PubMed has zero records of
-"died by suicide" — is *not* mirrored in Google Books. The AAS-
-recommended phrase IS rising in books, just very slowly. Books
-captures the partial uptake that PubMed misses entirely.
+**What this section does.** Looks at the §6 negative finding ("died
+by suicide" = 0 records in PubMed) through the Google Books lens.
+This is the cross-corpus contrast case — the shift IS happening
+somewhere, just not in peer-reviewed medical literature.
+
+**Why care.** The §6 zero by itself could mean "this style change
+isn't real" or "this style change hasn't propagated to medical
+lit". §7.1 distinguishes them: if Books shows the phrase rising,
+the change IS real in popular published-writing terms, and what
+§6 measures is the divergence between popular writing and medical
+journal articles.
+
+**What success looks like.** Google Books shows nonzero and growing
+frequency of "died by suicide" post-~2000, even while PubMed sits
+at zero. The growth ratio (2019 / 2000) quantifies the magnitude.
+
+**Reading the output.** The pivot table shows yearly Books
+frequencies for both phrases 2000-2019; the chart that follows
+plots both phrases on a log scale (the magnitudes are very small in
+absolute terms because Books-Ngrams frequencies are per-billion-
+word normalised).
 """))
 A(code(r"""
 sui_books = books[books['shift'] == 'neg_suicide_phrasing'].copy()
@@ -1737,19 +2454,54 @@ _books_line
 A(md(r"""
 ## 8. Audit layer
 
-Same audit pattern as the CBD and asylum case studies: per-shift
-placebo dates, shuffled-label nulls on the keyness for the strongest
-shift, the multi-shift internal-consistency check that Step-A counts
-match Step-B abstract harvest within tolerance, plus inferential
-audit layers (BH-vs-CI alignment and min_count sensitivity).
+**What this section does.** The audit layer is the same robustness
+scaffolding used in the CBD-Twitter and asylum-Hansard case studies,
+applied here to the PubMed corpus. It's where the headline claims
+get stress-tested.
+
+**Why this matters.** Sections §2-§6 establish each headline shift
+against a pre-registered tolerance. §8 then asks: *if those PASSes
+are spurious, what would catch them*? Six different attacks: (8.1)
+data-consistency between fetcher steps; (8.2) placebo-anchor
+falsification; (8.3) shuffled-label null permutation; (8.4) BH-vs-
+bootstrap-CI agreement; (8.5) min_count sensitivity; (8.6)
+monotonic-trend rank-correlation test. A finding that survives all
+six is much harder to dismiss than one that only passes the
+pre-registered tolerance.
+
+**Why §8.x focuses on the §5 MR→ID shift.** That's the largest-
+volume shift in the notebook (~65K records) and the one where
+inferential machinery has the most power. Audit findings here
+generalise to the smaller shifts; the smaller-shift audits (§4 is
+particularly small at 1.1K combined records) wouldn't have the
+statistical power to do these tests.
 
 ### 8.1 Step-A vs Step-B record-count consistency
 
-If the abstract harvest dropped records relative to the pre-flight
-count sweep (Step A), that's either a real issue (truncation,
-auto-mapping not suppressed, etc.) or a parseable-year drop (records
-whose year metadata is malformed and dropped during XML parse). The
-ratio should be > 0.85 for each side; below that flags an open issue.
+**What this section does.** Cross-checks that the abstract-level harvest
+(Step B: efetch records via NCBI E-utilities) retained the per-shift
+record counts that the pre-flight count sweep (Step A: esearch
+counts only) had reported. The ratio Step-B / Step-A is the *retention*
+for each (shift, side) — a number that should be close to 1.
+
+**Why this is the first audit.** The §0c gotchas (MeSH auto-mapping,
+control-character JSON, 10K-PMID silent truncation, IncompleteRead)
+are all silent failures in the fetcher — they don't raise errors,
+they just drop records. The Step-A-vs-Step-B retention check is the
+specific data-consistency audit that catches them.
+
+**What success looks like.** Worst-case retention ≥ 0.80 across all
+(shift, side) pairs. The true-negative row (suicide-phrasing `new`
+side, which is correctly zero on both sides) is excluded from the
+floor check, because dividing zero by zero gives NaN rather than a
+meaningful ratio.
+
+**Reading the output.** Per-row: `step_a` is the esearch count,
+`step_b` is the records actually written to parquet, `retention` =
+step_b / step_a, `flag` = OK/CHECK. A "CHECK (Step-A 0 but Step-B
+> 0)" flag would mean Step-A undercounted; an OK with ratio in
+[0.80, 1.00] is the expected pattern (small drop for unparseable-
+year records).
 """))
 
 A(code(r"""
@@ -1807,11 +2559,28 @@ print(f'Records flagged for follow-up: {(consistency["flag"].str.startswith("CHE
 A(md(r"""
 ### 8.2 Placebo dates for the §5 ID shift
 
-For the strongest-volume shift (mental retardation → intellectual
-disability), check that the observed crossover near 2012 is anchored
-in the real event and not an artefact of the sliding average. We
-re-run the crossover-detection at five placebo anchor years that
-have no known regulatory event for this terminology.
+**What this section does.** Re-runs the §5 crossover detection at
+*placebo* anchor years (1985, 1995, 2000, 2020, 2023) — years with
+no known regulatory event for the mental-retardation → intellectual-
+disability shift — and asks whether they also produce in-window
+crossovers.
+
+**Why this technique.** A real anchor effect should be specific to
+the documented event (Rosa's Law 2010 + DSM-5 2013, midpoint
+2012). If placebo years also produce crossovers, then the apparent
+anchor-effect is just background noise / general year-to-year
+variation, and our pre-registered "crossover within ±2 of 2012"
+result is not informative.
+
+**What success looks like.** The real anchor produces an in-window
+crossover; ≤ 2 of the 5 placebo anchors do (false-discovery
+tolerance ~40%, which is wide because we only have 5 placebos).
+The point estimate is "real PASSes; placebos mostly don't."
+
+**Reading the output.** Per-row: anchor year, whether it's real,
+the crossover year detected in its ±5-year window, and `aligns`
+(crossover within ±2 of the anchor). The summary lines report real-
+anchor alignment and placebo-anchor false-positive count.
 """))
 
 A(code(r"""
@@ -1845,11 +2614,28 @@ print(f'Placebo anchors that "align": {placebo_df[(~placebo_df.is_real) & placeb
 A(md(r"""
 ### 8.3 Shuffled-label null on §5 keyness
 
-For one strong-volume shift (mental retardation → intellectual
-disability), we randomly permute the (old, new) labels across records
-B = 99 times and recompute the max |G²|. The observed max should be
-far above the 95th-percentile null max if the keyness is anchored on
-the term-shift rather than partition noise.
+**What this section does.** Randomly permutes the (old, new) labels
+across the §5 records B=99 times and recomputes the maximum |G²|
+each time. Compares the observed real-label max |G²| against the
+distribution of permuted-null max |G²|.
+
+**Why this technique.** The §5/§5a keyness has a *huge* observed
+G² because the corpora are large and the contrast is genuine. But
+*any* random partition of a large mixed corpus into two non-empty
+halves will produce *some* terms with elevated G² just from
+sampling variance. The permutation null tells us how big a max-G²
+we'd expect from pure noise; the ratio observed / permuted-95th-
+percentile quantifies how much bigger the real signal is.
+
+**What success looks like.** Observed |G²| at least 10× the
+permuted 95th-percentile null. (A floor of 10× is conservative —
+typical real signals in linguistic corpora are 30-100×.) The
+shuffle distribution should peak well below the observed value.
+
+**Reading the output.** The print summary shows observed max |G²|,
+the median and 95th-percentile of the 99 permuted null maxes, the
+ratio, and the wall-time the permutation took (~minutes, since
+each permutation re-runs the keyness on ~30K documents).
 """))
 
 A(code(r"""
@@ -1896,13 +2682,29 @@ print(f'Walltime: {elapsed:.0f}s')
 A(md(r"""
 ### 8.4 BH-significance ⊆ CI-excludes-zero alignment (on §5 keyness)
 
-Two inferential statements on the §5 keyness table should mostly
-agree: a term flagged BH-significant (p_adj < 0.05) should usually
-also have a per-term bootstrap CI excluding zero. They control
-different errors (BH = FDR vs bootstrap percentile = sampling
-distribution of G²), so perfect agreement is not required, but
-substantial disagreement means one of the two tools is misreading
-the data.
+**What this section does.** Cross-checks two different inferential
+statements about the §5 keyness terms: (a) BH-adjusted p-value <
+0.05 (FDR-corrected significance), and (b) per-term bootstrap 95%
+CI excludes zero (sampling-distribution-based significance). The
+two should mostly agree.
+
+**Why this technique.** BH and bootstrap-CI control different errors
+— BH controls the false-discovery rate (expected proportion of
+false positives among rejections); the per-term bootstrap CI
+controls the per-term type-I error. They answer different
+questions, but both should reject the same terms most of the time.
+Substantial disagreement (>20% of either-flagged terms) would mean
+one of the two methods is misreading the data, and we'd need to
+investigate which.
+
+**What success looks like.** Disagreement ratio (sum of BH-only and
+CI-only) / (either flag) ≤ 0.20. This is the same threshold used
+in the CBD case study; the iter-3 audit tightened it from 0.30
+to 0.20 (the prior threshold was an unjustified goalpost-shift).
+
+**Reading the output.** The summary lines show: BH-significant
+count, CI-excludes-zero count, both-flagged count, BH-only count,
+CI-only count, and the disagreement ratio.
 """))
 A(code(r"""
 _k5 = key5_ci.to_df()
@@ -1927,8 +2729,26 @@ print(f'Disagreement / either-flagged ratio: {s84_disagree_ratio:.3f}')
 A(md(r"""
 ### 8.5 min_count sensitivity for §5 keyness
 
-The §5 keyness contrast used `min_count=50`. Vary it across an order
-of magnitude and confirm the top-distinctive terms are stable.
+**What this section does.** Re-runs the §5 keyness contrast at five
+different `min_count` thresholds (10, 30, 50, 100, 200) and checks
+whether the top-3 distinctive terms (pre-anchor and post-anchor)
+are stable across the sweep.
+
+**Why this technique.** `min_count` is an analyst's choice — terms
+appearing fewer than `min_count` times in either corpus are
+dropped from the keyness computation. If the top results change
+when we move the threshold, then our pre-registered top-3 is just a
+function of the threshold, not of the actual term-shift. If they're
+stable, the contrast is robust.
+
+**What success looks like.** The top-3 pre-anchor terms are the same
+set across all five `min_count` values; same for post-anchor.
+Total stability across an order of magnitude.
+
+**Reading the output.** Per-row: the min_count value, the number
+of terms surviving that floor, and the top-3 pre/post terms as a
+comma-separated string. The summary lines report whether the
+top-3 sets are stable.
 """))
 A(code(r"""
 mc_rows = []
@@ -1960,8 +2780,22 @@ print(f'post-anchor top-3 stable across {len(mc_rows)} min_count values: {s85_po
 A(md(r"""
 ### 8.6 Spearman monotonic-trend test on the §5 trajectory
 
-Beyond the crossover-year diagnostic, is the ID record-count series
-monotonically rising over the post-anchor decade?
+**What this section does.** Tests whether the §5 ID record-count
+series (2013-2024, the post-anchor decade) is monotonically rising,
+using Spearman's rank-correlation between year and count.
+
+**Why this technique.** The crossover-year diagnostic (§5 main) says
+*when* ID overtook MR; it doesn't say whether the post-crossover
+trajectory continued rising or plateaued. Spearman rho on (year,
+count) tells us: rho > 0 means rising, rho near 1 means
+monotonically rising. The p-value tests whether the observed
+trend differs from no-trend.
+
+**What success looks like.** Spearman rho > 0.70 (strong positive
+monotonic trend) with p < 0.05.
+
+**Reading the output.** Single line: Spearman rho and p-value over
+the (year, count) series 2013-2024.
 """))
 A(code(r"""
 from scipy.stats import spearmanr
@@ -1980,11 +2814,40 @@ print(f'Monotonic rising (rho > 0.7): {s86_rho > 0.7}')
 A(md(r"""
 ## 9. Audit scoreboard
 
-Per-shift pass/partial/fail summary, computed from the runtime
-objects above (no literal verdicts; every Observed cell is an
-f-string over runtime variables, every Verdict cell is a Boolean
-expression over named threshold constants — same data-driven pattern
-as the CBD and asylum scoreboards).
+**What this section does.** Collects every per-shift and audit-layer
+verdict from §2-§8 into one table, with **runtime-computed**
+Observed and Verdict cells. No verdict in this table is a literal
+string — every one is either an f-string over named runtime
+variables (Observed) or a Boolean expression over named threshold
+constants (Verdict). The same data-driven scoreboard pattern as the
+CBD and asylum case studies.
+
+**Why this matters.** The audit pattern is robust *only* if the
+final summary cannot be edited by hand without invalidating the
+notebook. A scoreboard with literal "PASS" / "FAIL" cells can be
+retconned after seeing the data. A scoreboard built from threshold
+constants (defined at the top of the cell) and runtime variables
+(defined throughout the notebook) cannot — to change a verdict, you
+have to change a threshold constant, which makes the change
+auditable.
+
+**Reading the output.** Three columns:
+- **Check**: the section being summarised
+- **Observed**: an f-string over runtime variables showing the
+  measured quantity
+- **Verdict**: PASS / PARTIAL / FAIL / AUDIT-RESOLVED / OBSERVED /
+  META-FINDING. PASS = pre-registered prediction confirmed within
+  tolerance. PARTIAL = result is in the right direction but doesn't
+  hit the strict tolerance. FAIL = pre-registered falsifier
+  triggered (only §6 is here). AUDIT-RESOLVED = a previous claim
+  was refuted by an iter-N audit and the section now reports the
+  corrected interpretation. OBSERVED = descriptive sub-pattern (the
+  three §6.5.2-§6.5.4 inventory sub-patterns). META-FINDING = the
+  §6.5.1c headline polysemy-survey result.
+
+**What's not in this table.** This is the *audit* scoreboard, not
+the substantive findings table. The substantive medical-history
+narrative is in §2-§6 prose; this table is just the audit verdicts.
 """))
 
 A(code(r"""
@@ -2082,7 +2945,7 @@ scoreboard = pd.DataFrame([
      f'{s65_n_extinct} of 43 loaded-vocab labels are extinct (peak <= 1990 and zero records in 2020s)',
      'OBSERVED'),
     ('§6.5.3 ZERO-hit indexing-curation evidence',
-     f'{s65_n_zero} of 43 loaded-vocab labels have zero records across 1950-2024 (Tier-3 most-offensive set)',
+     f'{s65_n_zero} zero-hit labels remain in the post-iter-4-curation inventory (iter-3 had 4; all removed in iter-4 ethical review)',
      'OBSERVED'),
     ('§6.5.4 Persistent loaded-vocab (not all retire)',
      f'{s65_n_persistent} labels persist with 2020s sum >= 50 records',

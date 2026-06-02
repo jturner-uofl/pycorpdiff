@@ -427,21 +427,19 @@ TIER3_INVENTORY: dict[str, tuple[list[str], int, int]] = {
 
     # --- 19th-c racial anthropology / colonial tropical medicine ---
     "T3_hottentot":         (["Hottentot", "Hottentots", '"Hottentot Venus"', '"Hottentot apron"'],   1950, 2024),
-    "T3_savage_primitive":  (['"primitive race"', '"primitive races"', '"savage races"',
-                              '"savage tribe"', '"savage tribes"'],                                    1950, 2024),
     "T3_kaffir":            (["kaffir", "kaffirs"],                                                     1950, 2024),
-    "T3_darky":             (["darky", "darkey", "darkies"],                                            1950, 2024),
-    # The N-word is included for empirical completeness — its historical
-    # appearance in published medical writing is a documentable fact, and
-    # zero-hits in modern PubMed is itself a finding about indexing
-    # curation. Variants:
-    "T3_n_word":            (['"negro slave"', '"negro slaves"'],                                       1950, 2024),
+    # Iter-4 ethical-review removal: T3_savage_primitive (4 records),
+    # T3_darky (5), T3_n_word (0), T3_freak (0) were dropped from the
+    # inventory because they returned ~zero records — the inclusion was
+    # ethically defensible to attempt but did not earn its place in the
+    # final reporting once the per-label counts were known. The labels
+    # that DO earn inclusion are those whose query returned enough records
+    # to support per-year sense decomposition.
 
     # --- Teratology / pediatric / "freak" historical ---
     "T3_monster_clinical":  (['"congenital monster"', '"congenital monstrosity"',
                               '"human monster"', '"monstrous birth"',
                               '"acardiac monster"'],                                                    1950, 2024),
-    "T3_freak":             (['"freak of nature"', '"medical freak"', '"freaks of nature"'],          1950, 2024),
 
     # --- Short-stature informal terms ---
     "T3_midget":            (["midget", "midgets"],                                                     1950, 2024),
