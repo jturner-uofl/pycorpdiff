@@ -924,6 +924,106 @@ print(f'  slur 2020s / clinical 2020s = {s65_slur_2020s / max(s65_mr_2020s, 1):.
 """))
 
 
+# ----- §6.5.1b: polysemy-audited survey -----
+A(md(r"""
+### 6.5.1b. Polysemy-audited survey: which Tier-2/3 labels actually measure deprecated clinical use?
+
+The §6.5.1 audit-refutation revealed a *general* construct risk: any
+inventory label whose query is a single English word risks polysemy
+collision with non-clinical scientific senses. We extended the same
+**random-20-PMID discipline** (iter-1's spot-check protocol) to a
+larger set of labels iter-1 and iter-2 had not probed, and combined
+the results with the audited labels from prior iterations.
+
+The classifications below are by hand, by reading the title (and
+abstract where ambiguous) of each randomly-sampled PMID from the
+label's peak year. Each PMID is classified as:
+
+* **intended** — the deprecated clinical term used in its
+  clinical-era sense (or in modern stigma research *about* the term);
+* **alternative-sense collision** — a different sense of the word
+  dominates (e.g., plant breeding "dwarf", bacteriophage "moron",
+  Lunatic Fringe gene);
+* **drift** — the term remained in use but its framing shifted
+  away from disease (e.g., "homosexuality" as topic descriptor
+  rather than DSM diagnosis).
+
+If fewer than 15 of 20 sampled PMIDs are the intended sense, we flag
+the label as a **POLYSEMY COLLISION** and note its dominant
+alternative sense.
+"""))
+A(code(r"""
+polysemy = pd.read_csv(Path('..') / 'data' / 'polysemy_audit_classifications.csv')
+print(f'Total Tier-2/3 labels audited: {len(polysemy)}')
+print(f'\\nPer-verdict counts:')
+print(polysemy['verdict'].value_counts().to_string())
+print(f'\\n=== Polysemy-audited inventory (19 labels) ===\\n')
+pd.set_option('display.max_colwidth', 60)
+pd.set_option('display.width', 200)
+print(polysemy[['label', 'intended_n', 'sampled_n', 'intended_pct',
+                 'verdict', 'dominant_alternative_sense']].to_string(index=False))
+
+# §6.5.1b evidence variables for the scoreboard
+s651b_total = len(polysemy)
+s651b_collision = int((polysemy['verdict'] == 'COLLISION').sum())
+s651b_drift = int((polysemy['verdict'] == 'DRIFT').sum())
+s651b_valid_era = int((polysemy['verdict'] == 'VALID-ERA-CLINICAL').sum())
+s651b_valid_persistent = int((polysemy['verdict'] == 'VALID-PERSISTENT').sum())
+s651b_unmeasurable = int((polysemy['verdict'] == 'UNMEASURABLE').sum())
+s651b_unclassifiable = int((polysemy['verdict'] == 'UNCLASSIFIABLE').sum())
+"""))
+
+
+A(md(r"""
+**Verdict.** Of 19 polysemy-audited labels:
+
+* **7 are POLYSEMY COLLISIONS** where the dominant sense is *not*
+  the deprecated clinical use: `T3_retarded_morpheme` (scientific
+  process verb), `T3_dwarf_clinical` (plant breeding),
+  `T3_lunatic` (Lunatic Fringe gene), `T3_midget` (retinal cells +
+  ice hockey league), `T2_frigidity` (cold temperatures),
+  `T2_moron` (bacteriophage gene elements), `T3_kaffir`
+  (kaffir lime). For these labels, the count trajectories in §6.5.4
+  reflect indexing-volume growth in chemistry / biology / botany,
+  not clinical deprecation.
+
+* **2 are DRIFT cases** where the term stayed in literature but its
+  framing shifted: `T2_homosexuality` (now neutral
+  topic/population descriptor rather than DSM diagnosis),
+  `T3_hottentot` (now used for Khoisan in population-genetics
+  anthropology rather than as a racial-pathology descriptor).
+
+* **6 are VALID era-clinical** labels that correctly track
+  historical clinical usage: `T2_idiocy_clinical` (amaurotic
+  idiocy / Tay-Sachs era), `T2_illegitimate` (1960s
+  social-medicine), `T2_imbecile` (1960s IQ classification),
+  `T2_mongoloid_idiot` (1960s Down-syndrome era),
+  `T2_dope_fiend` (1970s addiction historical),
+  `T3_imbecile_slur` (1954 era-clinical — the `_slur` suffix in
+  the label name is misleading; rename recommended in iter-3).
+
+* **2 are VALID-PERSISTENT** labels still in legitimate active
+  clinical use: `T2_spastic_clinical` (cerebral palsy), `T3_deformed`
+  (modern reconstructive surgery).
+
+* **1 is UNMEASURABLE** (`T3_freak`: 0 records ever).
+* **1 is UNCLASSIFIABLE** (`T3_bastard`: n=1 at peak).
+
+**Methodological meta-finding.** Token queries on English morphemes
+shared across clinical and non-clinical scientific domains are not
+reliable proxies for the deprecation of those terms. Of 19 audited
+labels, the polysemy-collision fraction is **7 / 19 = 37 %**. This
+should be considered the prior risk for *any* deprecated-medical-
+vocabulary tracking study that uses single-token PubMed queries.
+Mitigations: (a) phrase-anchored queries that constrain context
+(`"mongoloid idiot"` rather than bare `mongolism`); (b) random-
+sample sense validation before reporting any trajectory; (c) where
+sense-validation fails, either restrict to phrase patterns OR
+disclose the polysemy and rename the label to `_morpheme` (or
+similar) to flag the construct as a token count, not a sense count.
+"""))
+
+
 # ----- §6.5.2: clean extinctions -----
 A(md(r"""
 ### 6.5.2. Clean extinctions
@@ -987,6 +1087,18 @@ The opposite finding: some "deprecated" terms remained in active
 clinical use because they're still the clinically-precise descriptor
 (dwarfism for short stature), or because they were redirected from
 medical use into stigma-research / history-of-medicine scholarship.
+
+**Polysemy caveat (added iter-3 audit-resolution).** Several labels
+in the persistence list below are **POLYSEMY COLLISIONS** per
+§6.5.1b: `T3_dwarf_clinical` (dominated by plant breeding),
+`T3_lunatic` (dominated by Lunatic Fringe gene), `T3_midget`
+(dominated by retinal cells + ice hockey). Their "persistence" in
+the count series reflects morpheme-level token volume, not clinical
+use. The remaining persistent labels — `T2_spastic_clinical` (still
+active clinical for cerebral palsy) and `T3_deformed` (still active
+clinical for facial deformity / reconstructive surgery) — survived
+the polysemy audit at 100 % intended sense and are genuinely
+persistent clinical terms.
 """))
 A(code(r"""
 persistent_rows = []
@@ -1448,6 +1560,9 @@ scoreboard = pd.DataFrame([
     ('§6.5.1 AUDIT-RESOLVED: word-sense decomposition of `retard*` (iter-1 BLOCKING refutation)',
      f'slur sense: {s651_slur_n}/{s651_total:,} records = {s651_slur_pct:.3f}% (essentially absent); clinical-ID compound declines {s651_clinical_decline_pct:.0f}% from 1990s to 2020s (corroborates §5)',
      'AUDIT-RESOLVED (prior INVERSION claim REFUTED; corrected interpretation: morpheme dominated by scientific process-verb senses, slur essentially absent)'),
+    ('§6.5.1b POLYSEMY-AUDITED SURVEY (iter-2/3 generalisation of iter-1 finding)',
+     f'{s651b_total} labels audited by random-20-PMID sense check: {s651b_collision} COLLISIONs, {s651b_drift} DRIFTs, {s651b_valid_era} VALID era-clinical, {s651b_valid_persistent} VALID-PERSISTENT, {s651b_unmeasurable} UNMEASURABLE, {s651b_unclassifiable} UNCLASSIFIABLE',
+     f'META-FINDING: {s651b_collision}/{s651b_total} = {100*s651b_collision/s651b_total:.0f}% polysemy-collision rate is the prior risk for any single-token deprecated-medical-vocabulary tracking study'),
     ('§6.5.2 Loaded-vocab clean extinctions',
      f'{s65_n_extinct} of 43 loaded-vocab labels are extinct (peak <= 1990 and zero records in 2020s)',
      'OBSERVED'),

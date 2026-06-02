@@ -1,0 +1,20 @@
+label,iter,intended_n,sampled_n,intended_pct,verdict,dominant_alternative_sense
+T3_retarded_morpheme,iter-1,0,20,0.0,COLLISION,scientific process verb (chemistry/biology/materials)
+T3_dwarf_clinical,iter-2,2,20,10.0,COLLISION,plant breeding (wheat/sorghum semi-dwarf)
+T3_lunatic,iter-2,4,20,20.0,COLLISION,Lunatic Fringe Notch-signaling gene
+T3_freak,iter-2,0,0,,UNMEASURABLE,zero records 1990-2024
+T3_midget,iter-2,0,18,0.0,COLLISION,retinal midget bipolar cells + ice hockey midget league
+T3_imbecile_slur,iter-2,7,8,87.5,VALID-ERA-CLINICAL,1954 clinical-era IQ classification (label misnamed: should be _clinical not _slur)
+T2_spastic_clinical,iter-2,20,20,100.0,VALID-PERSISTENT,cerebral palsy clinical literature (still active clinical use)
+T2_mongoloid_idiot,iter-2,3,3,100.0,VALID-ERA-CLINICAL,1963 Down-syndrome cytogenetics era
+T2_dope_fiend,iter-2,2,2,100.0,VALID-ERA-CLINICAL,1972 addiction historical
+T3_bastard,iter-2,1,1,,UNCLASSIFIABLE,n=1
+T2_frigidity,iter-3,1,20,5.0,COLLISION,cold temperatures (frigid regions/materials/animals)
+T2_homosexuality,iter-3,3,20,15.0,DRIFT,topic/population descriptor (HIV/gay health/advocacy); term stayed but framing shifted away from disease
+T2_idiocy_clinical,iter-3,20,20,100.0,VALID-ERA-CLINICAL,amaurotic idiocy / Tay-Sachs historical compound
+T2_illegitimate,iter-3,20,20,100.0,VALID-ERA-CLINICAL,era-clinical social medicine on illegitimate children
+T2_imbecile,iter-3,9,9,100.0,VALID-ERA-CLINICAL,era-clinical IQ classification
+T2_moron,iter-3,0,10,0.0,COLLISION,bacteriophage moron gene elements; moronic acid chemistry
+T3_deformed,iter-3,16,16,100.0,VALID-PERSISTENT,modern reconstructive surgery (facial deformity/cleft lip etc.)
+T3_hottentot,iter-3,0,4,0.0,DRIFT,Khoisan population-genetics anthropology
+T3_kaffir,iter-3,0,9,0.0,COLLISION,kaffir lime (Citrus hystrix / makrut) botanical
