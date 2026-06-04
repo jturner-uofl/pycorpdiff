@@ -68,6 +68,7 @@ to this Result's shape):
 | `CausalImpactResult`      | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
 | `BocpdResult`             | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
 | `NetworkResult`           | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
+| `SenseInductionResult`    | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
 | `ConcordanceResult`       | ✓       | —      | ✓         | ✓         | ✓         | —         |
 
 `.explain()` is meaningful only for term-ranked Results (keyness +

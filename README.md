@@ -35,7 +35,7 @@ points — one-line adapters, no plugin registry. The base install's
 direct runtime dependencies are `numpy`, `pandas`, `scipy`, and
 `pyarrow`; everything else is opt-in via extras.
 
-> **Status: alpha (0.1.0a27).** Public API is stable for the features
+> **Status: alpha (0.1.0a28).** Public API is stable for the features
 > described below; on PyPI as `pip install pycorpdiff`. Alpha releases
 > are intentionally rapid (audit-driven), each shipping fixes and tests
 > behind the published version; dependency pins will tighten at beta.
@@ -45,7 +45,7 @@ direct runtime dependencies are `numpy`, `pandas`, `scipy`, and
 | Layer | Purpose | Key surface |
 |---|---|---|
 | **1 — Ingestion + `Corpus`** | get text in, slice it, hash it | `from_dataframe`, `read_csv`, `read_parquet`, `read_txt`, `read_duckdb`, `from_huggingface`, `fetch_hansard`, `Corpus.slice/by_time/__hash__/doc_term_counts(_sparse)/to_polars` |
-| **2 — Pure math** | statistics with no I/O | `keyness.{log_likelihood,chi_squared,log_ratio,percent_diff,bayes_factor,permutation_pvalues,keyness_multi,juilland_d,benjamini_hochberg}`; `collocation.{logdice,pmi,t_score,mi_three,collocation_shift,cooccurrence_network}`; `semantic.{HashEmbedder,SBERTEmbedder,semantic_trajectory,neighborhood_drift}`; `temporal.{changepoints,interrupted_time_series,forecast,causal_impact,bocpd}` |
+| **2 — Pure math** | statistics with no I/O | `keyness.{log_likelihood,chi_squared,log_ratio,percent_diff,bayes_factor,permutation_pvalues,keyness_multi,juilland_d,benjamini_hochberg}`; `collocation.{logdice,pmi,t_score,mi_three,collocation_shift,cooccurrence_network}`; `semantic.{HashEmbedder,SBERTEmbedder,semantic_trajectory,neighborhood_drift,induce_senses}`; `temporal.{changepoints,interrupted_time_series,forecast,causal_impact,bocpd}` |
 | **3 — Verbs + Results** | public API | `compare`, `track`, `compare.before_after`, `keyness_multi`, plus 9 frozen-dataclass Result types each implementing the relevant subset of `.to_df() / .plot() / .explain() / .summary() / .to_html() / .to_json()` |
 
 ## Quick start
@@ -126,6 +126,14 @@ pcd.compare.before_after(corpus, event_date="2016-06-23").keyness()
 
 # The discourse as a graph
 pcd.cooccurrence_network(corpus, top_n=30).plot()
+
+# Word-sense induction (BYO embeddings) — audit a hand-built sense classifier
+# with an unsupervised second opinion. [semantic] extra for scikit-learn.
+X = pcd.SBERTEmbedder().encode(df["text"].tolist())        # or any (n, d) matrix you own
+senses = pcd.induce_senses(df, X, k=3)                     # k=None -> silhouette-selected
+senses.agreement_with(df["regex_label"]).summary()         # ARI / V-measure vs your buckets
+senses.leakage_audit(df["regex_label"], k=20)              # records whose geometry disputes the label
+senses.share_over_time(freq="Y")                           # computed sense-fraction trajectory
 ```
 
 See [`examples/pycorpdiff_showcase.ipynb`](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)

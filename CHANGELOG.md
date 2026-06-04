@@ -4,6 +4,44 @@ All notable changes to `pycorpdiff` are documented in this file. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.0a28]
+
+Feature release: embedding-based **word-sense induction** (WSI) and
+reference-label auditing. Motivated by the need to defend a hand-built
+sense classifier (regex / keyword buckets) with an independent,
+unsupervised second opinion rather than trusting the buckets on faith.
+
+### Added
+
+- **`induce_senses(items, embeddings, ...)`** — cluster bring-your-own
+  embeddings into senses and return a `SenseInductionResult`. Embeddings
+  are always supplied by the caller (never embedded internally), keeping
+  the base install light and model pinning / caching in the caller's
+  hands. Clustering is deterministic by default (seeded k-means, or
+  seed-free agglomerative); UMAP/HDBSCAN are deliberately avoided so the
+  audit is byte-stable. `k` defaults to silhouette-selection over a
+  range, or pass an explicit `k` (e.g. `k = n_reference_buckets` for a
+  square cross-tab). Supports document-level and token-in-context
+  (`unit="token"` + `item_to_doc`) granularity.
+- **`SenseInductionResult`** — frozen-dataclass Result implementing the
+  six-method contract (`to_df`/`plot`/`to_html`/`to_json`/`summary`),
+  plus three audit operations:
+  - `.agreement_with(reference_labels)` → `SenseAgreement` (adjusted
+    Rand index, V-measure, homogeneity/completeness, contingency table)
+    — quantifies how far an unsupervised partition agrees with a
+    hand-built labelling.
+  - `.leakage_audit(reference_labels, k)` → the records whose embedding
+    geometry most disputes their reference label (deterministic,
+    targeted counterpart to a random spot-check).
+  - `.share_over_time(freq)` → induced-sense share per period (the
+    computed counterpart to a hand-built sense-fraction trajectory).
+- **`SenseAgreement`** — small Result for the agreement metrics above.
+- `embedding_meta=` passthrough for reproducibility-manifest provenance
+  (model, revision, vector hash) echoed onto the result.
+
+`scikit-learn` (already in the `[semantic]` extra) is required and
+imported lazily, so importing `pycorpdiff` never pulls it.
+
 ## [0.1.0a27]
 
 Iter-3 audit fix bundle. The package math is solid (G² Dunning/Rayson

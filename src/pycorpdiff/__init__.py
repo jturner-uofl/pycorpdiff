@@ -20,7 +20,7 @@ True
 
 from __future__ import annotations
 
-__version__ = "0.1.0a27"
+__version__ = "0.1.0a28"
 
 from .collocation.network import NetworkResult, cooccurrence_network
 from .compare import Comparison, compare
@@ -52,6 +52,7 @@ from .results import (
     TemporalTrajectory,
 )
 from .semantic.embed import Embedder, HashEmbedder, SBERTEmbedder
+from .semantic.senses import SenseAgreement, SenseInductionResult, induce_senses
 from .semantic.shift import neighborhood_drift
 from .semantic.trajectory import semantic_trajectory
 from .temporal.bocpd import BocpdResult, bocpd
@@ -104,6 +105,8 @@ __all__ = [
     "NgramTokenizer",
     "RegexTokenizer",
     "SBERTEmbedder",
+    "SenseAgreement",
+    "SenseInductionResult",
     "SemanticShiftResult",
     "TemporalCorpus",
     "TemporalTrajectory",
@@ -127,6 +130,7 @@ __all__ = [
     "from_dataframe",
     "from_huggingface",
     "histwords_cosine_shift",
+    "induce_senses",
     "keyness_multi",
     "kleinberg_bursts",
     "lexical_diversity",
