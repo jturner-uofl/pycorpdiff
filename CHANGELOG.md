@@ -42,6 +42,20 @@ unsupervised second opinion rather than trusting the buckets on faith.
 `scikit-learn` (already in the `[semantic]` extra) is required and
 imported lazily, so importing `pycorpdiff` never pulls it.
 
+### Fixed
+
+- **`fetch_histwords_decade` now loads the COHA subset.** The loader
+  assumed a single per-decade filename layout (`{decade}.pkl` /
+  `{decade}.npy`, as used by `eng-all` / `fiction`), but the COHA
+  archive ships `{decade}-vocab.pkl` / `{decade}-w.npy`, so
+  `source="coha"` raised `FileNotFoundError` even after a successful
+  download. The loader now resolves either layout (bare form tried
+  first, so the working sources are unaffected). This unblocks the
+  package's own COHA cross-validation path against
+  `HAMILTON_REFERENCE_SHIFTS_COHA_1900_1990`. The unit-test `_fetch`
+  mock previously reproduced the assumed naming, which is why CI never
+  caught it; it now exercises both layouts.
+
 ## [0.1.0a27]
 
 Iter-3 audit fix bundle. The package math is solid (G² Dunning/Rayson
