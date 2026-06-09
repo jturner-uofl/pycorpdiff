@@ -7856,7 +7856,7 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>pycorpdiff version: 0.1.0a28
+<pre>pycorpdiff version: 0.1.0a29
 </pre>
 </div>
 </div>
@@ -10336,6 +10336,168 @@ ARI=1.000  V-measure=1.000  (homogeneity=1.000, completeness=1.000)
 <td>cannabidiol</td>
 <td>1.283536</td>
 <td>cannabidiol cannabinoid receptor epilepsy seizure</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=accba2f566b7">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="8c.-Sense-drift-over-time">8c. Sense drift over time<a class="anchor-link" href="#8c.-Sense-drift-over-time">¶</a></h3><p><code>sense_drift(items, embeddings, time_col, reference=...)</code> is the <em>diachronic</em> counterpart to §8b. Where <code>induce_senses</code> audits the senses in a single snapshot, <code>sense_drift</code> fits them on an early <strong>reference window</strong> and asks, for every later period, whether the sense distribution has <strong>drifted</strong> — and <em>what kind</em> of change it is: a new sense <strong>emerging</strong>, known senses <strong>shifting</strong> in frequency, or the distribution <strong>broadening</strong>. It pairs concept-drift detection (watch the density of the model's uncertainty region over time) with lexical-semantic-change detection (cluster embeddings, track the distribution), scoring each record's novelty to its nearest known sense and flagging periods on a margin-density / Jensen–Shannon control chart.</p>
+<p>Unlike §8b, sense drift calibrates its novelty threshold from <em>within-sense variance</em>, so we hand it a small synthetic embedding matrix with planted Gaussian structure — exactly the <code>(n, d)</code> array you'd otherwise get from SBERT — reproducible offline: three senses in 2000–2009, plus a fourth that <strong>emerges</strong> from 2012.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1adb8895d513">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [24]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">DIM</span> <span class="o">=</span> <span class="mi">24</span>
+<span class="c1"># Four sense centroids; senses 0-2 run throughout, sense 3 emerges in 2012.</span>
+<span class="n">centroids</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="n">DIM</span><span class="p">))</span> <span class="o">*</span> <span class="mi">4</span>
+<span class="n">vocab</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s2">"receptor pharmacology dosage trial"</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="s2">"biliary duct cholangiography surgery"</span><span class="p">,</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="s2">"parkinsonism atrophy cortical tremor"</span><span class="p">,</span>
+    <span class="mi">3</span><span class="p">:</span> <span class="s2">"wellness hemp anxiety supplement tincture"</span><span class="p">,</span>   <span class="c1"># the emergent sense</span>
+<span class="p">}</span>
+<span class="n">rows</span><span class="p">,</span> <span class="n">embs</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">2021</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">40</span><span class="p">):</span>                       <span class="c1"># three established senses</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">embs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">centroids</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">(</span><span class="n">DIM</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.4</span><span class="p">)</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"year"</span><span class="p">:</span> <span class="n">year</span><span class="p">,</span> <span class="s2">"text"</span><span class="p">:</span> <span class="n">vocab</span><span class="p">[</span><span class="n">s</span><span class="p">]})</span>
+    <span class="k">if</span> <span class="n">year</span> <span class="o">&gt;=</span> <span class="mi">2012</span><span class="p">:</span>                          <span class="c1"># a fourth sense emerges and grows</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">year</span> <span class="o">-</span> <span class="mi">2011</span><span class="p">)</span> <span class="o">*</span> <span class="mi">4</span><span class="p">):</span>
+            <span class="n">embs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">centroids</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">(</span><span class="n">DIM</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.4</span><span class="p">)</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"year"</span><span class="p">:</span> <span class="n">year</span><span class="p">,</span> <span class="s2">"text"</span><span class="p">:</span> <span class="n">vocab</span><span class="p">[</span><span class="mi">3</span><span class="p">]})</span>
+
+<span class="n">corpus</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+<span class="n">emb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">embs</span><span class="p">)</span>
+
+<span class="n">drift</span> <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">sense_drift</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">emb</span><span class="p">,</span> <span class="n">time_col</span><span class="o">=</span><span class="s2">"year"</span><span class="p">,</span>
+                        <span class="n">reference</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">2010</span><span class="p">)),</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">drift</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"change type:"</span><span class="p">,</span> <span class="n">drift</span><span class="o">.</span><span class="n">change_type</span><span class="p">,</span> <span class="s2">"| terms:"</span><span class="p">,</span> <span class="n">drift</span><span class="o">.</span><span class="n">drift_terms</span><span class="p">[:</span><span class="mi">6</span><span class="p">])</span>
+
+<span class="c1"># margin density + JSD trajectory around the planted 2012 onset</span>
+<span class="n">drift</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="n">drift</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="s2">"period"</span><span class="p">]</span><span class="o">.</span><span class="n">between</span><span class="p">(</span><span class="mi">2010</span><span class="p">,</span> <span class="mi">2016</span><span class="p">)]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Sense drift detected from 2012 (9 period(s) flagged); change type: emergence (margin density 0.159, JSD 0.037). Distinctive terms: supplement, wellness, tincture, anxiety, hemp, trial, pharmacology, dosage.
+change type: emergence | terms: ['supplement', 'wellness', 'tincture', 'anxiety', 'hemp', 'trial']
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[24]:</div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>period</th>
+<th>n</th>
+<th>margin_density</th>
+<th>jsd</th>
+<th>drift</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>0</th>
+<td>2010</td>
+<td>40</td>
+<td>0.050000</td>
+<td>0.001272</td>
+<td>False</td>
+</tr>
+<tr>
+<th>1</th>
+<td>2011</td>
+<td>40</td>
+<td>0.025000</td>
+<td>0.026462</td>
+<td>False</td>
+</tr>
+<tr>
+<th>2</th>
+<td>2012</td>
+<td>44</td>
+<td>0.159091</td>
+<td>0.036743</td>
+<td>True</td>
+</tr>
+<tr>
+<th>3</th>
+<td>2013</td>
+<td>48</td>
+<td>0.312500</td>
+<td>0.095416</td>
+<td>True</td>
+</tr>
+<tr>
+<th>4</th>
+<td>2014</td>
+<td>52</td>
+<td>0.346154</td>
+<td>0.148890</td>
+<td>True</td>
+</tr>
+<tr>
+<th>5</th>
+<td>2015</td>
+<td>56</td>
+<td>0.321429</td>
+<td>0.108580</td>
+<td>True</td>
+</tr>
+<tr>
+<th>6</th>
+<td>2016</td>
+<td>60</td>
+<td>0.416667</td>
+<td>0.157407</td>
+<td>True</td>
 </tr>
 </tbody>
 </table>
