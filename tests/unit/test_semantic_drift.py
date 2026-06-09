@@ -258,6 +258,15 @@ def test_sense_trajectories_shape():
     assert set(traj["sense"]) == {0, 1}
 
 
+def test_drift_plots_return_valid_charts():
+    pytest.importorskip("altair")
+    df, X = _dilution()
+    res = pcd.sense_drift(df, X, time_col="year", reference=list(range(2000, 2005)), k=2)
+    for method in ("plot", "plot_composition", "plot_decline"):
+        chart = getattr(res, method)(width=320, height=180)
+        assert chart.to_dict()  # serialises to a valid Vega-Lite spec
+
+
 # ---- validation / edge cases ------------------------------------------------
 def test_reference_too_small_raises():
     df, X = _stable()
