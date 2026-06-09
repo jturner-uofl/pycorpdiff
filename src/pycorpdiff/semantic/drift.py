@@ -137,6 +137,51 @@ def _jsd(p: FloatArray, q: FloatArray) -> float:
     return 0.5 * _kl(p, m) + 0.5 * _kl(q, m)
 
 
+def _score_novelty(
+    x: FloatArray, ref_mask: npt.NDArray[np.bool_], k: int,
+    novelty: str, cutoff_pctile: float, random_state: int,
+) -> tuple[npt.NDArray[np.intp], FloatArray, npt.NDArray[np.bool_]]:
+    """Fit the reference sense model and score every row: return the nearest
+    sense, the novelty score, and a boolean ``is_novel`` (above the
+    reference-calibrated cutoff). Called once for the real data and once per
+    permutation, so it carries the full out-of-sample bias the null exposes."""
+    _, centroids, cov_inv = _fit_reference_model(x[ref_mask], k, random_state)
+    if novelty == "mahalanobis":
+        nov, nearest = _mahalanobis_to_nearest(x, centroids, cov_inv)
+    else:
+        sims = x @ centroids.T
+        nearest = sims.argmax(axis=1).astype(np.intp)
+        nov = 1.0 - sims.max(axis=1)
+    cutoff = float(np.percentile(nov[ref_mask], cutoff_pctile))
+    return nearest, nov, nov > cutoff
+
+
+def _period_md_jsd(
+    periods_col: npt.NDArray[Any], nearest: npt.NDArray[np.intp],
+    is_novel: npt.NDArray[np.bool_], ref_mask: npt.NDArray[np.bool_], k: int,
+) -> tuple[list[Any], dict[Any, float], dict[Any, float], FloatArray]:
+    """Per-period margin density and Jensen--Shannon divergence from the
+    reference sense distribution (numpy-only; no DataFrame, for speed in the
+    permutation loop)."""
+    def _dist(mask: npt.NDArray[np.bool_]) -> FloatArray:
+        counts = np.zeros(k + 1, dtype=np.float64)
+        known = mask & ~is_novel
+        for c in range(k):
+            counts[c] = float(np.sum(known & (nearest == c)))
+        counts[k] = float(np.sum(mask & is_novel))
+        return counts
+
+    ref_dist = _dist(ref_mask)
+    uniq = sorted({p for p in periods_col.tolist() if p == p})  # drop NaN
+    md: dict[Any, float] = {}
+    jsd: dict[Any, float] = {}
+    for p in uniq:
+        m = periods_col == p
+        md[p] = float(is_novel[m].mean()) if m.any() else 0.0
+        jsd[p] = _jsd(_dist(m), ref_dist) if m.any() else 0.0
+    return uniq, md, jsd, ref_dist
+
+
 @dataclass(frozen=True)
 class SenseDriftResult:
     """Per-period sense-drift detection with a change-type explanation.
@@ -158,6 +203,15 @@ class SenseDriftResult:
         "what" behind the "when".
     reference, k
         The reference period label(s) and number of senses fit there.
+    threshold
+        The margin-density flag threshold --- null-calibrated (a high
+        percentile of the label-shuffle null) when ``n_permutations > 0``,
+        otherwise the in-sample control chart.
+    p_value
+        Permutation p-value for the overall drift (real max margin density
+        vs the label-shuffle null max); ``None`` unless
+        ``n_permutations > 0``. The in-sample chart over-flags out-of-sample
+        periods, so this is the honest significance test.
     """
 
     table: pd.DataFrame
@@ -166,6 +220,7 @@ class SenseDriftResult:
     reference: list[Any]
     k: int
     threshold: float
+    p_value: float | None
     embedding_meta: dict[str, Any]
     _records: pd.DataFrame = field(repr=False)
 
@@ -189,6 +244,8 @@ class SenseDriftResult:
                f"({len(flagged)} period(s) flagged); change type: {ct} "
                f"(margin density {first['margin_density']:.3f}, "
                f"JSD {first['jsd']:.3f}).")
+        if self.p_value is not None:
+            msg += f" Permutation p={self.p_value:.3f}."
         if self.drift_terms:
             msg += " Distinctive terms: " + ", ".join(self.drift_terms[:8]) + "."
         return msg
@@ -228,6 +285,8 @@ def sense_drift(
     cutoff_pctile: float = 95.0,
     k_sigma: float = 3.0,
     min_run: int = 2,
+    n_permutations: int = 0,
+    null_pctile: float = 95.0,
     normalize: bool = True,
     random_state: int = 42,
     text_col: str = "text",
@@ -258,8 +317,20 @@ def sense_drift(
         A record is *novel* (in the uncertainty region) if its novelty
         score exceeds this percentile of the reference records' scores.
     k_sigma
-        Control-chart sensitivity: a period drifts if its margin density
+        In-sample control-chart sensitivity (used only when
+        ``n_permutations == 0``): a period drifts if its margin density
         exceeds the reference mean by ``k_sigma`` standard deviations.
+    n_permutations
+        If ``> 0``, calibrate the flag threshold against a label-shuffle
+        null of this many permutations and report a permutation
+        ``p_value``. **Recommended for inference**: the in-sample control
+        chart over-flags because out-of-sample periods look novel relative
+        to a reference fitted on themselves; the shuffle null removes that
+        bias. Costs one model re-fit per permutation. ``0`` (default) uses
+        the fast in-sample chart, fine for exploration.
+    null_pctile
+        Percentile of the label-shuffle null margin-density (and JSD)
+        distribution used as the flag threshold when ``n_permutations > 0``.
     normalize
         L2-normalise embeddings before fitting (default ``True``).
 
@@ -282,82 +353,78 @@ def sense_drift(
         x = _l2_normalize(x)
 
     ref_labels_set = list(reference) if isinstance(reference, (list, tuple, set)) else [reference]
-    periods = sorted(frame[time_col].dropna().unique())
+    periods_col = frame[time_col].to_numpy()
     ref_mask = frame[time_col].isin(ref_labels_set).to_numpy()
     if ref_mask.sum() < k * 5:
         raise ValueError(
             f"reference period has only {int(ref_mask.sum())} records; "
             f"need >= {k * 5} for k={k} senses")
 
-    x_ref = x[ref_mask]
-    ref_labels, centroids, cov_inv = _fit_reference_model(x_ref, k, random_state)
+    nearest, nov, is_novel = _score_novelty(
+        x, ref_mask, k, novelty, cutoff_pctile, random_state)
+    periods, md_real, jsd_real, ref_dist = _period_md_jsd(
+        periods_col, nearest, is_novel, ref_mask, k)
+    not_ref_periods = [p for p in periods if p not in ref_labels_set]
 
-    # Novelty score for every record.
-    if novelty == "mahalanobis":
-        nov, nearest = _mahalanobis_to_nearest(x, centroids, cov_inv)
+    # --- Flag thresholds ---------------------------------------------------
+    # Margin density catches novelty-driven drift (emergence, broadening);
+    # JSD also catches a re-weighting of known senses (frequency shift), so a
+    # period drifts if *either* exceeds its threshold.
+    p_value: float | None = None
+    if n_permutations > 0:
+        # Null-calibrated thresholds. The in-sample control chart is biased:
+        # out-of-sample periods look novel relative to a reference fitted on
+        # themselves, so it over-flags. Permuting the period labels destroys
+        # the temporal structure but preserves that bias, giving the correct
+        # null; a period drifts only if it beats a high percentile of it. The
+        # permutation p-value compares the real maximum margin density against
+        # the per-shuffle null maxima.
+        rng = np.random.default_rng(random_state)
+        md_pool: list[float] = []
+        jsd_pool: list[float] = []
+        md_maxes: list[float] = []
+        for _ in range(n_permutations):
+            perm = rng.permutation(periods_col)
+            pm = np.isin(perm, ref_labels_set)
+            if pm.sum() < k * 5:
+                continue
+            n2, _, novel2 = _score_novelty(
+                x, pm, k, novelty, cutoff_pctile, random_state)
+            _, md_b, jsd_b, _ = _period_md_jsd(perm, n2, novel2, pm, k)
+            vals = [md_b[p] for p in md_b if p not in ref_labels_set]
+            md_pool.extend(vals)
+            jsd_pool.extend(jsd_b[p] for p in jsd_b if p not in ref_labels_set)
+            if vals:
+                md_maxes.append(max(vals))
+        md_threshold = float(np.percentile(md_pool, null_pctile)) if md_pool else np.inf
+        jsd_threshold = float(np.percentile(jsd_pool, null_pctile)) if jsd_pool else np.inf
+        real_max = max((md_real[p] for p in not_ref_periods), default=0.0)
+        if md_maxes:
+            p_value = (int(np.sum(np.asarray(md_maxes) >= real_max)) + 1) / (len(md_maxes) + 1)
     else:
-        sims = x @ centroids.T
-        nearest = sims.argmax(axis=1)
-        nov = 1.0 - sims.max(axis=1)
-
-    cutoff = float(np.percentile(nov[ref_mask], cutoff_pctile))
-    is_novel = nov > cutoff
-
-    texts = ([str(v) for v in frame[text_col]] if text_col in frame.columns
-             else [""] * len(frame))
-    recs = pd.DataFrame({
-        "period": frame[time_col].to_numpy(),
-        "nearest_sense": nearest,
-        "novelty": nov,
-        "novel": is_novel,
-        "text": texts,
-    })
-
-    # Reference sense distribution: k known senses + a novel bin.
-    def _dist(sub: pd.DataFrame) -> FloatArray:
-        counts = np.zeros(k + 1, dtype=np.float64)
-        known = sub[~sub["novel"]]
-        for c in range(k):
-            counts[c] = int((known["nearest_sense"] == c).sum())
-        counts[k] = int(sub["novel"].sum())
-        return counts
-
-    ref_dist = _dist(recs[recs["period"].isin(ref_labels_set)])
-
-    rows = []
-    md_ref: list[float] = []
-    jsd_ref: list[float] = []
-    for p in periods:
-        sub = recs[recs["period"] == p]
-        n = len(sub)
-        md = float(sub["novel"].mean()) if n else 0.0
-        jsd = _jsd(_dist(sub), ref_dist) if n else 0.0
-        rows.append({"period": p, "n": n, "margin_density": md, "jsd": jsd})
-        if p in ref_labels_set:
-            md_ref.append(md)
-            jsd_ref.append(jsd)
-
-    # Control-chart thresholds from the reference periods. Margin density
-    # catches novelty-driven drift (emergence, broadening); JSD also
-    # catches a re-weighting of known senses (frequency shift), so a
-    # period drifts if *either* exceeds its threshold. A reference
-    # spanning >= 2 periods gives the JSD chart its variance; with a
-    # single reference period we fall back to the margin-density binomial.
-    md_threshold = _control_threshold(
-        md_ref, k_sigma,
-        single_n=int(ref_mask.sum()),
-        single_p=float(recs.loc[recs["period"].isin(ref_labels_set), "novel"].mean()),
-    )
-    table = pd.DataFrame(rows)
-    not_ref = ~table["period"].isin(ref_labels_set)
-    raw = ((table["margin_density"] > md_threshold) & not_ref).to_numpy()
+        md_ref = [md_real[p] for p in periods if p in ref_labels_set]
+        jsd_ref = [jsd_real[p] for p in periods if p in ref_labels_set]
+        md_threshold = _control_threshold(
+            md_ref, k_sigma, single_n=int(ref_mask.sum()),
+            single_p=float(is_novel[ref_mask].mean()))
+        jsd_threshold = (
+            float(np.mean(jsd_ref)) + k_sigma * float(np.std(jsd_ref, ddof=1))
+            if len(jsd_ref) >= 2 else np.inf)
     threshold = md_threshold
-    if len(jsd_ref) >= 2:
-        jsd_threshold = float(np.mean(jsd_ref)) + k_sigma * float(np.std(jsd_ref, ddof=1))
-        raw = raw | ((table["jsd"] > jsd_threshold) & not_ref).to_numpy()
-    # Sustained-run confirmation: a period counts as drift only if it is
-    # part of a run of >= min_run consecutive raw exceedances. Isolated
-    # single-period spikes are treated as noise (false-alarm control).
+
+    table = pd.DataFrame({
+        "period": periods,
+        "n": [int((periods_col == p).sum()) for p in periods],
+        "margin_density": [md_real[p] for p in periods],
+        "jsd": [jsd_real[p] for p in periods],
+    })
+    not_ref = ~table["period"].isin(ref_labels_set)
+    raw = (((table["margin_density"] > md_threshold)
+            | (table["jsd"] > jsd_threshold)) & not_ref).to_numpy()
+
+    # Sustained-run confirmation: a period counts as drift only if it is part
+    # of a run of >= min_run consecutive raw exceedances. Isolated single-
+    # period spikes are treated as noise (false-alarm control).
     confirmed = np.zeros(len(raw), dtype=bool)
     i = 0
     while i < len(raw):
@@ -372,18 +439,34 @@ def sense_drift(
             i += 1
     table["drift"] = confirmed
 
+    # Records (for the explanation layer and .flagged_records()).
+    texts = ([str(v) for v in frame[text_col]] if text_col in frame.columns
+             else [""] * len(frame))
+    recs = pd.DataFrame({
+        "period": periods_col,
+        "nearest_sense": nearest,
+        "novelty": nov,
+        "novel": is_novel,
+        "text": texts,
+    })
+
     # --- Explanation layer -------------------------------------------------
     change_type: str | None = None
     drift_terms: list[str] = []
     flagged_periods = list(table.loc[table["drift"], "period"])
     if flagged_periods:
-        flag_mask = (recs["period"].isin(flagged_periods) & recs["novel"]).to_numpy()
+        flag_mask = np.isin(periods_col, flagged_periods) & is_novel
         novel_emb = x[flag_mask]
-        ref_texts = recs.loc[recs["period"].isin(ref_labels_set), "text"].tolist()
-        drift_dist = _dist(recs[recs["period"].isin(flagged_periods)])
+        ref_texts = [texts[i] for i in range(len(texts)) if ref_mask[i]]
+        novel_texts = [texts[i] for i in np.nonzero(flag_mask)[0]]
+        fmask = np.isin(periods_col, flagged_periods)
+        drift_dist = np.zeros(k + 1, dtype=np.float64)
+        known = fmask & ~is_novel
+        for c in range(k):
+            drift_dist[c] = float(np.sum(known & (nearest == c)))
+        drift_dist[k] = float(np.sum(fmask & is_novel))
         change_type, drift_terms = _explain(
-            recs.loc[flag_mask, "text"].tolist(), ref_texts, novel_emb,
-            ref_dist, drift_dist, k)
+            novel_texts, ref_texts, novel_emb, ref_dist, drift_dist, k)
 
     return SenseDriftResult(
         table=table,
@@ -392,6 +475,7 @@ def sense_drift(
         reference=ref_labels_set,
         k=k,
         threshold=threshold,
+        p_value=p_value,
         embedding_meta=dict(embedding_meta or {}),
         _records=recs,
     )

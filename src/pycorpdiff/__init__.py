@@ -20,7 +20,7 @@ True
 
 from __future__ import annotations
 
-__version__ = "0.1.0a29"
+__version__ = "0.1.0a30"
 
 from .collocation.network import NetworkResult, cooccurrence_network
 from .compare import Comparison, compare

@@ -4,6 +4,38 @@ All notable changes to `pycorpdiff` are documented in this file. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.0a30]
+
+Correctness release for `sense_drift`: **permutation-null-calibrated flagging**.
+
+A label-shuffle control (permuting the period labels, which destroys the
+temporal structure) exposed a bias in the a29 in-sample control chart: it
+flags ~all out-of-sample periods even on shuffled data, because records
+scored by a reference model fitted on themselves look artificially
+*un*-novel, so later periods look novel by comparison. The fix turns that
+control into the calibration.
+
+### Added
+
+- **`sense_drift(..., n_permutations=N)`** — when `N > 0`, the flag
+  threshold is calibrated against an `N`-permutation label-shuffle null (a
+  high percentile, `null_pctile`, of the null margin-density and JSD
+  distributions), and `SenseDriftResult.p_value` reports the permutation
+  p-value (real maximum margin density vs the per-shuffle null maxima).
+  This is the **recommended mode for inference**; it removes the
+  out-of-sample bias and reports honest significance. Costs one reference
+  re-fit per permutation.
+- **`SenseDriftResult.p_value`** — `None` in the default fast mode,
+  populated when `n_permutations > 0`; surfaced in `.summary()`.
+
+### Notes
+
+- Default behaviour is unchanged (`n_permutations=0` uses the fast
+  in-sample control chart, fine for exploration). On the CBD-PubMed
+  case the null-calibrated detector flags the genuine sustained drift
+  (2012–2024, permutation *p* ≈ 0.02) and correctly drops the borderline
+  early years the in-sample chart over-flagged.
+
 ## [0.1.0a29]
 
 Feature release: **explainable sense-drift detection** — the diachronic
