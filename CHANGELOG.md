@@ -4,6 +4,51 @@ All notable changes to `pycorpdiff` are documented in this file. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.0a29]
+
+Feature release: **explainable sense-drift detection** — the diachronic
+counterpart to `induce_senses`. Where WSI partitions a single snapshot
+and `semantic_trajectory` tracks one term's centroid, `sense_drift`
+detects *when* a corpus's sense distribution drifts away from a
+reference period and *what kind* of change it is. The design fuses
+concept-drift detection (margin-density monitoring; Sethi & Kantardzic
+2017) with lexical-semantic-change detection (cluster contextual
+embeddings, track over time; Giulianelli et al. 2020, Montariol et al.
+2021, Schlechtweg et al. 2020) and out-of-distribution scoring (Lee et
+al. 2018), with two-sample-style flagging in the spirit of Rabanser et
+al. (2019).
+
+### Added
+
+- **`sense_drift(items, embeddings, time_col, reference=..., k=...)`** —
+  fit sense centroids on a reference period, then for every later period
+  compute a **Mahalanobis** novelty score to the nearest sense (the
+  out-of-distribution "uncertainty region"), a **margin density**
+  (fraction outside every known sense), and the **Jensen–Shannon
+  divergence** of the period's sense distribution from the reference.
+  A period is flagged as drifting when its margin density *or* JSD
+  exceeds a reference-calibrated control-chart threshold, confirmed by a
+  sustained run (`min_run`) to suppress isolated spikes. Embeddings are
+  bring-your-own; clustering/covariance use scikit-learn (`[semantic]`).
+- **`SenseDriftResult`** — frozen-dataclass Result implementing the
+  six-method contract (`to_df`/`plot`/`to_html`/`to_json`/`summary`),
+  plus an **explanation layer**:
+  - `.change_type` ∈ {`"emergence"`, `"frequency_shift"`,
+    `"broadening"`} — a new coherent sense appearing, a re-weighting of
+    known senses, or diffuse diversification.
+  - `.drift_terms` — terms most distinctive of the novel material by
+    log-ratio vs the reference (the *what* behind the *when*), for any
+    change type.
+  - `.flagged_records(period=None)` — the uncertainty-region records
+    driving the drift, for inspection.
+  - `.plot()` — margin density over time with drift-flagged periods.
+
+### Notes
+
+- `sense_drift` detects *temporal* sense change; it is complementary to
+  `induce_senses`, which catches *static* classifier blind spots. They
+  answer different questions and are not interchangeable.
+
 ## [0.1.0a28]
 
 Feature release: embedding-based **word-sense induction** (WSI) and

@@ -20,7 +20,7 @@ True
 
 from __future__ import annotations
 
-__version__ = "0.1.0a28"
+__version__ = "0.1.0a29"
 
 from .collocation.network import NetworkResult, cooccurrence_network
 from .compare import Comparison, compare
@@ -52,6 +52,7 @@ from .results import (
     TemporalTrajectory,
 )
 from .semantic.embed import Embedder, HashEmbedder, SBERTEmbedder
+from .semantic.drift import SenseDriftResult, sense_drift
 from .semantic.senses import SenseAgreement, SenseInductionResult, induce_senses
 from .semantic.shift import neighborhood_drift
 from .semantic.trajectory import semantic_trajectory
@@ -106,6 +107,7 @@ __all__ = [
     "RegexTokenizer",
     "SBERTEmbedder",
     "SenseAgreement",
+    "SenseDriftResult",
     "SenseInductionResult",
     "SemanticShiftResult",
     "TemporalCorpus",
@@ -149,5 +151,6 @@ __all__ = [
     "scattertext_plot",
     "semantic_forecast_plot",
     "semantic_trajectory",
+    "sense_drift",
     "track",
 ]

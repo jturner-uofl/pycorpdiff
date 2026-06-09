@@ -69,6 +69,7 @@ to this Result's shape):
 | `BocpdResult`             | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
 | `NetworkResult`           | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
 | `SenseInductionResult`    | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
+| `SenseDriftResult`        | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
 | `ConcordanceResult`       | ✓       | —      | ✓         | ✓         | ✓         | —         |
 
 `.explain()` is meaningful only for term-ranked Results (keyness +
