@@ -1,14 +1,29 @@
 """Semantic shift and neighborhood drift between corpora.
 
-The default strategy is *averaged contextual embeddings*: for each
-occurrence of the target term in a corpus, encode its surrounding
-window as a sentence, then average across occurrences. The
-corpus-specific representation that comes out is what we compare.
+The default strategy is *averaged contextual embeddings*
+(Giulianelli, Del Tredici, & Fernández 2020): for each occurrence of
+the target term in a corpus, encode its surrounding window as a
+sentence, then average across occurrences. The corpus-specific
+representation that comes out is what we compare.
 
 This works with any shared-space embedder (SBERT, multilingual SBERT,
 HuggingFace encoders). For Hamilton-style independently-trained
-embeddings, supply ``align="procrustes"`` to rotate the source space
-onto the target space before comparison.
+embeddings (Hamilton, Leskovec, & Jurafsky 2016), supply
+``align="procrustes"`` to rotate the source space onto the target
+space before comparison (Schönemann 1966).
+
+References
+----------
+Giulianelli, M., Del Tredici, M., & Fernández, R. (2020). Analysing
+lexical semantic change with contextualised word representations. In
+*Proceedings of ACL 2020*, 3960-3973.
+
+Hamilton, W. L., Leskovec, J., & Jurafsky, D. (2016). Diachronic word
+embeddings reveal statistical laws of semantic change. In *Proceedings
+of ACL 2016*.
+
+Schönemann, P. H. (1966). A generalized solution of the orthogonal
+Procrustes problem. *Psychometrika*, 31(1), 1-10.
 """
 
 from __future__ import annotations
@@ -44,6 +59,28 @@ def _window_texts(
 def _centroid(vectors: np.ndarray[Any, Any]) -> np.ndarray[Any, Any]:
     out: np.ndarray[Any, Any] = vectors.mean(axis=0)
     return out
+
+
+def _validate_embeddings(
+    vecs: np.ndarray[Any, Any], expected_rows: int, side: str
+) -> None:
+    """Catch mis-shaped embedder output before it produces silent nonsense.
+
+    A 1-D return from ``embedder.encode`` would otherwise be averaged into
+    a scalar centroid and yield ``cosine_similarity == 1.0`` for any
+    comparison — a silently wrong result.
+    """
+    if vecs.ndim != 2:
+        raise ValueError(
+            f"embedder.encode() for corpus {side!r} returned an array of "
+            f"rank {vecs.ndim}; expected 2 (shape (n_windows, d)). "
+            f"Got shape {vecs.shape}."
+        )
+    if vecs.shape[0] != expected_rows:
+        raise ValueError(
+            f"embedder.encode() for corpus {side!r} returned "
+            f"{vecs.shape[0]} rows; expected {expected_rows} (one per window)."
+        )
 
 
 def semantic_shift(
@@ -85,6 +122,26 @@ def semantic_shift(
     if embedder is None:
         embedder = SBERTEmbedder()
 
+    if align == "procrustes":
+        import warnings
+
+        warnings.warn(
+            "semantic_shift(align='procrustes') currently treats parallel "
+            "rows of the per-corpus window-vector matrices as anchor "
+            "correspondences. They are not corresponding observations — "
+            "they are unrelated window encodings — so the resulting "
+            "alignment is order-sensitive and methodologically meaningless. "
+            "Correct Hamilton-style alignment (Hamilton, Leskovec & "
+            "Jurafsky 2016) requires a shared anchor vocabulary "
+            "(overlapping high-frequency terms across the two spaces). "
+            "Until pycorpdiff adds an anchor-vocabulary alignment path, "
+            "use align='none' (the default) with a shared-space encoder "
+            "such as SBERT, where the two corpus centroids already live "
+            "in the same space and no alignment is needed.",
+            FutureWarning,
+            stacklevel=2,
+        )
+
     rows: list[dict[str, object]] = []
     for tgt in targets:
         wins_a = _window_texts(a, tgt, window=window)
@@ -103,6 +160,8 @@ def semantic_shift(
 
         vecs_a = np.asarray(embedder.encode(wins_a), dtype=np.float64)
         vecs_b = np.asarray(embedder.encode(wins_b), dtype=np.float64)
+        _validate_embeddings(vecs_a, expected_rows=len(wins_a), side="a")
+        _validate_embeddings(vecs_b, expected_rows=len(wins_b), side="b")
 
         if align == "procrustes":
             # Procrustes wants two matrices of the same shape. Pad / truncate

@@ -195,11 +195,29 @@ class Corpus:
 
         Combines a fast vectorised hash of every document row with the
         corpus configuration (text/id/meta columns + tokenizer repr).
-        Two corpora with identical docs, schema, and tokenizer hash the
-        same; mutating any of those (in a copy — Corpus is frozen)
-        produces a different hash.
+        Two corpora with identical docs *in the same order*, schema, and
+        tokenizer hash the same; reordering rows produces a different
+        hash (matters because downstream operations like
+        ``iter_slices()`` and ``corpus.tokens()`` walk rows
+        sequentially).
+
+        Implementation note: pandas' ``hash_pandas_object`` returns a
+        per-row hash; we fold those into a single 64-bit value with a
+        position-mixed combine (rotate + xor) rather than
+        ``.sum()``, which is permutation-invariant and would collapse
+        reordered corpora to the same key — a real cache-correctness
+        bug for users keying memoised results by Corpus identity.
         """
-        row_hash = int(pd.util.hash_pandas_object(self.docs, index=False).sum()) & 0xFFFFFFFFFFFFFFFF
+        per_row = pd.util.hash_pandas_object(self.docs, index=False).to_numpy(dtype=np.uint64)
+        # Position-aware fold: xor each row's hash with a rotation
+        # determined by its index, then xor-accumulate. Different row
+        # orderings produce different folds; identical orderings
+        # produce identical folds.
+        positions = np.arange(per_row.size, dtype=np.uint64)
+        rotated = (per_row << (positions & np.uint64(63))) | (
+            per_row >> ((np.uint64(64) - (positions & np.uint64(63))) & np.uint64(63))
+        )
+        row_hash = int(np.bitwise_xor.reduce(rotated)) & 0xFFFFFFFFFFFFFFFF
         return hash(
             (row_hash, self.text_col, self.id_col, self.meta_cols, repr(self.tokenizer))
         )
@@ -242,6 +260,15 @@ class Corpus:
         """
         from .temporal.slicing import TemporalCorpus  # local import to break cycle
 
+        if len(self.docs) == 0:
+            raise ValueError(
+                "by_time() requires a non-empty corpus; got 0 documents."
+            )
+        if col not in self.docs.columns:
+            raise ValueError(
+                f"by_time(col={col!r}, ...): column not found in corpus. "
+                f"Available columns: {list(self.docs.columns)!r}."
+            )
         return TemporalCorpus(parent=self, time_col=col, freq=freq)
 
     def with_tokenizer(self, tokenizer: Tokenizer) -> Corpus:

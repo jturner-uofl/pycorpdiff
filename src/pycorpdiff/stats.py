@@ -46,6 +46,12 @@ def wilson_ci(
     0-d arrays). When ``n == 0`` the interval is undefined and both
     bounds come back as NaN. ``confidence`` must be in ``(0, 1)``;
     defaults to 0.95 (z ≈ 1.96).
+
+    Validates that ``x`` and ``n`` are sensible binomial inputs:
+    no negative counts, and successes ≤ trials. A user who
+    accidentally swaps argument order (``wilson_ci(n, x)`` — easy mistake
+    since both are integers) would otherwise get silent NaNs from the
+    arithmetic; we raise instead.
     """
     if not 0 < confidence < 1:
         raise ValueError(f"confidence must be in (0, 1); got {confidence}")
@@ -54,6 +60,22 @@ def wilson_ci(
 
     x_arr = np.asarray(x, dtype=np.float64)
     n_arr = np.asarray(n, dtype=np.float64)
+
+    if np.any(x_arr < 0):
+        raise ValueError(
+            f"x (successes) must be non-negative; got min={float(np.min(x_arr))}"
+        )
+    if np.any(n_arr < 0):
+        raise ValueError(
+            f"n (trials) must be non-negative; got min={float(np.min(n_arr))}"
+        )
+    if np.any(x_arr > n_arr):
+        bad = int(np.argmax(x_arr > n_arr))
+        raise ValueError(
+            "x (successes) must not exceed n (trials); got "
+            f"x[{bad}]={float(x_arr.flat[bad])}, n[{bad}]={float(n_arr.flat[bad])}. "
+            "Did you swap the argument order?"
+        )
 
     with np.errstate(divide="ignore", invalid="ignore"):
         p = np.where(n_arr > 0, x_arr / n_arr, np.nan)

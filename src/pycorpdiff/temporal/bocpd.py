@@ -4,18 +4,30 @@ Where :func:`detect_changepoints` runs PELT *offline* — needing the full
 series and returning MAP locations after the fact — BOCPD runs *online*:
 at each new observation it returns the posterior distribution over *run
 length*, where the run length is the number of periods since the last
-changepoint. The two most actionable summaries:
+changepoint. The two actionable summaries:
 
 - **MAP run length** at time *t*: the most-probable number of periods
   since the last changepoint. Drops sharply at changepoints, grows
-  steadily during stable regimes.
-- **Changepoint probability** P(*r* < ``threshold`` | data through *t*):
-  posterior probability that a changepoint occurred within the last
-  ``threshold`` steps. Useful for live monitoring.
+  steadily during stable regimes. This is the field to monitor.
+- **Posterior probability of recent changepoint**:
+  P(*r_t* ≤ ``threshold`` | data through *t*) — sum the leftmost
+  ``threshold + 1`` columns of ``run_length_posterior``. This IS
+  data-driven and useful for live monitoring.
+
+The :class:`BocpdResult` also exposes a ``cp_probability`` field
+(``posterior[t, 0]``), but under constant hazard ``h`` and proper
+predictive-probability conditioning that value collapses to ``h``
+identically — the changepoint prior cancels in the normalisation.
+Use the MAP run length or the threshold-mass formulation above for
+data-driven monitoring; treat ``cp_probability`` as the hazard
+hyperparameter rather than a posterior signal.
 
 Observation model: Gaussian with a Normal-Inverse-Gamma conjugate
 prior over (mean, variance). The predictive distribution is Student's
-*t*, computed analytically.
+*t*, computed analytically. Note: NIG is *misspecified* for series
+bounded in [0, 1] (relative frequencies); for proportion-trajectory
+applications consider logit-transforming the input or using
+:func:`changepoints` (offline PELT) on the rate column instead.
 
 Reference
 ---------
@@ -52,9 +64,23 @@ class BocpdResult:
     series: pd.Series
     run_length_posterior: np.ndarray  # shape (T, max_r+1)
     map_run_length: pd.Series  # length T, indexed like series
-    cp_probability: pd.Series  # length T, indexed like series
+    cp_probability: pd.Series  # length T; under constant hazard this collapses to the hazard hyperparameter — see module docstring
     hazard: float
     params: dict[str, Any] = field(default_factory=dict)
+
+    def cp_probability_recent(self, threshold: int = 3) -> pd.Series:
+        """Posterior probability of a changepoint in the last ``threshold`` periods.
+
+        Sums the leftmost ``threshold + 1`` columns of
+        :attr:`run_length_posterior` — i.e. P(*r_t* ≤ threshold | data).
+        Unlike :attr:`cp_probability` (which collapses to the hazard
+        hyperparameter under constant hazard), this signal responds to
+        the data and is the right monitoring metric for live-detection
+        applications.
+        """
+        cols = min(threshold + 1, self.run_length_posterior.shape[1])
+        recent = self.run_length_posterior[:, :cols].sum(axis=1)
+        return pd.Series(recent, index=self.series.index, name="cp_probability_recent")
 
     def to_df(self) -> pd.DataFrame:
         """Return a flat per-step table (period, value, map_run_length, cp_probability)."""

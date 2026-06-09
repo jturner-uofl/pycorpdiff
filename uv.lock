@@ -3421,7 +3421,7 @@ wheels = [
 
 [[package]]
 name = "pycorpdiff"
-version = "0.1.0a2"
+version = "0.1.0a11"
 source = { editable = "." }
 dependencies = [
     { name = "numpy" },
@@ -3435,11 +3435,11 @@ all = [
     { name = "altair" },
     { name = "datasets" },
     { name = "duckdb" },
+    { name = "jupyter" },
     { name = "matplotlib" },
     { name = "networkx" },
     { name = "polars" },
     { name = "pyarrow" },
-    { name = "pysofra" },
     { name = "ruptures" },
     { name = "scikit-learn" },
     { name = "sentence-transformers" },
@@ -3467,7 +3467,6 @@ nlp = [
 ]
 notebooks = [
     { name = "jupyter" },
-    { name = "pysofra" },
     { name = "vl-convert-python" },
 ]
 polars = [
@@ -3477,6 +3476,9 @@ polars = [
 semantic = [
     { name = "scikit-learn" },
     { name = "sentence-transformers" },
+]
+showcase = [
+    { name = "pysofra" },
 ]
 temporal = [
     { name = "ruptures" },
@@ -3497,6 +3499,7 @@ requires-dist = [
     { name = "duckdb", marker = "extra == 'all'", specifier = ">=0.10" },
     { name = "duckdb", marker = "extra == 'duckdb'", specifier = ">=0.10" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.100" },
+    { name = "jupyter", marker = "extra == 'all'", specifier = ">=1.0" },
     { name = "jupyter", marker = "extra == 'notebooks'", specifier = ">=1.0" },
     { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.8" },
     { name = "matplotlib", marker = "extra == 'viz'", specifier = ">=3.8" },
@@ -3512,8 +3515,7 @@ requires-dist = [
     { name = "pyarrow", specifier = ">=14" },
     { name = "pyarrow", marker = "extra == 'all'", specifier = ">=15" },
     { name = "pyarrow", marker = "extra == 'polars'", specifier = ">=15" },
-    { name = "pysofra", marker = "extra == 'all'", specifier = ">=0.1.0a2" },
-    { name = "pysofra", marker = "extra == 'notebooks'", specifier = ">=0.1.0a2" },
+    { name = "pysofra", marker = "extra == 'showcase'", specifier = ">=0.1.0a3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
@@ -3531,7 +3533,7 @@ requires-dist = [
     { name = "vl-convert-python", marker = "extra == 'all'", specifier = ">=1.5" },
     { name = "vl-convert-python", marker = "extra == 'notebooks'", specifier = ">=1.5" },
 ]
-provides-extras = ["viz", "semantic", "temporal", "polars", "duckdb", "nlp", "huggingface", "notebooks", "all", "dev"]
+provides-extras = ["viz", "semantic", "temporal", "polars", "duckdb", "nlp", "huggingface", "notebooks", "showcase", "all", "dev"]
 
 [[package]]
 name = "pycparser"
@@ -3679,7 +3681,7 @@ wheels = [
 
 [[package]]
 name = "pysofra"
-version = "0.1.0a2"
+version = "0.1.0a7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
@@ -3688,9 +3690,9 @@ dependencies = [
     { name = "scipy" },
     { name = "statsmodels" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7c/dd/df6458160e8992f22ec1877dc696de04aefbe3de31bb7a29b5ca6a446560/pysofra-0.1.0a2.tar.gz", hash = "sha256:da8e7acd8cbb4894efe1f15edd98c0abd0f1817f9083a5b692b61d334721eb4c", size = 221967, upload-time = "2026-05-24T14:37:46.676Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fb/d1/05cd7f14e535d149723c6277103806aab37c0f7a5664016bc64feab8147e/pysofra-0.1.0a7.tar.gz", hash = "sha256:c36815581ff693f674cd060f29ba44beb58ca9e1270d9624b0fbdcdee7f3992c", size = 237972, upload-time = "2026-05-25T23:12:28.884Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6d/43/dd5de6785eb1a78e812b29d2feffa67e46f7050bb61f8c5f4d59190ea97d/pysofra-0.1.0a2-py3-none-any.whl", hash = "sha256:ad3d200ac5a7398f1bdff8c83d6c9e1fa67a943b6344a9a7940e603f5102908c", size = 143705, upload-time = "2026-05-24T14:37:45.196Z" },
+    { url = "https://files.pythonhosted.org/packages/20/7b/250661d8988d5bdf0bdab4d10b30d061cb1c20fe2712e01c76c18a99e952/pysofra-0.1.0a7-py3-none-any.whl", hash = "sha256:fd4543e8a142c7ec157d84c9948a1f949353f31b0e0efa7507f5b5d66b0ecd9b", size = 153151, upload-time = "2026-05-25T23:12:27.346Z" },
 ]
 
 [[package]]

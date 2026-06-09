@@ -1,4 +1,4 @@
-"""Bayesian counterfactual causal impact (Brodersen et al. 2015).
+"""Counterfactual causal impact via frequentist state-space + MC paths.
 
 The :func:`interrupted_time_series` module answers "is there a step
 discontinuity at this known event?" via segmented OLS. The harder —
@@ -7,20 +7,52 @@ looked like *without* the event?" That's the counterfactual, and the
 gap between observed reality and counterfactual prediction is the
 causal effect of the event.
 
-Method: Bayesian structural time series (BSTS) — a state-space model
-with a local linear trend fit on the pre-event window, then projected
-forward as the counterfactual for the post-event window. Implemented
-via :class:`statsmodels.tsa.UnobservedComponents`. The credible
-intervals on the pointwise and cumulative effects come from Monte
-Carlo simulation against the joint posterior of the state-space
-filter — anchored at the end of the pre-event training data and rolled
-forward through the post-event horizon.
+Method: a univariate state-space counterfactual. A local linear
+trend (Harvey 1989 §3.2) model is fit on the pre-event window by
+maximum likelihood and projected forward as the counterfactual for the
+post-event window. Implemented via
+:class:`statsmodels.tsa.UnobservedComponents` — a Kalman-filter MLE
+implementation, **not a Bayesian posterior**: there is no prior on the
+state-variance hyperparameters and no MCMC. The point forecast and its
+asymptotic (Wald-type) interval come from ``fit.get_forecast(...)``;
+the pointwise + cumulative effect intervals come from Monte Carlo
+simulation of state-space paths **conditional on the MLE parameter
+estimates** (``fit.simulate(repetitions=...)``), anchored at the end
+of the pre-event training data. The MC bands therefore propagate
+state-process noise but not parameter uncertainty.
+
+**On the "Bayesian structural time series" label.** The canonical
+Google ``CausalImpact`` implementation (Brodersen et al. 2015) is fully
+Bayesian: spike-and-slab regression on parallel control series with
+MCMC over state-variance hyperparameters. pycorpdiff does *not*
+implement that machinery; the implementation here is the no-control,
+frequentist-MLE simplification. The Brodersen paper remains a useful
+reference for the counterfactual *framework* (pre-event fit → post-
+event projection → observed-minus-counterfactual = effect), but the
+*inference* in pycorpdiff is plug-in / MLE-conditional, not a
+posterior. Reports of the form "the credible interval excludes zero"
+or "the posterior probability of no effect" are unavailable from this
+function — the corresponding outputs are interpreted as
+MLE-conditional simulation intervals and a two-sided MC p-value-style
+summary.
+
+The univariate, no-control design is appropriate when no obvious
+parallel control series exists (the common case in corpus-linguistic
+event studies), but its counterfactual relies entirely on extrapolation
+of the pre-event trend — be wary of distribution shifts unrelated to
+the event.
 
 Reference
 ---------
 Brodersen, K. H., Gallusser, F., Koehler, J., Remy, N., & Scott, S. L.
 (2015). Inferring causal impact using Bayesian structural time-series
 models. *Annals of Applied Statistics*, 9(1), 247-274.
+(The counterfactual framework. pycorpdiff implements the no-control,
+MLE-fit simplification, not the full Bayesian spike-and-slab BSTS.)
+
+Harvey, A. C. (1989). *Forecasting, Structural Time Series Models and
+the Kalman Filter*. Cambridge University Press. (Local linear trend
+state-space specification.)
 """
 
 from __future__ import annotations
@@ -48,7 +80,10 @@ class CausalImpactResult:
 
     Summary scalars live in :attr:`metrics` as a dict keyed by the
     standard CausalImpact reporting set: avg effect, absolute effect,
-    relative effect, posterior probability of no effect.
+    relative effect, and a Monte-Carlo two-sided p-value-style
+    probability of no effect (``p_no_effect_mc``, fraction of simulated
+    paths in which the post-window average effect crosses zero — MLE-
+    conditional, **not a Bayesian posterior probability**).
     """
 
     target: str
@@ -83,7 +118,7 @@ class CausalImpactResult:
         rel = m.get("relative_effect", float("nan"))
         ci_lo = m.get("avg_effect_lower", float("nan"))
         ci_hi = m.get("avg_effect_upper", float("nan"))
-        p = m.get("posterior_prob_no_effect", float("nan"))
+        p = m.get("p_no_effect_mc", m.get("posterior_prob_no_effect", float("nan")))
         rel_str = (
             "n/a (counterfactual ≈ 0)" if math.isnan(rel) else f"{rel * 100:+.1f}%"
         )
@@ -91,10 +126,10 @@ class CausalImpactResult:
             f"CausalImpactResult(target={self.target!r}, "
             f"event={self.event_date.date()}, pre={self.n_pre}, post={self.n_post})\n"
             f"  avg effect:        {avg:+.4f} per period  "
-            f"({int(self.level * 100)}% CrI [{ci_lo:+.4f}, {ci_hi:+.4f}])\n"
+            f"({int(self.level * 100)}% CI [{ci_lo:+.4f}, {ci_hi:+.4f}])\n"
             f"  cumulative effect: {cum:+.4f}\n"
             f"  relative effect:   {rel_str} vs counterfactual mean\n"
-            f"  P(no effect):      {p:.3f}"
+            f"  P(no effect):      {p:.3f}  (MC, MLE-conditional; not a Bayesian posterior)"
         )
 
 
@@ -106,15 +141,34 @@ def causal_impact(
     n_samples: int = 1000,
     seed: int | None = 0,
     model: str = "local linear trend",
+    min_pre_periods: int = 15,
+    min_post_periods: int = 8,
+    max_pre_post_ratio: float = 5.0,
 ) -> CausalImpactResult:
     """Counterfactual causal impact of an event on a time series.
 
-    Fits a Bayesian structural time-series model on the pre-event
-    portion of ``series`` and projects it forward through the
-    post-event window as the counterfactual "what would have happened
-    without the event". Observed minus counterfactual is the causal
-    effect, with credible intervals from Monte Carlo simulation
-    against the joint state-space posterior.
+    Fits a frequentist state-space (Kalman-filter MLE) model on the
+    pre-event portion of ``series`` and projects it forward through
+    the post-event window as the counterfactual "what would have
+    happened without the event". Observed minus counterfactual is the
+    causal effect, with intervals on the pointwise and cumulative
+    effects coming from Monte Carlo simulation of state-space paths
+    conditional on the MLE parameter estimates. The intervals
+    propagate state-process noise but not parameter uncertainty;
+    they are **not Bayesian credible intervals** and ``p_no_effect_mc``
+    is **not a Bayesian posterior probability** (see module docstring
+    for the relationship to Brodersen 2015 BSTS).
+
+    **Calibration safety rails (new in 0.1.0a21).** The counterfactual
+    machinery is sensitive to (1) too-short pre-event windows
+    (under-fit pre-event trend), (2) too-short post-event windows
+    (over-fit to a tiny tail), and (3) very asymmetric pre / post
+    windows (the model effectively detects "where the cutpoint sits
+    in the series" rather than "the event"). The asylum case study
+    (examples/jss_case_study.ipynb) §5.8c placebo sweep + §5.8e
+    leave-one-year-out tests surfaced both failure modes empirically.
+    The defaults block obviously-under-powered calls; callers who know
+    what they are doing can relax them.
 
     Parameters
     ----------
@@ -125,7 +179,10 @@ def causal_impact(
         Where to place the intervention. Anything pandas can compare
         to the series index.
     level
-        Credible-interval level. ``0.95`` → 95% CrI on every band.
+        Nominal interval level. ``0.95`` → 95% interval on every band.
+        These are MLE-conditional Monte-Carlo intervals (and Wald-type
+        asymptotic intervals on the counterfactual point forecast), not
+        Bayesian credible intervals.
     n_samples
         Number of Monte Carlo paths to sample for the pointwise +
         cumulative CIs. 1000 is the conventional default and runs in
@@ -136,10 +193,43 @@ def causal_impact(
         Trend specification passed to
         :class:`statsmodels.tsa.UnobservedComponents` — usually
         ``"local linear trend"`` (level + slope) or ``"local level"``.
+    min_pre_periods
+        Minimum number of pre-event observations required. Default
+        ``15``: Brodersen et al. 2015 found their (Bayesian) BSTS
+        implementation becomes stable above ~20 observations; for the
+        MLE state-space fit used here, the same order-of-magnitude
+        floor empirically blocks the most degenerate fits. Below this
+        floor the pre-event trend is under-identified and post-event
+        MC intervals are dominated by parameter-fit noise. Lower the
+        floor explicitly if you have a substantive reason; bypassing
+        it silently is how you get §5.8c-type placebo-firing results.
+    min_post_periods
+        Minimum number of post-event observations required. Default
+        ``8``: below this, the average-effect statistic averages over
+        too few periods to be meaningful, and the model can fit a
+        spurious step change to a tiny tail of data (see the asylum case study (examples/jss_case_study.ipynb)
+        case-study §5.8c, where placebo events with post-windows of
+        5 quarters returned P(no effect) = 0.03 despite no real event).
+    max_pre_post_ratio
+        Maximum allowed ratio of pre to post (or post to pre) periods.
+        Default ``5.0``: events placed near the start or end of the
+        time series produce highly asymmetric windows and the state-
+        space fit is dominated by whichever side is longer. The 5×
+        cap blocks the most pathological asymmetries; raise it
+        explicitly if you have a calibration reason.
 
     Returns
     -------
     :class:`CausalImpactResult`
+
+    Raises
+    ------
+    ValueError
+        If pre-event window < ``min_pre_periods``, post-event window <
+        ``min_post_periods``, or pre/post asymmetry exceeds
+        ``max_pre_post_ratio``. The error message names the actual
+        counts so the caller can decide whether to relax the threshold
+        or pick a different event date.
     """
     try:
         import statsmodels.api as sm
@@ -170,25 +260,63 @@ def causal_impact(
 
     pre_mask = np.asarray(work.index < event_ts)
     post_mask = ~pre_mask
-    if int(pre_mask.sum()) < 4:
+    n_pre = int(pre_mask.sum())
+    n_post = int(post_mask.sum())
+
+    if n_pre < min_pre_periods:
         raise ValueError(
-            f"need at least 4 pre-event observations; got {int(pre_mask.sum())} "
-            f"(event_date={event_date!r})"
+            f"causal_impact pre-event window too short: got {n_pre} observations "
+            f"(event_date={event_date!r}); need >= min_pre_periods={min_pre_periods}. "
+            "State-space counterfactual fit is unreliable below ~15 pre-event observations "
+            "(see examples/jss_case_study.ipynb §5.8e). Either choose an event with more pre-history "
+            "or lower min_pre_periods explicitly if you have a calibration reason."
         )
-    if int(post_mask.sum()) < 1:
+    if n_post < min_post_periods:
         raise ValueError(
-            f"need at least 1 post-event observation; event_date={event_date!r} "
-            "is at or after the last period"
+            f"causal_impact post-event window too short: got {n_post} observations "
+            f"(event_date={event_date!r}); need >= min_post_periods={min_post_periods}. "
+            "Average-effect estimates over very short post-event windows are dominated "
+            "by tail noise (see examples/jss_case_study.ipynb §5.8c, where 5-quarter post-windows "
+            "produced spurious 'effects' at placebo dates). Either choose an event "
+            "earlier in the series or lower min_post_periods explicitly."
+        )
+    ratio = max(n_pre, n_post) / max(1, min(n_pre, n_post))
+    if ratio > max_pre_post_ratio:
+        raise ValueError(
+            f"causal_impact pre/post asymmetry too large: pre={n_pre}, post={n_post}, "
+            f"ratio={ratio:.1f} > max_pre_post_ratio={max_pre_post_ratio}. "
+            "Very asymmetric windows let the state-space model fit a spurious 'step change' to the "
+            "smaller side (see examples/jss_case_study.ipynb §5.8c). Pick an event closer to the "
+            "middle of the series or relax max_pre_post_ratio."
         )
 
     pre = work[pre_mask]
     post = work[post_mask]
 
-    # Fit BSTS on the pre-event window.
+    # Boolean masking drops the DatetimeIndex freq attribute, which makes
+    # statsmodels re-infer the frequency on every fit and emit a stack of
+    # ValueWarnings ("date index has no associated frequency", "no
+    # supported index ... integer index"). Re-tag the freq on the
+    # contiguous pre-event slice so the state-space model sees a regular
+    # index. This is cosmetic for the numbers (the MLE fit and forecast
+    # values are identical; only the forecast index labels change) but
+    # removes the warning noise. Falls back silently if the slice is
+    # irregular.
+    if inferred is not None and isinstance(pre.index, pd.DatetimeIndex):
+        try:
+            pre = pre.copy()
+            pre.index = pd.DatetimeIndex(pre.index, freq=inferred)
+        except (ValueError, TypeError):
+            pass
+
+    # Fit the state-space model on the pre-event window by MLE.
+    # statsmodels.UnobservedComponents is a Kalman-filter MLE
+    # implementation — frequentist, not Bayesian (no prior, no MCMC).
     uc = sm.tsa.UnobservedComponents(pre, level=model)
     fit = uc.fit(disp=False)
 
-    # Counterfactual point forecast + marginal CI from get_forecast.
+    # Counterfactual point forecast + asymptotic (Wald-type) interval
+    # from get_forecast — conditional on the MLE state-space parameters.
     h = len(post)
     fc = fit.get_forecast(steps=h)
     cf_mean = np.asarray(fc.predicted_mean, dtype=float)
@@ -196,8 +324,11 @@ def causal_impact(
     cf_lower = cf_ci[:, 0]
     cf_upper = cf_ci[:, 1]
 
-    # Monte Carlo against the joint posterior for the cumulative + pointwise
-    # effect bands — anchored at the end of the pre-event filter state.
+    # Monte Carlo paths conditional on the MLE-fit state-space parameters
+    # for the cumulative + pointwise effect bands, anchored at the end of
+    # the pre-event filter state. These paths propagate state-process
+    # noise; they do NOT propagate parameter uncertainty, so the resulting
+    # bands are MLE-conditional, not Bayesian posterior-predictive.
     sim = fit.simulate(
         nsimulations=h,
         repetitions=int(n_samples),
@@ -221,7 +352,8 @@ def causal_impact(
     cum_upper = np.quantile(cumulative_paths, hi_q, axis=0)
     pw_mean = obs_arr - cf_mean
 
-    # Summary scalars — Brodersen "average effect" is over the post window.
+    # Summary scalars — "average effect" is over the post window, per the
+    # Brodersen (2015) reporting convention; the inference is MLE here.
     avg_effect = float(pw_mean.mean())
     avg_lower = float(np.quantile(pointwise_paths.mean(axis=1), lo_q))
     avg_upper = float(np.quantile(pointwise_paths.mean(axis=1), hi_q))
@@ -229,8 +361,12 @@ def causal_impact(
     relative_effect = (
         avg_effect / cf_mean_avg if abs(cf_mean_avg) > 1e-12 else float("nan")
     )
-    # Posterior probability of no effect: fraction of paths where the avg
-    # effect crosses zero — two-tailed.
+    # MC p-value-style probability of no effect: two-sided fraction of
+    # simulated paths whose post-window average effect is at least as
+    # extreme as observed. This is an MLE-conditional simulation
+    # summary, NOT a Bayesian posterior probability — the MC paths are
+    # drawn conditional on the fitted state-space parameters, not
+    # marginalised over a posterior on those parameters.
     avg_effect_per_path = pointwise_paths.mean(axis=1)
     if avg_effect >= 0:
         p_no_effect = float((avg_effect_per_path <= 0).mean()) * 2.0
@@ -270,7 +406,7 @@ def causal_impact(
         "cumulative_effect_upper": float(cum_upper[-1]),
         "relative_effect": relative_effect,
         "counterfactual_mean": cf_mean_avg,
-        "posterior_prob_no_effect": p_no_effect,
+        "p_no_effect_mc": p_no_effect,
     }
     return CausalImpactResult(
         target="",  # filled in by the caller — TemporalTrajectory knows the name

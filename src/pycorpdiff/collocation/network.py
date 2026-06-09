@@ -14,14 +14,16 @@ have made common in digital humanities; here it lands as a first-class
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Literal
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
 import pandas as pd
 
 from ..corpus import Corpus, CorpusSlice
+from ..results import _table_to_html, _table_to_json
 from .measures import logdice, mi_three, pmi, t_score
 
 if TYPE_CHECKING:
@@ -54,6 +56,17 @@ class NetworkResult:
         """Return the edges as a flat tidy DataFrame (for round-trips)."""
         return self.edges.copy()
 
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the edge table as HTML (returns the string and,
+        optionally, writes to ``path``). Extra kwargs forward to
+        :meth:`pandas.DataFrame.to_html`."""
+        return _table_to_html(self.edges, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        """Render the edge table as JSON (default ``orient="records"``).
+        Returns the JSON string and, optionally, writes to ``path``."""
+        return _table_to_json(self.edges, path, **kw)
+
     def summary(self) -> str:
         return (
             f"NetworkResult(measure={self.measure}, window={self.window}, "
@@ -76,6 +89,7 @@ def cooccurrence_network(
     min_count: int = 3,
     min_cooccur: int = 2,
     smoothing: float = 0.5,
+    stop_words: Iterable[str] | None = None,
 ) -> NetworkResult:
     """Build a term co-occurrence network for the ``top_n`` terms.
 
@@ -104,6 +118,13 @@ def cooccurrence_network(
         Laplace constant added to joint and marginal counts before
         scoring (mirrors :func:`collocation_shift`'s convention so the
         same measures stay finite on absent pairs).
+    stop_words
+        Optional iterable of terms to exclude from the vocabulary
+        before the ``top_n`` cut. Useful when the raw top-of-frequency
+        is dominated by function words (``the``, ``and``, ``of``,
+        …) that aren't analytically interesting in the discourse
+        graph. Without this, an English corpus's top-30 by frequency
+        is almost entirely closed-class function words.
 
     Returns
     -------
@@ -116,11 +137,15 @@ def cooccurrence_network(
     if smoothing <= 0:
         raise ValueError(f"smoothing must be > 0; got {smoothing}")
 
-    vocab = corpus.vocab(min_count=min_count).head(top_n)
+    vocab = corpus.vocab(min_count=min_count)
+    if stop_words is not None:
+        stop_set = set(stop_words)
+        vocab = vocab[~vocab.index.isin(stop_set)]
+    vocab = vocab.head(top_n)
     if len(vocab) < 2:
         raise ValueError(
-            f"need at least 2 terms after min_count={min_count} filter; "
-            f"got {len(vocab)}"
+            f"need at least 2 terms after min_count={min_count} + "
+            f"stop_words filter; got {len(vocab)}"
         )
 
     keep_set = set(vocab.index)

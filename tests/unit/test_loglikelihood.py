@@ -134,3 +134,49 @@ def test_results_are_finite() -> None:
     table = log_likelihood(a, b, total_a=int(a.sum()) + 100, total_b=int(b.sum()) + 100)
     assert np.isfinite(table["g2"]).all()
     assert (table["p_value"] >= 0).all() and (table["p_value"] <= 1).all()
+
+
+# ---------------------------------------------------------------------
+# formula= parameter (added in 0.1.0a7)
+# ---------------------------------------------------------------------
+
+
+def test_formula_rayson_matches_two_cell_shortcut() -> None:
+    """Rayson 2-cell: 2·(O1·ln(O1/E1) + O2·ln(O2/E2)). 12000/1M vs 10000/1M → 182.07."""
+    a = pd.Series({"x": 12000})
+    b = pd.Series({"x": 10000})
+    table = log_likelihood(a, b, 1_000_000, 1_000_000, formula="rayson")
+    assert math.isclose(abs(table.loc["x", "g2"]), 182.0695, abs_tol=1e-3)
+
+
+def test_formula_dunning_matches_four_cell() -> None:
+    """Dunning 4-cell: same example yields 184.09, not 182.07."""
+    a = pd.Series({"x": 12000})
+    b = pd.Series({"x": 10000})
+    table = log_likelihood(a, b, 1_000_000, 1_000_000, formula="dunning")
+    assert math.isclose(abs(table.loc["x", "g2"]), 184.0917, abs_tol=1e-3)
+
+
+def test_formula_rayson_and_dunning_diverge_on_imbalanced_totals() -> None:
+    """The two formulae must give materially different G² when corpus
+    totals are imbalanced; otherwise the cross-validation receipt
+    against quanteda would be testing nothing.
+
+    With N_A << N_B, the 4-cell "absent" contribution matters and the
+    Rayson 2-cell shortcut diverges from Dunning's full 4-cell form.
+    """
+    a = pd.Series({"x": 50})
+    b = pd.Series({"x": 50})
+    g2_rayson = log_likelihood(a, b, 1_000, 100_000, formula="rayson").loc["x", "g2"]
+    g2_dunning = log_likelihood(a, b, 1_000, 100_000, formula="dunning").loc["x", "g2"]
+    assert abs(g2_dunning - g2_rayson) > 1.0, (
+        f"expected meaningful divergence on imbalanced totals; "
+        f"got rayson={g2_rayson}, dunning={g2_dunning}"
+    )
+
+
+def test_formula_invalid_raises_value_error() -> None:
+    a = pd.Series({"x": 10})
+    b = pd.Series({"x": 5})
+    with pytest.raises(ValueError, match="formula must be"):
+        log_likelihood(a, b, 100, 100, formula="bogus")  # type: ignore[arg-type]

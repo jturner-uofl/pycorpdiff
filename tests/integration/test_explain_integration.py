@@ -46,14 +46,17 @@ def test_keyness_result_explain_returns_concordance(
 
 def test_keyness_explain_without_source_corpora_raises() -> None:
     # Construct a KeynessResult by hand (no corpus refs) — explain must
-    # refuse rather than silently returning empty evidence.
+    # refuse rather than silently returning empty evidence. The path
+    # where ``corpus_a`` is present and ``corpus_b`` is ``None`` (used
+    # by ``against_baseline``) is covered separately and now *succeeds*
+    # with single-side KWIC; the bare case here still raises.
     bare = pcd.KeynessResult(
         table=pd.DataFrame({"term": ["x"], "g2": [1.0]}),
         method="log_likelihood",
         n_a=100,
         n_b=100,
     )
-    with pytest.raises(ValueError, match="requires source corpora"):
+    with pytest.raises(ValueError, match="A-side corpus"):
         bare.explain("x")
 
 

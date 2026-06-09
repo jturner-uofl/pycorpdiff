@@ -76,7 +76,13 @@ class HashEmbedder:
         out = np.zeros((len(terms), self.dim), dtype=np.float64)
         for i, term in enumerate(terms):
             digest = hashlib.sha256(term.encode("utf-8")).digest()
-            seed = int.from_bytes(digest[:8], "big") & 0xFFFFFFFF
+            # Use the full 8-byte (64-bit) prefix as the seed. The
+            # earlier 32-bit mask (``& 0xFFFFFFFF``) produced birthday
+            # collisions at ~65k distinct terms — well within real
+            # corpus vocabularies — and broke the "different inputs
+            # yield uncorrelated vectors" promise. numpy's
+            # ``default_rng`` accepts arbitrary-size integer seeds.
+            seed = int.from_bytes(digest[:8], "big")
             rng = np.random.default_rng(seed=seed)
             v = rng.standard_normal(self.dim)
             n = np.linalg.norm(v)

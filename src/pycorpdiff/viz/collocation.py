@@ -34,7 +34,11 @@ def collocation_diverging_bar(
         alt.Chart(subset)
         .mark_bar()
         .encode(
-            x=alt.X("shift:Q", title="Shift (A − B)"),
+            x=alt.X(
+                "shift:Q",
+                title="Shift (A - B)",
+                axis=alt.Axis(labelExpr=r"replace(datum.label, '−', '-')"),
+            ),
             y=alt.Y("collocate:N", sort="-x", title=None),
             color=alt.condition(
                 alt.datum.shift >= 0,

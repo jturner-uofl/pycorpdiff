@@ -1,16 +1,31 @@
 """Result dataclasses returned by every public analytical verb.
 
-Every Result implements the same informal contract:
+Each Result implements the relevant subset of an informal six-method
+contract:
 
 - ``.to_df()`` returns a tidy :class:`pandas.DataFrame`.
 - ``.plot(**kw)`` returns an :class:`altair.Chart`.
-- ``.explain(term, n)`` returns a :class:`ConcordanceResult` with
-  evidence for one row of the result.
+- ``.to_html(path=None)`` renders the table as HTML.
+- ``.to_json(path=None)`` renders the table as JSON.
 - ``.summary()`` returns a short human-readable string.
+- ``.explain(term, n)`` returns a :class:`ConcordanceResult` with
+  KWIC evidence for one row of the result. Defined only on
+  term-ranked Results (``KeynessResult``, ``CollocationShiftResult``)
+  where "one row of the result" maps to a target term.
 
-This contract is intentionally a duck-typing convention rather than an
-abstract base class — it keeps Results lightweight and lets them be
-constructed from a plain DataFrame without inheritance gymnastics.
+See ``docs/design.md`` for the per-Result method matrix. This contract
+is a duck-typing convention rather than an abstract base class — it
+keeps Results lightweight and lets them be constructed from a plain
+DataFrame without inheritance gymnastics.
+
+**On "frozen" semantics.** Every Result is declared
+``@dataclass(frozen=True)``, which prevents attribute reassignment
+(``result.table = ...`` raises) but does *not* prevent in-place
+mutation of the contained pandas DataFrame
+(``result.table.loc[0, "g2"] = 99`` succeeds and persists). Treat
+Result objects as effectively immutable in your own code; do not
+rely on the ``frozen`` flag as a guard against mutation of the
+underlying tabular state.
 """
 
 from __future__ import annotations
@@ -70,10 +85,28 @@ def _table_to_json(
 class KeynessResult:
     """Per-term keyness scores for two corpora.
 
-    The ``table`` DataFrame has one row per shared vocabulary item with
-    columns including ``term``, ``count_a``, ``count_b``, ``score``,
-    ``effect_size``, ``p_value``, ``dispersion_a``, ``dispersion_b``,
-    and a boolean ``dispersion_flag``.
+    The ``table`` DataFrame (also returned by :meth:`to_df`) has one row
+    per shared vocabulary item with the following columns:
+
+    - ``term`` -- the surface form
+    - ``count_a``, ``count_b`` -- observed counts in each corpus
+    - ``expected_a``, ``expected_b`` -- expected counts under the
+      null of no association (pooled-rate × corpus size)
+    - ``g2`` -- signed log-likelihood G² (Dunning 1993 / Rayson &
+      Garside 2000, per the ``formula`` parameter), signed by
+      ``log_ratio`` direction (positive = A-distinctive)
+    - ``p_value`` -- raw p-value from the χ² distribution with df=1
+    - ``log_ratio`` -- log₂ ratio of normalised rates A vs B
+    - ``percent_diff`` -- relative rate difference, percent
+    - ``bayes_factor`` -- BIC-style approximation of the Bayes factor
+    - ``p_adjusted`` -- multiple-comparison-corrected p-value (default
+      Benjamini-Hochberg; controlled by ``multiple_comparisons=``)
+
+    Optional columns appear when their respective opt-ins are set:
+    bootstrap CI columns when ``ci='bootstrap'``;
+    ``dispersion_a/dispersion_b/dispersion_flag`` when
+    ``dispersion=True`` is passed to :meth:`Comparison.keyness`;
+    permutation p-values when ``permutation_n > 0``.
     """
 
     table: pd.DataFrame
@@ -126,19 +159,33 @@ class KeynessResult:
         )
 
     def explain(self, term: str, n: int = 5, window: int = 5) -> ConcordanceResult:
-        """Show KWIC examples of ``term`` from both source corpora.
+        """Show KWIC examples of ``term`` from the source corpora.
 
-        Returns up to ``n`` lines per corpus. Requires that the result
-        was built via :meth:`pycorpdiff.Comparison.keyness` (which
-        populates the corpus references); building a ``KeynessResult``
-        from a bare DataFrame will raise.
+        Returns up to ``n`` lines per corpus when the result holds two
+        full corpora (the usual :meth:`pycorpdiff.Comparison.keyness`
+        case). When the result was built via
+        :func:`pycorpdiff.against_baseline` — where ``corpus_b`` is a
+        bare frequency list, not a corpus — only the ``corpus_a`` side
+        has source text on hand, so ``explain`` falls back to KWIC from
+        ``corpus_a`` alone.
+
+        Building a ``KeynessResult`` from a bare DataFrame with no
+        corpus references at all will raise.
         """
-        if self.corpus_a is None or self.corpus_b is None:
+        if self.corpus_a is None:
             raise ValueError(
-                "explain() requires source corpora; this KeynessResult was "
-                "constructed without them"
+                "explain() requires at least the A-side corpus; this "
+                "KeynessResult was constructed without one"
             )
-        from .explain import kwic_compare
+        from .explain import kwic, kwic_compare
+
+        if self.corpus_b is None:
+            # Baseline keyness path: the reference side is an aggregate
+            # frequency list with no source text. Return concordances
+            # from the user's corpus only.
+            return kwic(
+                self.corpus_a, target=term, window=window, n=n, label=self.label_a
+            )
 
         return kwic_compare(
             self.corpus_a,
@@ -251,15 +298,32 @@ class SemanticShiftResult:
         return _table_to_json(self.table, path, **kw)
 
     def plot(self, **kw: Any) -> alt.Chart:
-        """Plotting for SemanticShiftResult is not yet implemented.
+        """Horizontal bar chart of cosine distance per target term.
 
-        For a forward-looking trajectory of cosine distances, use
-        :func:`pycorpdiff.semantic_trajectory` and pass the resulting
-        DataFrame to :func:`pycorpdiff.viz.semantic_forecast_plot`.
+        For a multi-period trajectory of cosine distances (an across-
+        time view rather than a single A-vs-B snapshot), use
+        :func:`pycorpdiff.semantic_trajectory` paired with
+        :func:`pycorpdiff.viz.semantic_forecast_plot`.
+
+        Extra keyword arguments forward to :meth:`altair.Chart.properties`.
         """
-        raise NotImplementedError(
-            "SemanticShiftResult.plot() is not yet implemented; "
-            "use .table or pcd.viz.semantic_forecast_plot() instead"
+        import altair as alt
+
+        return (  # type: ignore[no-any-return]
+            alt.Chart(self.table)
+            .mark_bar(color="#0b6e7c")
+            .encode(
+                x=alt.X("cosine_distance:Q", title="Cosine distance (A → B)"),
+                y=alt.Y("target:N", sort="-x", title=None),
+                tooltip=[
+                    "target",
+                    alt.Tooltip("cosine_similarity:Q", format=".4f"),
+                    alt.Tooltip("cosine_distance:Q", format=".4f"),
+                    "n_contexts_a",
+                    "n_contexts_b",
+                ],
+            )
+            .properties(width=400, **kw)
         )
 
     def neighbors_before(
@@ -438,6 +502,55 @@ class TemporalTrajectory:
             max_run_length=max_run_length,
         )
 
+    def burstiness(
+        self,
+        target: str | None = None,
+        *,
+        s: float = 2.0,
+        gamma: float = 1.0,
+        n_states: int = 5,
+    ) -> Any:
+        """Kleinberg burst-detection on a target's per-period rate.
+
+        Where :meth:`changepoints` answers "*when* did the rate change?"
+        (segmentation), burstiness answers "*when was the rate elevated
+        and by how much?*" (per-period intensity labelling). Returns a
+        :class:`pycorpdiff.temporal.burstiness.BurstinessResult` with a
+        per-period state Series and a per-burst summary table.
+
+        Parameters
+        ----------
+        target
+            One of the trajectory's targets. Required when the
+            trajectory carries multiple targets.
+        s
+            Burst factor: state *i* has rate ``p_0 * s ** i``. Default
+            ``2.0`` is Kleinberg's recommendation; raise it to demand
+            stronger spikes before tagging as bursts.
+        gamma
+            Transition-cost multiplier. Higher = more conservative
+            (fewer / shorter bursts). Default ``1.0``.
+        n_states
+            Maximum burst level (including state 0). Default ``5``;
+            real corpus data rarely populates beyond 2 or 3.
+        """
+        from .temporal.burstiness import burstiness_from_table
+
+        if target is None:
+            if len(self.targets) != 1:
+                raise ValueError(
+                    f"trajectory carries {len(self.targets)} targets; "
+                    "pass target= to pick one"
+                )
+            target = self.targets[0]
+        if target not in self.targets:
+            raise ValueError(
+                f"target={target!r} not in trajectory targets {self.targets!r}"
+            )
+        return burstiness_from_table(
+            self.table, target=target, s=s, gamma=gamma, n_states=n_states
+        )
+
     def interrupted_time_series(
         self,
         event_date: str,
@@ -472,6 +585,9 @@ class TemporalTrajectory:
         n_samples: int = 1000,
         seed: int | None = 0,
         model: str = "local linear trend",
+        min_pre_periods: int = 15,
+        min_post_periods: int = 8,
+        max_pre_post_ratio: float = 5.0,
     ) -> Any:
         """Counterfactual causal impact of an event on this trajectory.
 
@@ -501,6 +617,17 @@ class TemporalTrajectory:
         model
             Trend specification — usually ``"local linear trend"`` (the
             default) or ``"local level"``.
+        min_pre_periods, min_post_periods, max_pre_post_ratio
+            Calibration safety rails (new in 0.1.0a21). The asylum case study (examples/jss_case_study.ipynb)
+            case-study §5.8c placebo sweep and §5.8e leave-one-year-out
+            tests surfaced empirical failure modes of BSTS counterfactual
+            analysis under (a) short pre-event windows, (b) short
+            post-event windows, and (c) highly asymmetric pre/post
+            splits. Defaults block calls that are obviously
+            under-powered; relax explicitly if you have a calibration
+            reason. See the underlying
+            :func:`pycorpdiff.temporal.causal_impact.causal_impact`
+            docstring for the rationale.
 
         Returns
         -------
@@ -534,6 +661,9 @@ class TemporalTrajectory:
             n_samples=n_samples,
             seed=seed,
             model=model,
+            min_pre_periods=min_pre_periods,
+            min_post_periods=min_post_periods,
+            max_pre_post_ratio=max_pre_post_ratio,
         )
         return _dc_replace(result, target=target)
 

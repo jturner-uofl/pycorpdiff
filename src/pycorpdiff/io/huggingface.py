@@ -95,7 +95,7 @@ def from_huggingface(
     loader = _loader
     if loader is None:
         try:
-            from datasets import load_dataset as _hf_load  # type: ignore[import-not-found]
+            from datasets import load_dataset as _hf_load
         except ImportError as exc:  # pragma: no cover
             raise ImportError(
                 "from_huggingface requires the `datasets` library. "

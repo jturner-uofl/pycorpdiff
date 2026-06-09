@@ -28,8 +28,9 @@ tokenisation, embeddings, or topic modelling.
 - Not a SketchEngine clone. It is comparative-first and notebook-native.
 - Not a deep learning framework. Embeddings are treated as a pluggable
   interface, not a training substrate.
-- Not a forecasting tool. Temporal analysis here is for *explanation*, not
-  prediction.
+- Not a standalone time-series forecasting library. `tr.forecast()` exists
+  for short-horizon trajectory continuation alongside changepoints and
+  ITS — for serious forecasting reach for `sktime` / `prophet` / `Darts`.
 
 ## Design principles
 

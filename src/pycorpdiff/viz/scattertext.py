@@ -85,12 +85,12 @@ def scattertext_plot(
     base = alt.Chart(plot).encode(
         x=alt.X(
             "percentile_a:Q",
-            title=f"Frequency rank in {label_a} (→ more common)",
+            title=f"Frequency rank in {label_a} (-> more common)",
             scale=alt.Scale(domain=[0, 1]),
         ),
         y=alt.Y(
             "percentile_b:Q",
-            title=f"Frequency rank in {label_b} (→ more common)",
+            title=f"Frequency rank in {label_b} (-> more common)",
             scale=alt.Scale(domain=[0, 1]),
         ),
         tooltip=tooltip_cols,
@@ -118,7 +118,7 @@ def scattertext_plot(
                 domain=[-g2_max, 0.0, g2_max],
                 reverse=True,  # blue = A-leaning, red = B-leaning
             ),
-            title="Signed G²",
+            title="Signed G^2",
         ),
     )
 

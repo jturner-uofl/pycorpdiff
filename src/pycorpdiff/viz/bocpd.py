@@ -92,8 +92,8 @@ def bocpd_plot(
         width=width,
         height=height_per_panel,
         title=alt.TitleParams(
-            text=f"Observed series — {len(flagged_df)} flagged changepoint(s)",
-            subtitle=f"red lines: MAP run length ≤ {threshold} (hazard = {result.hazard})",
+            text=f"Observed series -- {len(flagged_df)} flagged changepoint(s)",
+            subtitle=f"red lines: MAP run length <= {threshold} (hazard = {result.hazard})",
         ),
     )
 
@@ -123,7 +123,7 @@ def bocpd_plot(
             color=alt.Color(
                 "log_posterior:Q",
                 scale=alt.Scale(scheme="viridis", domain=[-6, 0]),
-                title="log₁₀ P(r | data)",
+                title="log10 P(r | data)",
             ),
             tooltip=[
                 "period",
@@ -134,7 +134,7 @@ def bocpd_plot(
         .properties(
             width=width,
             height=height_per_panel,
-            title="Run-length posterior P(r_t | data through t) — log₁₀ scale",
+            title="Run-length posterior P(r_t | data through t) -- log10 scale",
         )
     )
 
@@ -167,7 +167,7 @@ def bocpd_plot(
     panel3 = (map_line + map_points + threshold_rule).properties(
         width=width,
         height=height_per_panel,
-        title="MAP run length — visible drops mark detected changepoints",
+        title="MAP run length -- visible drops mark detected changepoints",
     )
 
     return alt.vconcat(panel1, heatmap, panel3).resolve_scale(x="shared")  # type: ignore[no-any-return]

@@ -166,9 +166,34 @@ def track(
 ) -> Tracker:
     """Construct a :class:`Tracker` for diachronic analysis of target term(s).
 
+    Raises ``ValueError`` if ``target`` is ``None``, an empty string,
+    or an empty list — these would otherwise produce a cryptic
+    downstream ``TypeError`` from the iteration in
+    :meth:`Tracker.over_time`.
+
     Accepts either a :class:`Corpus` or a :class:`CorpusSlice`, so
     ``pcd.track(corpus.slice(topic="immigration"), "criminal")`` works
     out of the box.
     """
-    targets = [target] if isinstance(target, str) else list(target)
+    if target is None:
+        raise ValueError(
+            "track() requires a target term (or list of terms); got None."
+        )
+    if isinstance(target, str):
+        if not target:
+            raise ValueError(
+                "track() target string must be non-empty; got ''."
+            )
+        targets = [target]
+    else:
+        targets = list(target)
+        if not targets:
+            raise ValueError(
+                "track() target list must be non-empty; got []."
+            )
+        if any(not (isinstance(t, str) and t) for t in targets):
+            raise ValueError(
+                "track() target list must contain only non-empty strings; "
+                f"got {targets!r}"
+            )
     return Tracker(corpus=corpus, targets=targets)

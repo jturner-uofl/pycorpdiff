@@ -1,4 +1,4 @@
-"""Visualisation helpers — altair-first, matplotlib for paper-grade figures.
+"""Visualisation helpers — altair-first, matplotlib for publication-quality figures.
 
 Every Result type's ``.plot()`` method delegates here. Plot functions
 also accept a bare DataFrame so users can call
@@ -12,6 +12,7 @@ ImportError lives at that boundary.
 from __future__ import annotations
 
 from .bocpd import bocpd_plot
+from .burstiness import burstiness_plot
 from .causal_impact import causal_impact_plot
 from .collocation import collocation_diverging_bar
 from .dispersion import dispersion_plot
@@ -24,6 +25,7 @@ from .trajectory import trajectory_with_ci
 
 __all__ = [
     "bocpd_plot",
+    "burstiness_plot",
     "causal_impact_plot",
     "collocation_diverging_bar",
     "dispersion_plot",

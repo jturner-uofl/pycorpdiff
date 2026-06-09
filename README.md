@@ -15,9 +15,9 @@ platform, and the fragmented Python NLP stack
 consolidate keyness, collocations, dispersion, temporal trajectories,
 changepoint detection, interrupted time series, causal-impact analysis,
 forecasting, online changepoint detection, and embedding-based semantic
-shift under a single notebook-native API. Every result carries its own
-KWIC evidence: `.explain(term)` returns the source-text concordances
-behind any ranked term.
+shift under a single notebook-native API. Keyness and collocation
+results carry their own KWIC evidence: `.explain(term)` returns the
+source-text concordances behind any ranked term.
 
 The package answers the questions corpus linguistics, digital humanities,
 and computational social science routinely have:
@@ -31,20 +31,22 @@ and computational social science routinely have:
 `pycorpdiff` is positioned as **orchestration**, not reinvention.
 Tokenizers (`spaCy`, `Stanza`, `jieba`, `fugashi`) and embedders (any
 `SBERT`-compatible model) plug in via two `typing.Protocol` extension
-points — one-line adapters, no plugin registry. The base install pulls
-only `numpy`, `pandas`, `scipy`, and `pyarrow`; everything else is opt-in
-via extras.
+points — one-line adapters, no plugin registry. The base install's
+direct runtime dependencies are `numpy`, `pandas`, `scipy`, and
+`pyarrow`; everything else is opt-in via extras.
 
-> **Status: alpha (0.1.0a3).** Public API is stable for the features
-> described below; on PyPI as `pip install pycorpdiff`.
+> **Status: alpha (0.1.0a29).** Public API is stable for the features
+> described below; on PyPI as `pip install pycorpdiff`. Alpha releases
+> are intentionally rapid (audit-driven), each shipping fixes and tests
+> behind the published version; dependency pins will tighten at beta.
 
 ## The three-layer architecture
 
 | Layer | Purpose | Key surface |
 |---|---|---|
 | **1 — Ingestion + `Corpus`** | get text in, slice it, hash it | `from_dataframe`, `read_csv`, `read_parquet`, `read_txt`, `read_duckdb`, `from_huggingface`, `fetch_hansard`, `Corpus.slice/by_time/__hash__/doc_term_counts(_sparse)/to_polars` |
-| **2 — Pure math** | statistics with no I/O | `keyness.{log_likelihood,chi_squared,log_ratio,percent_diff,bayes_factor,permutation_pvalues,keyness_multi,juilland_d,benjamini_hochberg}`; `collocation.{logdice,pmi,t_score,mi_three,collocation_shift,cooccurrence_network}`; `semantic.{HashEmbedder,SBERTEmbedder,semantic_trajectory,neighborhood_drift}`; `temporal.{changepoints,interrupted_time_series,forecast,causal_impact,bocpd}` |
-| **3 — Verbs + Results** | public API | `compare`, `track`, `compare.before_after`, `keyness_multi`, plus 9 frozen-dataclass Result types each with `.to_df() / .plot() / .explain() / .summary() / .to_html() / .to_json()` |
+| **2 — Pure math** | statistics with no I/O | `keyness.{log_likelihood,chi_squared,log_ratio,percent_diff,bayes_factor,permutation_pvalues,keyness_multi,juilland_d,benjamini_hochberg}`; `collocation.{logdice,pmi,t_score,mi_three,collocation_shift,cooccurrence_network}`; `semantic.{HashEmbedder,SBERTEmbedder,semantic_trajectory,neighborhood_drift,induce_senses,sense_drift}`; `temporal.{changepoints,interrupted_time_series,forecast,causal_impact,bocpd}` |
+| **3 — Verbs + Results** | public API | `compare`, `track`, `compare.before_after`, `keyness_multi`, plus 9 frozen-dataclass Result types each implementing the relevant subset of `.to_df() / .plot() / .explain() / .summary() / .to_html() / .to_json()` |
 
 ## Quick start
 
@@ -55,7 +57,7 @@ pip install "pycorpdiff[viz]"
 ```python
 import pycorpdiff as pcd
 
-# Bundled UK-Hansard sample — runs offline, no data download.
+# Bundled synthetic Hansard-style sample — runs offline, no data download.
 corpus = pcd.load_hansard_sample()
 immigration = corpus.slice(topic="immigration")
 
@@ -75,54 +77,94 @@ compare two slices, plot the result. Every other analytical method —
 collocation shifts, semantic drift, temporal trajectories, changepoint
 detection, causal-impact analysis, forecasting, co-occurrence networks,
 N-way keyness — follows the same shape. See
-[the showcase notebook](docs/rendered/pycorpdiff_showcase.html) for the
-full feature tour, or the cheat sheet below for one-line API previews.
+[the showcase notebook](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)
+for the full feature tour, or the cheat sheet below for one-line API previews.
 
 ### Cheat sheet — every analytical surface in one block
 
 ```python
-# Compare verbs (returns Result objects with .plot / .to_df / .explain / .summary)
-pcd.compare(a, b).keyness()
-pcd.compare(a, b).collocation_shift("migrant")
-pcd.compare(a, b).semantic_shift("migrant", embedder=pcd.SBERTEmbedder())   # [semantic]
+# Compare verbs (returns Result objects; methods exposed vary by Result)
+pcd.compare(a, b).keyness()                                                   # default formula="rayson" (LL Wizard)
+pcd.compare(a, b).keyness(formula="dunning")                                  # full 4-cell G² (Dunning 1993; same family as quanteda / NLTK, edge-case tolerance not certified)
+pcd.compare(a, b).keyness(ci="bootstrap", n_boot=999)                         # adds g2_ci_lower / g2_ci_upper columns
+pcd.compare(a, b).collocation_shift("immigrant")
+pcd.compare(a, b).semantic_shift("immigrant", embedder=pcd.SBERTEmbedder())   # [semantic]
+# SBERTEmbedder downloads a sentence-transformers model on first call;
+# use pcd.HashEmbedder() for offline / deterministic-test settings.
 
-# Track over time (requires [temporal] for the changepoint + ITS + forecast + causal_impact methods)
-tr = pcd.track(corpus, "migrant").over_time(freq="Y")
+# Reference-baseline keyness (bundled or user-built)
+pcd.against_baseline(corpus, "gutenberg_fiction")                             # vs bundled 19th-c. fiction baseline
+pcd.against_baseline(corpus, pcd.baseline_from_corpus(reference_corpus))      # vs your own reference
+
+# Sub-corpus balancing — Coarsened Exact Matching before keyness
+m = pcd.match(a, b, on=["year", "party"], seed=0)                             # balances A and B on covariates
+pcd.compare(m.a_matched, m.b_matched).keyness()                               # like-for-like comparison
+
+# Lexical diversity (TTR, MATTR, MTLD, HD-D) — pooled and over time
+pcd.lexical_diversity(corpus)                                                 # pooled corpus-level values
+pcd.lexical_diversity(corpus, freq="Y", ci="bootstrap", n_boot=199)           # per-year trajectory + CIs
+
+# Track over time (requires [temporal] for the changepoint + ITS + forecast + causal_impact methods).
+# Note: ITS / causal_impact require sufficient pre/post-event periods to fit (min_pre_periods=15,
+# min_post_periods=8 by default); the bundled Hansard sample is too small to exercise these
+# lines literally -- they are shown here as API previews. See examples/jss_case_study.ipynb
+# for a full-corpus run.
+tr = pcd.track(corpus, "immigrant").over_time(freq="Y")
 tr.changepoints()                                  # offline PELT
 tr.changepoints_online(hazard=1/24)                # Bayesian online (Adams & MacKay 2007)
-tr.interrupted_time_series(event_date="2016")      # segmented OLS
-tr.causal_impact(event_date="2016")                # Bayesian counterfactual (Brodersen 2015)
-tr.forecast(horizon=4)                             # state-space ETS
+tr.burstiness()                                    # Kleinberg 1999 multi-state HMM — burst-intensity states
+# tr.interrupted_time_series(event_date="2016")    # segmented OLS [needs >=15 pre-periods]
+# tr.causal_impact(event_date="2016")              # Bayesian counterfactual (Brodersen 2015) [needs >=15 pre-periods]
+tr.forecast(horizon=4)                             # 4 periods at the over_time freq (state-space ETS)
 
 # Before / after a known event
 pcd.compare.before_after(corpus, event_date="2016-06-23").keyness()
 
-# N-way (≥ 2 corpora)
-pcd.keyness_multi([a, b, c, d], labels=["A", "B", "C", "D"])
+# N-way (≥ 2 corpora) — the four corpora `a, b, c, d` are illustrative placeholders
+# (the cheat sheet's `a, b` from the keyness lines above; you supply `c, d`).
+# pcd.keyness_multi([a, b, c, d], labels=["A", "B", "C", "D"])
 
 # The discourse as a graph
 pcd.cooccurrence_network(corpus, top_n=30).plot()
+
+# Word-sense induction (BYO embeddings) — audit a hand-built sense classifier
+# with an unsupervised second opinion. [semantic] extra for scikit-learn.
+X = pcd.SBERTEmbedder().encode(df["text"].tolist())        # or any (n, d) matrix you own
+senses = pcd.induce_senses(df, X, k=3)                     # k=None -> silhouette-selected
+senses.agreement_with(df["regex_label"]).summary()         # ARI / V-measure vs your buckets
+senses.leakage_audit(df["regex_label"], k=20)              # records whose geometry disputes the label
+senses.share_over_time(freq="Y")                           # computed sense-fraction trajectory
+
+# Sense drift over time — detect *and explain* when a corpus's sense
+# distribution changes (concept-drift + lexical-semantic-change methods).
+drift = pcd.sense_drift(df, X, time_col="year", reference=range(2000, 2010), k=3)
+drift.summary()                                            # onset, change type, distinctive terms
+drift.change_type                                          # "emergence" | "frequency_shift" | "broadening"
+drift.drift_terms                                          # what drove the drift (log-ratio vs reference)
+drift.plot()                                               # margin density + JSD over time, drift flagged
 ```
 
-See [`examples/pycorpdiff_showcase.ipynb`](examples/pycorpdiff_showcase.ipynb)
-([rendered HTML](docs/rendered/pycorpdiff_showcase.html)) for a
-walkthrough on a synthetic UK Hansard corpus exercising every analytical
-surface.
+See [`examples/pycorpdiff_showcase.ipynb`](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)
+for a walkthrough on the synthetic Hansard-style corpus exercising
+every analytical surface.
 
 ## Installation
 
 ```bash
-pip install pycorpdiff                # lexical-comparative core
-pip install "pycorpdiff[viz]"         # + altair / matplotlib / networkx
-pip install "pycorpdiff[semantic]"    # + sentence-transformers
-pip install "pycorpdiff[temporal]"    # + ruptures / statsmodels
-pip install "pycorpdiff[notebooks]"   # + jupyter / vl-convert / pysofra
-pip install "pycorpdiff[all]"         # everything
+pip install pycorpdiff                       # lexical-comparative core (MIT)
+pip install "pycorpdiff[viz]"                # + altair / matplotlib / networkx
+pip install "pycorpdiff[semantic]"           # + sentence-transformers
+pip install "pycorpdiff[temporal]"           # + ruptures / statsmodels
+pip install "pycorpdiff[notebooks]"          # + jupyter / vl-convert
+pip install "pycorpdiff[all]"                # everything MIT-compatible
+pip install "pycorpdiff[all,showcase]"       # + pysofra (GPL-3.0-or-later) for the JAMA-style showcase
 ```
 
-The base install keeps a small dependency footprint (`numpy`, `pandas`,
-`scipy`, `pyarrow`); optional extras land per analytical layer so you
-only pay for what you use.
+The base install's direct runtime dependencies are `numpy`, `pandas`,
+`scipy`, and `pyarrow`; optional extras land per analytical layer so
+you only pay for what you use. `[showcase]` is broken out separately
+because `pysofra` is GPL-3.0-or-later — pure `pycorpdiff` use without
+that extra remains MIT-only.
 
 To work from source:
 
@@ -135,13 +177,25 @@ pytest -q
 
 ## Cross-validation receipts
 
-The math agrees with the standard tools — by automated test:
+The math is checked against standard tools by automated test. The
+fast tier runs on every push (matrix CI); the slow tier needs heavy
+optional dependencies (NLTK, Scattertext, Stanford SNAP downloads)
+and runs on main pushes only.
 
-- **Rayson's LL Wizard** — 15 hand-derived contingency-table reference triples
-- **NLTK** `BigramAssocMeasures` — PMI + t-score to ≤ 1e-12 on every adjacent bigram
-- **Scattertext (Kessler 2017)** — behavioural agreement on the 2012 US Conventions corpus
-- **quanteda (R)** via `rpy2` — byte-for-byte G² agreement (slow tier)
-- **HistWords (Hamilton et al. 2016)** — diachronic cosine displacements on COHA (slow tier)
+Fast tier:
+
+- **Rayson's LL Wizard** — hand-derived contingency-table reference
+  triples ([`tests/integration/test_crossval_rayson.py`](https://github.com/jturner-uofl/pycorpdiff/blob/main/tests/integration/test_crossval_rayson.py))
+
+Slow tier:
+
+- **NLTK** `BigramAssocMeasures` — PMI + t-score agreement to ≤ 1e-12
+  on every adjacent bigram
+- **Scattertext (Kessler 2017)** — behavioural agreement on the 2012
+  US Conventions corpus
+- **HistWords (Hamilton et al. 2016)** — known-shifter / stable-word
+  sanity check on Stanford SNAP COHA decade embeddings (skips
+  gracefully if the archive isn't reachable)
 
 ## Citation
 
@@ -151,11 +205,33 @@ repository" widget directly from it.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/jturner-uofl/pycorpdiff/blob/main/LICENSE).
+
+## Case studies and demos (rendered)
+
+GitHub's in-browser notebook renderer is unreliable on larger notebooks
+with embedded SVG outputs. The links below point to the **pre-rendered
+HTML artefacts** (the canonical read versions) and to nbviewer fallbacks
+for the `.ipynb` source. Notebook sources still live under `examples/`
+for re-execution.
+
+- **asylum case study — lexicalising asylum in UK Parliament, 2010-2023.**
+  [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/jss_case_study.html)
+  · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/jss_case_study.ipynb)
+  · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/jss_case_study.ipynb)
+- **Full feature tour (showcase).**
+  [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/pycorpdiff_showcase.html)
+  · [nbviewer](https://nbviewer.org/github/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)
+  · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)
+- **Tutorial.**
+  [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/pycorpdiff_tutorial.html)
+  · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_tutorial.ipynb)
+- **Hansard demo.**
+  [📊 rendered HTML](https://raw.githack.com/jturner-uofl/pycorpdiff/main/docs/rendered/hansard_demo.html)
+  · [.ipynb source](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/hansard_demo.ipynb)
 
 ## Further reading
 
-- [`docs/design.md`](docs/design.md) — three-layer architecture
-- [`docs/statistical-methods.md`](docs/statistical-methods.md) — every metric's formula + citation
-- [`examples/pycorpdiff_showcase.ipynb`](examples/pycorpdiff_showcase.ipynb) — full feature tour as a notebook
-- [`docs/rendered/`](docs/rendered/) — self-contained HTML renders of the example notebooks
+- [`docs/design.md`](https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/design.md) — three-layer architecture
+- [`docs/statistical-methods.md`](https://github.com/jturner-uofl/pycorpdiff/blob/main/docs/statistical-methods.md) — every metric's formula + citation
+- [`docs/rendered/`](https://github.com/jturner-uofl/pycorpdiff/tree/main/docs/rendered) — catalogue of static HTML renders for offline viewing

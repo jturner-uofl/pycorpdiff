@@ -19,32 +19,45 @@ import pycorpdiff as pcd
 
 
 def _make_fake_histwords_zip(
-    zip_path: Path, decades: dict[int, dict[str, np.ndarray]]
+    zip_path: Path,
+    decades: dict[int, dict[str, np.ndarray]],
+    layout: str = "bare",
 ) -> None:
-    """Write a HistWords-style zip with one .pkl + .npy per decade.
+    """Write a HistWords-style zip with one vocab + one matrix per decade.
 
-    Each ``decades[YYYY]`` is a {word: vector} mapping; we serialise
-    its keys as a pickle list and its values as a stacked ndarray.
+    Each ``decades[YYYY]`` is a {word: vector} mapping; we serialise its
+    keys as a pickle list and its values as a stacked ndarray.
+
+    ``layout`` selects the per-decade filename convention, mirroring the
+    real archives:
+
+    - ``"bare"`` -> ``{decade}.pkl`` / ``{decade}.npy`` (eng-all, fiction)
+    - ``"coha"`` -> ``{decade}-vocab.pkl`` / ``{decade}-w.npy`` (coha)
     """
     import io
+
+    if layout == "bare":
+        pkl_tmpl, npy_tmpl = "fake/{d}.pkl", "fake/{d}.npy"
+    elif layout == "coha":
+        pkl_tmpl, npy_tmpl = "fake/{d}-vocab.pkl", "fake/{d}-w.npy"
+    else:  # pragma: no cover - guard
+        raise ValueError(f"unknown layout {layout!r}")
 
     with zipfile.ZipFile(zip_path, "w") as zf:
         for decade, vecs in decades.items():
             words = list(vecs.keys())
             matrix = np.stack([vecs[w] for w in words])
-            # Pickle the vocab list.
-            zf.writestr(f"fake/{decade}.pkl", pickle.dumps(words))
-            # Write the npy buffer.
+            zf.writestr(pkl_tmpl.format(d=decade), pickle.dumps(words))
             buf = io.BytesIO()
             np.save(buf, matrix)
-            zf.writestr(f"fake/{decade}.npy", buf.getvalue())
+            zf.writestr(npy_tmpl.format(d=decade), buf.getvalue())
 
 
-def _mock_fetch(decades: dict[int, dict[str, np.ndarray]]):
+def _mock_fetch(decades: dict[int, dict[str, np.ndarray]], layout: str = "bare"):
     """Build an `_fetch` callable that writes a fake HistWords zip."""
 
     def fetch(url: str, dest: Path) -> None:
-        _make_fake_histwords_zip(dest, decades)
+        _make_fake_histwords_zip(dest, decades, layout=layout)
 
     return fetch
 
@@ -64,6 +77,41 @@ def test_fetch_histwords_decade_round_trips_vectors(tmp_path: Path) -> None:
     assert set(out.keys()) == {"gay", "the"}
     np.testing.assert_array_equal(out["gay"], [1.0, 0.0, 0.0])
     np.testing.assert_array_equal(out["the"], [0.0, 1.0, 0.0])
+
+
+def test_fetch_histwords_decade_coha_naming_layout(tmp_path: Path) -> None:
+    """The coha archive ships ``{decade}-vocab.pkl`` / ``{decade}-w.npy``
+    rather than the bare ``{decade}.pkl`` / ``{decade}.npy`` layout; the
+    loader must resolve it (regression for the COHA FileNotFoundError)."""
+    vecs_1900 = {
+        "gay": np.array([1.0, 0.0, 0.0], dtype=np.float32),
+        "the": np.array([0.0, 1.0, 0.0], dtype=np.float32),
+    }
+    out = pcd.fetch_histwords_decade(
+        1900,
+        source="coha",
+        cache_dir=tmp_path,
+        _fetch=_mock_fetch({1900: vecs_1900}, layout="coha"),
+    )
+    assert set(out.keys()) == {"gay", "the"}
+    np.testing.assert_array_equal(out["gay"], [1.0, 0.0, 0.0])
+
+
+def test_fetch_histwords_decade_coha_layout_uses_cache(tmp_path: Path) -> None:
+    """Second call against a coha-layout archive resolves from cache and
+    does not re-fetch (the split filenames must be found on disk)."""
+    call_count = {"n": 0}
+    vecs = {1900: {"gay": np.array([1.0, 0.0], dtype=np.float32)}}
+
+    def counting_fetch(url: str, dest: Path) -> None:
+        call_count["n"] += 1
+        _make_fake_histwords_zip(dest, vecs, layout="coha")
+
+    for _ in range(2):
+        pcd.fetch_histwords_decade(
+            1900, source="coha", cache_dir=tmp_path, _fetch=counting_fetch
+        )
+    assert call_count["n"] == 1
 
 
 def test_fetch_histwords_decade_uses_cache(tmp_path: Path) -> None:

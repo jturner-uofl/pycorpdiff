@@ -30,9 +30,6 @@ Thumbs.db
 *.swo
 *~
 
-# AI workflow artefacts (kept local, never published)
-.claude/
-
 # Hypothesis example database (auto-managed)
 .hypothesis/
 
@@ -56,5 +53,5 @@ examples/*.patched.ipynb
 # Stray uv lockfiles created outside the repo root
 **/uv.lock.tmp
 
-# Mkdocs build output (legacy; mkdocs.yml itself is gone)
+# Static site build output
 site/

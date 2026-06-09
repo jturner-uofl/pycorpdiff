@@ -172,7 +172,7 @@ TOPICS = ["immigration", "brexit", "nhs", "climate"]
 
 
 def generate(seed: int = 20260522) -> pd.DataFrame:
-    """Return a deterministic 200-speech synthetic Hansard sample."""
+    """Return a deterministic 193-speech synthetic Hansard sample."""
     rng = np.random.default_rng(seed)
     rows: list[dict[str, object]] = []
     speech_id = 0

@@ -85,9 +85,9 @@ def causal_impact_plot(
             width=width,
             height=height_per_panel,
             title=alt.TitleParams(
-                text=f"Observed (teal) vs counterfactual (gray) — {result.target!r}",
+                text=f"Observed (teal) vs counterfactual (gray) -- {result.target!r}",
                 subtitle=(
-                    f"event = {pd.Timestamp(result.event_date).date()} · "
+                    f"event = {pd.Timestamp(result.event_date).date()}, "
                     f"BSTS local linear trend on {result.n_pre} pre-event periods"
                 ),
             ),
@@ -97,7 +97,11 @@ def causal_impact_plot(
     # ---------- Panel 2: pointwise effect ----------
     base2 = alt.Chart(df).encode(x=x_axis)
     pw_band = base2.mark_area(opacity=0.22, color="#e63946").encode(
-        y=alt.Y("pointwise_lower:Q", title="pointwise effect"),
+        y=alt.Y(
+            "pointwise_lower:Q",
+            title="pointwise effect",
+            axis=alt.Axis(labelExpr=r"replace(datum.label, '−', '-')"),
+        ),
         y2="pointwise_upper:Q",
     )
     pw_line = base2.mark_line(color="#e63946", strokeWidth=2).encode(
@@ -113,7 +117,7 @@ def causal_impact_plot(
         width=width,
         height=height_per_panel,
         title=alt.TitleParams(
-            text="Pointwise effect (observed − counterfactual)",
+            text="Pointwise effect (observed - counterfactual)",
             subtitle=f"{int(result.level * 100)}% credible interval shaded",
         ),
     )
@@ -121,7 +125,11 @@ def causal_impact_plot(
     # ---------- Panel 3: cumulative effect ----------
     base3 = alt.Chart(df).encode(x=x_axis)
     cum_band = base3.mark_area(opacity=0.22, color="#1f7a3e").encode(
-        y=alt.Y("cumulative_lower:Q", title="cumulative effect"),
+        y=alt.Y(
+            "cumulative_lower:Q",
+            title="cumulative effect",
+            axis=alt.Axis(labelExpr=r"replace(datum.label, '−', '-')"),
+        ),
         y2="cumulative_upper:Q",
     )
     cum_line = base3.mark_line(color="#1f7a3e", strokeWidth=2).encode(

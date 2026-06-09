@@ -1,8 +1,8 @@
 # Multilingual support
 
-`pycorpdiff` is Unicode-native and language-agnostic by design. The
-default `RegexTokenizer` uses Python's `\w+` under `re.UNICODE`, which
-treats letters from any script as word characters:
+`pycorpdiff` is Unicode-native for alphabetic scripts. The default
+`RegexTokenizer` uses Python's `\w+` under `re.UNICODE`, which treats
+letters from any script as word characters:
 
 ```python
 import pycorpdiff as pcd
@@ -12,10 +12,13 @@ tok("hello мир γειά τέλος")
 # → ['hello', 'мир', 'γειά', 'τέλος']
 ```
 
-That's fine as a starting point — but real multilingual work usually
-wants language-specific behaviour (lemmatisation, CJK segmentation,
-agglutinative-language handling, MWE rules). The `Tokenizer` Protocol
-is the plug point.
+Emoji, punctuation-only sequences, and CJK-without-spaces are
+**not** captured by `\w+`; they require a script-aware tokeniser (see
+the adapters below). The default is fine for Latin / Cyrillic /
+Greek / accented-Latin starting points — but real multilingual work
+usually wants language-specific behaviour (lemmatisation, CJK
+segmentation, agglutinative-language handling, MWE rules). The
+`Tokenizer` Protocol is the plug point.
 
 ## The Tokenizer protocol
 

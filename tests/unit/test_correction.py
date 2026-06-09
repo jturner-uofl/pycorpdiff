@@ -46,3 +46,40 @@ def test_bonferroni_basic() -> None:
     raw = np.array([0.01, 0.04, 0.5])
     adj = bonferroni(raw)
     np.testing.assert_allclose(adj, [0.03, 0.12, 1.0], rtol=1e-12)
+
+
+# --- NaN safety (iter-3 audit finding H.1, fixed in 0.1.0a27) ---
+# Previously a single NaN p-value would silently propagate to *every*
+# adjusted output. The expected contract is now: NaN inputs pass through
+# to NaN outputs, and m (the test count for BH / Bonferroni scaling) is
+# the number of NON-NaN inputs.
+
+
+def test_bh_passes_nan_through_and_uses_non_nan_m() -> None:
+    raw = np.array([0.01, np.nan, 0.04, 0.5, np.nan])
+    adj = benjamini_hochberg(raw)
+    # Positions of the NaN inputs should remain NaN.
+    assert np.isnan(adj[1]) and np.isnan(adj[4])
+    # The valid positions should match BH on the non-NaN subset (m=3).
+    expected = benjamini_hochberg(np.array([0.01, 0.04, 0.5]))
+    np.testing.assert_allclose(adj[[0, 2, 3]], expected, rtol=1e-12)
+
+
+def test_bh_all_nan_returns_all_nan() -> None:
+    raw = np.array([np.nan, np.nan, np.nan])
+    adj = benjamini_hochberg(raw)
+    assert np.isnan(adj).all() and adj.size == 3
+
+
+def test_bonferroni_passes_nan_through() -> None:
+    raw = np.array([0.01, np.nan, 0.04, 0.5])
+    adj = bonferroni(raw)
+    assert np.isnan(adj[1])
+    # m = 3 non-NaN inputs.
+    np.testing.assert_allclose(adj[[0, 2, 3]], [0.03, 0.12, 1.0], rtol=1e-12)
+
+
+def test_bonferroni_all_nan_returns_all_nan() -> None:
+    raw = np.array([np.nan, np.nan])
+    adj = bonferroni(raw)
+    assert np.isnan(adj).all() and adj.size == 2

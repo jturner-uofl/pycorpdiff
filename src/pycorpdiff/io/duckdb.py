@@ -71,11 +71,23 @@ def read_duckdb(
     ... )
     """
     try:
-        import duckdb  # noqa: F401
+        import duckdb
     except ImportError as exc:  # pragma: no cover
         raise ImportError(
             "read_duckdb requires duckdb. Install with: pip install 'pycorpdiff[duckdb]'"
         ) from exc
+
+    if isinstance(connection, str):
+        raise TypeError(
+            "read_duckdb expects a DuckDB connection, not a file path. "
+            f"Got connection={connection!r}. Open one first: "
+            f'duckdb.connect({connection!r}), or pcd.read_duckdb(duckdb.connect(), "...")'
+        )
+    if not isinstance(connection, duckdb.DuckDBPyConnection):
+        raise TypeError(
+            "read_duckdb expects a duckdb.DuckDBPyConnection; got "
+            f"{type(connection).__name__}. Open one via duckdb.connect(...)."
+        )
 
     cursor = connection.execute(query, params) if params is not None else connection.execute(query)
     df = cursor.df()

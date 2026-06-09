@@ -154,17 +154,32 @@ def fetch_histwords_decade(
     fetch = _fetch or _http_download
     cache_root = Path(cache_dir).expanduser() if cache_dir else _default_cache_dir()
     extracted_dir = cache_root / source
-    decade_pkl = extracted_dir / f"{decade}.pkl"
-    decade_npy = extracted_dir / f"{decade}.npy"
 
-    if not (decade_pkl.exists() and decade_npy.exists()):
+    def _resolve_decade_files() -> tuple[Path, Path] | None:
+        # HistWords subsets ship per-decade files under two naming
+        # conventions: a bare ``{decade}.pkl`` / ``{decade}.npy`` pair
+        # (eng-all, fiction) and a split ``{decade}-vocab.pkl`` /
+        # ``{decade}-w.npy`` pair (coha). Try them in order and return
+        # the first *complete* pair found. The bare layout is tried
+        # first so the sources that already used it are unaffected.
+        for pkl_name, npy_name in (
+            (f"{decade}.pkl", f"{decade}.npy"),
+            (f"{decade}-vocab.pkl", f"{decade}-w.npy"),
+        ):
+            pkl, npy = extracted_dir / pkl_name, extracted_dir / npy_name
+            if pkl.exists() and npy.exists():
+                return pkl, npy
+        return None
+
+    resolved = _resolve_decade_files()
+    if resolved is None:
         cache_root.mkdir(parents=True, exist_ok=True)
         zip_path = cache_root / f"{source}.zip"
         if not zip_path.exists():
             fetch(HISTWORDS_DOWNLOAD_URLS[source], zip_path)
         # Extract — HistWords zips have a single top-level directory; we
-        # flatten to ``extracted_dir`` regardless of nesting depth so
-        # ``YYYY.pkl`` / ``YYYY.npy`` end up directly inside it.
+        # flatten to ``extracted_dir`` regardless of nesting depth so the
+        # per-decade files end up directly inside it.
         extracted_dir.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(zip_path) as zf:
             for member in zf.namelist():
@@ -176,13 +191,16 @@ def fetch_histwords_decade(
                     continue
                 with zf.open(member) as src, target.open("wb") as dst:
                     shutil.copyfileobj(src, dst)
+        resolved = _resolve_decade_files()
 
-    if not (decade_pkl.exists() and decade_npy.exists()):
+    if resolved is None:
         raise FileNotFoundError(
             f"decade {decade} not found in {source} archive at {extracted_dir}; "
-            f"expected {decade}.pkl + {decade}.npy"
+            f"expected {decade}.pkl + {decade}.npy "
+            f"or {decade}-vocab.pkl + {decade}-w.npy"
         )
 
+    decade_pkl, decade_npy = resolved
     with decade_pkl.open("rb") as f:
         vocab: list[str] = pickle.load(f)
     vectors: np.ndarray[Any, Any] = np.load(decade_npy)

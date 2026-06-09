@@ -9,6 +9,7 @@ contract — no inheritance, no registration.
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 
@@ -35,12 +36,34 @@ class RegexTokenizer:
 
     pattern: str = r"\w+"
     lowercase: bool = True
+    normalize: str = "NFC"
     _compiled: re.Pattern[str] = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
+        if self.normalize not in ("NFC", "NFD", "NFKC", "NFKD", ""):
+            raise ValueError(
+                f"normalize must be one of NFC / NFD / NFKC / NFKD / '' "
+                f"(empty = skip); got {self.normalize!r}"
+            )
         object.__setattr__(self, "_compiled", re.compile(self.pattern, re.UNICODE))
 
     def __call__(self, text: str) -> list[str]:
+        # Unicode normalization first so combining-mark variants of the
+        # same surface form ("café" NFC vs NFD) tokenize identically.
+        # Mixed-source corpora (Twitter + Wikipedia + OCR'd scans) often
+        # carry both encodings of the same word; without NFC they'd key
+        # on different terms throughout the analysis.
+        if self.normalize:
+            # mypy: ``unicodedata.normalize`` wants a Literal-typed
+            # form name; we've already validated ``self.normalize`` is
+            # one of the accepted values in ``__post_init__`` so the
+            # cast is safe.
+            from typing import Literal, cast
+
+            form = cast(
+                "Literal['NFC', 'NFD', 'NFKC', 'NFKD']", self.normalize
+            )
+            text = unicodedata.normalize(form, text)
         if self.lowercase:
             text = text.lower()
         return self._compiled.findall(text)

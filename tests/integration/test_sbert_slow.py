@@ -44,8 +44,19 @@ def frame_corpus() -> pcd.Corpus:
 
 @pytest.fixture(scope="module")
 def sbert_embedder() -> pcd.SBERTEmbedder:
-    """Construct (but don't yet invoke) the SBERT embedder."""
-    return pcd.SBERTEmbedder(model_name="all-MiniLM-L6-v2")
+    """Construct + warm the SBERT embedder.
+
+    Skip the whole module if the model can't be loaded (network flake,
+    HuggingFace outage, gated-model auth gap, transformers version
+    mismatch). The point of these tests is pycorpdiff's wiring, not
+    SBERT's; an upstream-download failure is no signal.
+    """
+    e = pcd.SBERTEmbedder(model_name="all-MiniLM-L6-v2")
+    try:
+        e.encode(["warmup"])  # triggers the lazy model download
+    except (OSError, ValueError, RuntimeError) as exc:  # pragma: no cover
+        pytest.skip(f"SBERT model unavailable: {exc}")
+    return e
 
 
 def test_sbert_encode_returns_correct_shape(

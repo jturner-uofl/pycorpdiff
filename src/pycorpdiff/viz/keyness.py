@@ -31,7 +31,7 @@ def keyness_volcano(
         x_title = "LogRatio (positive = overused in A)"
     else:
         x_col = "g2"
-        x_title = "Signed G² (positive = overused in A)"
+        x_title = "Signed G^2 (positive = overused in A)"
 
     # Significance axis: -log10(p), with infinities clipped at a sensible cap
     # so a single near-zero p doesn't crush the rest of the plot vertically.
@@ -40,8 +40,12 @@ def keyness_volcano(
     plot_df = df.assign(neg_log_p=neg_log_p)
 
     base = alt.Chart(plot_df).encode(
-        x=alt.X(f"{x_col}:Q", title=x_title),
-        y=alt.Y("neg_log_p:Q", title="−log₁₀(p)"),
+        x=alt.X(
+            f"{x_col}:Q",
+            title=x_title,
+            axis=alt.Axis(labelExpr=r"replace(datum.label, '−', '-')"),
+        ),
+        y=alt.Y("neg_log_p:Q", title="-log10(p)"),
         tooltip=list(df.columns),
     )
     points = base.mark_circle(opacity=0.55, size=60).encode(
@@ -82,7 +86,11 @@ def keyness_top_n_bar(
         alt.Chart(subset)
         .mark_bar()
         .encode(
-            x=alt.X("g2:Q", title="Signed G²"),
+            x=alt.X(
+                "g2:Q",
+                title="Signed G^2",
+                axis=alt.Axis(labelExpr=r"replace(datum.label, '−', '-')"),
+            ),
             y=alt.Y("term:N", sort="-x", title=None),
             color=alt.condition(
                 alt.datum.g2 >= 0,

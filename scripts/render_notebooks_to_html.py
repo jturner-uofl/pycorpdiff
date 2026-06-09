@@ -39,9 +39,21 @@ NOTEBOOKS = [
     "examples/pycorpdiff_showcase.ipynb",
     "examples/pycorpdiff_tutorial.ipynb",
     "examples/hansard_demo.ipynb",
+    "examples/jss_case_study.ipynb",
 ]
-# Only this notebook gets the polish pass.
-POLISH_NOTEBOOKS = {"examples/pycorpdiff_showcase.ipynb"}
+# Notebooks that get the polish pass (hero banner, sticky TOC).
+POLISH_NOTEBOOKS = {
+    "examples/pycorpdiff_showcase.ipynb",
+    "examples/jss_case_study.ipynb",
+}
+# Per-notebook <title> tag; nbconvert defaults to the input filename
+# (which is the `.patched.ipynb` intermediate, leaking pipeline naming).
+TITLES = {
+    "examples/pycorpdiff_showcase.ipynb": "pycorpdiff -- the showcase",
+    "examples/pycorpdiff_tutorial.ipynb": "pycorpdiff -- the tutorial",
+    "examples/hansard_demo.ipynb": "pycorpdiff -- the Hansard demo",
+    "examples/jss_case_study.ipynb": "pycorpdiff -- the narrative-audit case study",
+}
 OUTPUT_DIR = Path("docs/rendered")
 
 
@@ -513,34 +525,28 @@ FOOTER_HTML = """\
     Generated from
     <a href="../examples/pycorpdiff_showcase.ipynb"><code>examples/pycorpdiff_showcase.ipynb</code></a>
     via <code>scripts/render_notebooks_to_html.py</code>.
-    Charts pre-rendered as inline SVG — no CDN, no JavaScript runtime.
+    Charts pre-rendered to SVG and embedded inline — no CDN, no JavaScript runtime.
   </p>
 </footer>
 """
 
 
-def polish_html(html_path: Path) -> None:
-    """Apply the modern theme polish in-place.
+def clean_basic_html(html_path: Path, title: str) -> None:
+    """Set a clean <title> and strip CDN script tags.
 
-    Mutates the file at ``html_path`` to:
-    1. Replace ``<title>`` with a proper one.
-    2. Strip the dead CDN scripts (jquery / require.js / mermaid).
-    3. Append our CSS bundle in ``<head>``.
-    4. Insert the hero ``<div>`` immediately after ``<body>``.
-    5. Wrap ``#notebook`` in a TOC + main layout.
-    6. Inject the TOC-building JS just before ``</body>``.
+    Runs for every rendered notebook (not just the polished one), so
+    the published HTML never carries the `.patched` intermediate
+    filename in its `<title>` and never depends on cdnjs at runtime.
     """
     html = html_path.read_text()
 
-    # 1. Title
     html = re.sub(
         r"<title>[^<]*</title>",
-        "<title>pycorpdiff — the showcase</title>",
+        f"<title>{title}</title>",
         html,
         count=1,
     )
 
-    # 2. Drop the CDN script tags + mermaid block (charts are inline SVG, no JS needed).
     html = re.sub(
         r'<script[^>]*src="https://cdnjs\.cloudflare\.com[^"]+"[^>]*>\s*</script>',
         "",
@@ -553,11 +559,25 @@ def polish_html(html_path: Path) -> None:
         flags=re.DOTALL,
     )
 
-    # 3. Inject CSS just before </head>.
+    html_path.write_text(html)
+
+
+def polish_html(html_path: Path) -> None:
+    """Apply the modern theme polish in-place (on top of clean_basic_html).
+
+    Mutates the file at ``html_path`` to:
+    1. Append our CSS bundle in ``<head>``.
+    2. Insert the hero ``<div>`` immediately after ``<body>``.
+    3. Wrap ``#notebook`` in a TOC + main layout.
+    4. Inject the TOC-building JS just before ``</body>``.
+    """
+    html = html_path.read_text()
+
+    # 1. Inject CSS just before </head>.
     polish_block = f"<style>{POLISH_CSS}</style>"
     html = html.replace("</head>", polish_block + "</head>", 1)
 
-    # 4 + 5. Wrap the notebook container with hero + layout shell.
+    # 2 + 3. Wrap the notebook container with hero + layout shell.
     # nbconvert wraps the body content in `<div id="notebook">` — we
     # insert the hero before it and a TOC sidebar next to it.
     toc_block = (
@@ -651,6 +671,7 @@ def main() -> None:
         patched = patch_notebook(nb_path)
         try:
             html = render_to_html(patched, OUTPUT_DIR)
+            clean_basic_html(html, TITLES[nb_path_str])
             if nb_path_str in POLISH_NOTEBOOKS:
                 polish_html(html)
                 print("  applied polish pass (hero + TOC + modern theme)")

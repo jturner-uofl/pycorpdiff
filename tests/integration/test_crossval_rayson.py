@@ -6,8 +6,10 @@ single-cell keyness computation in corpus linguistics. Every value
 asserted below was either computed from Rayson's exact formula or
 copy-pasted from his calculator on a clean dataset.
 
-This file extends ``test_loglikelihood.py`` with the broader sweep
-called for by the audit's #15 item (cross-validation receipts).
+This file extends ``test_loglikelihood.py`` with a broader sweep of
+canonical reference triples covering edge cases (lopsided counts,
+sparse cells, mid-sized over-representation) so that any future
+refactor of the LL formula trips multiple assertions simultaneously.
 """
 
 from __future__ import annotations

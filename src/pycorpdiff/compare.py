@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from .corpus import Corpus, CorpusSlice
+from .keyness.loglikelihood import LLFormula
 
 if TYPE_CHECKING:
     from .results import (
@@ -46,6 +47,7 @@ class Comparison:
     def keyness(
         self,
         method: KeynessMethod = "log_likelihood",
+        formula: LLFormula = "rayson",
         effect_size: bool = True,
         dispersion: bool = False,
         min_count: int = 5,
@@ -53,6 +55,12 @@ class Comparison:
         stop_words: set[str] | list[str] | None = None,
         permutation_n: int = 0,
         permutation_seed: int | None = None,
+        ci: Literal["none", "bootstrap"] = "none",
+        n_boot: int = 999,
+        ci_level: float = 0.95,
+        simultaneous_ci: bool = False,
+        cluster_col: str | None = None,
+        bootstrap_seed: int | None = None,
     ) -> KeynessResult:
         """Compute keyness for every shared-vocabulary item.
 
@@ -64,9 +72,17 @@ class Comparison:
             sorts by signed Pearson χ². The other modes
             (``"log_ratio"``, ``"bayes_factor"``, ``"percent_diff"``)
             require ``effect_size=True`` and sort by that column.
+        formula
+            Which log-likelihood formulation to use for the G² column.
+            ``"rayson"`` (default) is the 2-cell shortcut matching
+            Rayson's UCREL LL Wizard; ``"dunning"`` is the full 4-cell
+            G² matching NLTK's ``BigramAssocMeasures`` and R's
+            ``quanteda::textstat_keyness(measure="lr")``. See
+            ``docs/statistical-methods.md`` for the math + when they
+            diverge.
         effect_size
             If True (default), also compute LogRatio (Hardie),
-            %DIFF (Gabrielatos), and the BIC-Bayes factor (Wilson).
+            %DIFF (Gabrielatos), and the BIC-approximated Bayes factor.
         dispersion
             If True, compute Juilland's D for both corpora and flag
             terms where ``D < 0.5`` in either — the canonical "this is
@@ -94,6 +110,48 @@ class Comparison:
             default — this is the expensive opt-in.
         permutation_seed
             Optional RNG seed for reproducible permutation *p*-values.
+        ci
+            ``"none"`` (default) or ``"bootstrap"``. When ``"bootstrap"``,
+            adds ``g2_ci_lower`` and ``g2_ci_upper`` columns to the
+            result table via document-level resampling. CIs that
+            straddle zero indicate uncertainty about the *direction* of
+            overuse, not just the magnitude — a more honest signal
+            than a sub-threshold *p*-value alone. Cost scales linearly
+            with ``n_boot``; budget ~30 s per 999 iterations on a
+            10k-doc / 5k-vocab corpus.
+        n_boot
+            Number of bootstrap iterations when ``ci="bootstrap"``.
+            999 is the convention.
+        ci_level
+            Confidence level in (0, 1) when ``ci="bootstrap"``.
+            Default 0.95.
+        simultaneous_ci
+            When ``ci="bootstrap"``: if ``False`` (default), only
+            the per-term percentile CI columns ``g2_ci_lower`` /
+            ``g2_ci_upper`` are returned (calibrated for any single
+            fixed term, anti-conservative on top-ranked rows of a
+            sorted keyness table). If ``True``, **additionally**
+            returns ``g2_ci_lower_simultaneous`` /
+            ``g2_ci_upper_simultaneous`` — Westfall-Young
+            studentized-max CIs with family-wise (1 - α) coverage
+            across the entire vocabulary; these are wider than
+            per-term and are the correct bounds to report for the
+            top-ranked rows of a sorted keyness table. The per-term
+            columns remain populated when ``simultaneous_ci=True``
+            so both inferential perspectives are available from a
+            single call. See ``docs/statistical-methods.md`` §
+            "Simultaneous CIs" for the derivation.
+        cluster_col
+            When ``ci="bootstrap"``: names a metadata column (e.g.
+            ``"speaker"`` / ``"member"``) defining clusters of
+            non-independent documents. The bootstrap then resamples
+            *clusters* (blocks of documents by the same speaker), not
+            individual documents. Correct when speeches are nested in
+            speakers; IID document resampling understates the CI width
+            on hierarchical corpora. ``None`` (default) keeps IID
+            resampling.
+        bootstrap_seed
+            Optional RNG seed for reproducible bootstrap CIs.
         """
         # Imports kept local to break circulars and to keep this module
         # importable without the keyness machinery on hand.
@@ -131,7 +189,7 @@ class Comparison:
         # G² is always computed (cheap, the default sort column). χ² is
         # computed only when requested — same shape, asymptotically
         # equivalent, no need to pay for both by default.
-        table = log_likelihood(a_kept, b_kept, n_a, n_b)
+        table = log_likelihood(a_kept, b_kept, n_a, n_b, formula=formula)
         if method == "chi_squared":
             chi_table = _chi_squared(a_kept, b_kept, n_a, n_b)
             table["chi_squared"] = chi_table["chi_squared"]
@@ -139,7 +197,9 @@ class Comparison:
         if effect_size:
             table["log_ratio"] = _log_ratio(a_kept, b_kept, n_a, n_b)
             table["percent_diff"] = _percent_diff(a_kept, b_kept, n_a, n_b)
-            table["bayes_factor"] = _bayes_factor(a_kept, b_kept, n_a, n_b)
+            table["bayes_factor"] = _bayes_factor(
+                a_kept, b_kept, n_a, n_b, formula=formula
+            )
 
         if dispersion:
             kept_terms = table.index
@@ -164,6 +224,33 @@ class Comparison:
                 seed=permutation_seed,
             )
             table["p_permutation"] = p_perm.reindex(table.index)
+
+        if ci == "bootstrap":
+            from .keyness.bootstrap import bootstrap_g2_ci as _boot
+
+            ci_table = _boot(
+                self.a, self.b,
+                terms=table.index,
+                formula=formula,
+                n_boot=n_boot,
+                ci_level=ci_level,
+                simultaneous=simultaneous_ci,
+                cluster_col=cluster_col,
+                seed=bootstrap_seed,
+            )
+            table["g2_ci_lower"] = ci_table["g2_ci_lower"].reindex(table.index)
+            table["g2_ci_upper"] = ci_table["g2_ci_upper"].reindex(table.index)
+            if "g2_ci_lower_simultaneous" in ci_table.columns:
+                table["g2_ci_lower_simultaneous"] = (
+                    ci_table["g2_ci_lower_simultaneous"].reindex(table.index)
+                )
+                table["g2_ci_upper_simultaneous"] = (
+                    ci_table["g2_ci_upper_simultaneous"].reindex(table.index)
+                )
+        elif ci != "none":
+            raise ValueError(
+                f"ci must be 'none' or 'bootstrap'; got {ci!r}"
+            )
 
         sort_col = {
             "log_likelihood": "g2",
@@ -192,6 +279,7 @@ class Comparison:
             label_a=_corpus_label(self.a),
             label_b=_corpus_label(self.b),
             params={
+                "formula": formula,
                 "effect_size": effect_size,
                 "dispersion": dispersion,
                 "min_count": min_count,
@@ -199,6 +287,12 @@ class Comparison:
                 "stop_words": tuple(stop_words) if stop_words else None,
                 "permutation_n": permutation_n,
                 "permutation_seed": permutation_seed,
+                "ci": ci,
+                "n_boot": n_boot if ci == "bootstrap" else None,
+                "ci_level": ci_level if ci == "bootstrap" else None,
+                "simultaneous_ci": simultaneous_ci if ci == "bootstrap" else None,
+                "cluster_col": cluster_col if ci == "bootstrap" else None,
+                "bootstrap_seed": bootstrap_seed if ci == "bootstrap" else None,
             },
             corpus_a=self.a,
             corpus_b=self.b,

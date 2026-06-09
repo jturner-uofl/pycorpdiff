@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pycorpdiff"
-version = "0.1.0a3"
+version = "0.1.0a29"
 description = "Comparative corpus analysis for Python: keyness, collocations, semantic shift, temporal trajectories with changepoints + causal inference."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -45,7 +45,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Visualisation: altair-first, matplotlib retained for paper-grade figures.
+# Visualisation: altair-first, matplotlib retained for publication-quality figures.
 viz = ["altair>=5", "matplotlib>=3.8", "networkx>=3.1"]
 # Embedding-based semantic shift. sentence-transformers pulls torch
 # transitively, which is why this is opt-in rather than a base dep.
@@ -62,12 +62,18 @@ nlp = ["spacy>=3.7"]
 # Public-text-corpus hub. Heavy (pulls pyarrow, fsspec, requests, aiohttp),
 # so opt-in only — base install stays small.
 huggingface = ["datasets>=2.14"]
-# Needed if you want to execute the showcase notebook or regenerate the
-# rendered HTML examples. `jupyter` runs the notebook, `vl-convert` does
-# static SVG/PNG export of altair charts, `pysofra` renders the showcase's
-# result tables in JAMA-style typography.
-notebooks = ["jupyter>=1.0", "vl-convert-python>=1.5", "pysofra>=0.1.0a3"]
-# Meta-extra so `pycorpdiff[all]` exercises every optional code path.
+# Needed if you want to execute the example notebooks. `jupyter` runs
+# the notebook; `vl-convert` does static SVG/PNG export of altair charts.
+# Kept MIT-clean — see `showcase` below for the JAMA-style table polish.
+notebooks = ["jupyter>=1.0", "vl-convert-python>=1.5"]
+# Adds `pysofra` for the showcase notebook's JAMA-style typography.
+# IMPORTANT: pysofra is GPL-3.0-or-later. Opting in to `[showcase]` (or
+# installing pysofra directly) brings GPL into your environment; pure
+# pycorpdiff use without this extra remains MIT-only.
+showcase = ["pysofra>=0.1.0a3"]
+# Meta-extra: every MIT-compatible optional code path. Does NOT include
+# `[showcase]` because pysofra is GPL-3.0-or-later; install
+# `pycorpdiff[all,showcase]` explicitly if you accept that licence.
 all = [
     "altair>=5",
     "matplotlib>=3.8",
@@ -81,8 +87,8 @@ all = [
     "pyarrow>=15",
     "duckdb>=0.10",
     "spacy>=3.7",
+    "jupyter>=1.0",
     "vl-convert-python>=1.5",
-    "pysofra>=0.1.0a3",
 ]
 dev = [
     "pytest>=8",
@@ -174,6 +180,8 @@ disallow_any_generics = true
 module = [
     "altair",
     "altair.*",
+    "datasets",
+    "datasets.*",
     "duckdb",
     "duckdb.*",
     "matplotlib",

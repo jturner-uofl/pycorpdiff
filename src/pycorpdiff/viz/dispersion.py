@@ -109,7 +109,7 @@ def dispersion_plot(
             width=width,
             height=height,
             title=alt.TitleParams(
-                text="Dispersion plot — where each term occurs in the corpus",
+                text="Dispersion plot -- where each term occurs in the corpus",
                 subtitle=f"{n_docs} documents on the x-axis, one tick per occurrence",
             ),
         )

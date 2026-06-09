@@ -216,3 +216,24 @@ def test_plot_falls_back_to_circular_layout_when_networkx_missing(
     # Should still produce a layered, valid spec.
     spec = chart.to_dict()
     assert "layer" in spec
+
+
+def test_stop_words_excludes_terms_from_vocabulary() -> None:
+    """``stop_words`` keeps function-word noise out of the top-N when
+    raw-frequency picks pollute the network."""
+    # Mostly function words plus a clear content cluster.
+    docs = (
+        ["the and of to a in the and of to"] * 20
+        + ["asylum refugee policy migrant border policy"] * 20
+    )
+    corpus = _doc_corpus(docs)
+    stops = {"the", "and", "of", "to", "a", "in"}
+    net = cooccurrence_network(
+        corpus, top_n=8, min_count=1, min_cooccur=1, stop_words=stops,
+    )
+    surfaced = set(net.nodes.index)
+    assert surfaced.isdisjoint(stops), (
+        f"stop-words leaked into the vocabulary: {surfaced & stops}"
+    )
+    # Content terms survive.
+    assert {"asylum", "refugee", "policy", "migrant"} <= surfaced

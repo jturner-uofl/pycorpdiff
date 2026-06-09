@@ -15,7 +15,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from .loglikelihood import log_likelihood
+from .loglikelihood import LLFormula, log_likelihood
 
 
 def bayes_factor(
@@ -23,12 +23,21 @@ def bayes_factor(
     counts_b: pd.Series,
     total_a: int,
     total_b: int,
+    *,
+    formula: LLFormula = "rayson",
 ) -> pd.Series:
     """BIC-approximated Bayes factor for each term's frequency difference.
 
-    Uses Wilson's BIC approximation: ``BIC = |G²| - ln(N)`` where ``N``
-    is the total tokens across both corpora and ``G²`` is the unsigned
-    log-likelihood. The Bayes factor is then ``exp(BIC / 2)``.
+    The BIC approximation (Kass & Raftery 1995): ``BIC = |G²| - ln(N)``
+    where ``N`` is the total tokens across both corpora and ``G²`` is
+    the unsigned log-likelihood. The Bayes factor is then
+    ``exp(BIC / 2)``. Wilson (2013) is the keyness application.
+
+    ``formula`` selects which G² flavour feeds the BF: ``"rayson"`` (the
+    2-cell shortcut, default; matches the LL Wizard) or ``"dunning"``
+    (the full 4-cell G²; matches quanteda/NLTK). Use the same
+    ``formula=`` as the ``keyness()`` call that produced the row so the
+    G² and the Bayes factor in a single row describe the same statistic.
 
     Interpret with Kass & Raftery (1995):
 
@@ -42,7 +51,7 @@ def bayes_factor(
     plots / sorts handle it.
     """
     terms = counts_a.index.union(counts_b.index)
-    ll_table = log_likelihood(counts_a, counts_b, total_a, total_b)
+    ll_table = log_likelihood(counts_a, counts_b, total_a, total_b, formula=formula)
     g2_abs = ll_table["g2"].abs()
     bic = g2_abs - np.log(total_a + total_b)
     with np.errstate(over="ignore"):

@@ -62,21 +62,26 @@ def test_semantic_shift_multi_target() -> None:
     assert (df["n_contexts_a"] > 0).all()
 
 
-def test_semantic_shift_procrustes_runs_end_to_end() -> None:
+def test_semantic_shift_procrustes_runs_and_warns() -> None:
+    """``align="procrustes"`` runs end-to-end but emits a FutureWarning
+    because the current implementation aligns unrelated parallel rows
+    rather than a shared anchor vocabulary — a methodology issue
+    flagged in an adversarial audit. Test guards two things: (1) the
+    warning fires; (2) the call still produces a result rather than
+    crashing, since downstream notebooks may rely on the path."""
+    import pytest
+
     a = _corpus(["the migrant worker family arrived"] * 4)
     b = _corpus(["the migrant criminal threat invasion"] * 4)
-    df_no_align = semantic_shift(
-        a, b, "migrant", embedder=HashEmbedder(), align="none"
-    )
-    df_procrustes = semantic_shift(
-        a, b, "migrant", embedder=HashEmbedder(), align="procrustes"
-    )
-    # After Procrustes alignment (which rotates source to fit target),
-    # cosine similarity should be ≥ the un-aligned value — alignment can
-    # only improve the fit.
-    sim_aligned = df_procrustes["cosine_similarity"].iloc[0]
-    sim_unaligned = df_no_align["cosine_similarity"].iloc[0]
-    assert sim_aligned >= sim_unaligned - 1e-9
+    with pytest.warns(FutureWarning, match="anchor"):
+        df_procrustes = semantic_shift(
+            a, b, "migrant", embedder=HashEmbedder(), align="procrustes"
+        )
+    # The result frame should still come back well-formed even though
+    # the alignment is methodologically suspect — the value is not
+    # meaningful, but the call should not silently return garbage.
+    assert df_procrustes["target"].iloc[0] == "migrant"
+    assert df_procrustes["n_contexts_a"].iloc[0] > 0
 
 
 def test_semantic_shift_swap_symmetry_under_hash_embedder() -> None:

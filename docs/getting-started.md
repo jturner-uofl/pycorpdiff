@@ -3,17 +3,20 @@
 ## Install
 
 ```bash
-pip install pycorpdiff                # lexical-comparative core
-pip install "pycorpdiff[viz]"         # + altair / matplotlib / networkx
-pip install "pycorpdiff[semantic]"    # + sentence-transformers
-pip install "pycorpdiff[temporal]"    # + ruptures / statsmodels
-pip install "pycorpdiff[notebooks]"   # + jupyter / vl-convert / pysofra
-pip install "pycorpdiff[all]"         # everything
+pip install pycorpdiff                       # lexical-comparative core (MIT)
+pip install "pycorpdiff[viz]"                # + altair / matplotlib / networkx
+pip install "pycorpdiff[semantic]"           # + sentence-transformers
+pip install "pycorpdiff[temporal]"           # + ruptures / statsmodels
+pip install "pycorpdiff[notebooks]"          # + jupyter / vl-convert
+pip install "pycorpdiff[all]"                # everything MIT-compatible
+pip install "pycorpdiff[all,showcase]"       # + pysofra (GPL-3.0-or-later) for the showcase notebook
 ```
 
-The base install keeps a small dependency footprint (`numpy`, `pandas`,
-`scipy`, `pyarrow`). Optional extras land per analytical layer so you
-only pay for what you use.
+The base install's direct runtime dependencies are `numpy`, `pandas`,
+`scipy`, and `pyarrow`. Optional extras land per analytical layer so
+you only pay for what you use. `[showcase]` is broken out separately
+because `pysofra` is GPL-3.0-or-later — pure `pycorpdiff` use without
+that extra remains MIT-only.
 
 To work from source:
 
@@ -90,17 +93,22 @@ m.table                     # cosine distance + context counts
 
 ## Track over time
 
-`track(corpus, term).over_time()` returns a tidy diachronic trajectory
-with Wilson confidence intervals:
+The 3-row toy above is too sparse for temporal modelling, so for this
+section switch to the bundled synthetic Hansard sample (193 speeches,
+2005-2023):
 
 ```python
-tr = pcd.track(corpus, ["worker", "criminal"]).over_time(
+sample = pcd.load_hansard_sample()
+tr = pcd.track(sample, ["immigrant", "criminal"]).over_time(
     freq="Y", time_col="date",
 )
-tr.plot()                                                   # CI band + line
-tr.changepoints(target="criminal")                          # ruptures PELT
-tr.interrupted_time_series(event_date="2016", target="x")   # statsmodels OLS
+tr.plot()                                                          # CI band + line
+tr.changepoints(target="criminal")                                 # ruptures PELT
+tr.interrupted_time_series(event_date="2016", target="criminal")   # statsmodels OLS
 ```
+
+`track(corpus, term).over_time()` returns a tidy diachronic trajectory
+with Wilson confidence intervals.
 
 ## Before / after an event
 
@@ -108,7 +116,7 @@ A specialised constructor for chronological comparison:
 
 ```python
 ba = pcd.compare.before_after(
-    corpus, event_date="2016-06-23", time_col="date",
+    sample, event_date="2016-06-23", time_col="date",
 ).keyness()
 ba.plot()
 ```
