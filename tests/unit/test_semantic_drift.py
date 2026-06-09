@@ -195,6 +195,69 @@ def test_permutation_stable_corpus_high_pvalue():
     assert res.p_value > 0.1
 
 
+# ---- fall-off / decline (the mirror of emergence) ---------------------------
+def _dilution(seed=5):
+    """Two senses stable in absolute count; a third floods in later, so the
+    first two lose *share* but not *count* (dilution, not obsolescence)."""
+    rng = np.random.default_rng(seed)
+    C = _centroids(3, seed)
+    rows, emb = [], []
+    for y in range(2000, 2021):
+        for _ in range(50):
+            emb.append(C[0] + rng.standard_normal(D) * NOISE)
+            rows.append({"year": y, "text": "alpha one"})
+        for _ in range(50):
+            emb.append(C[1] + rng.standard_normal(D) * NOISE)
+            rows.append({"year": y, "text": "beta two"})
+        if y >= 2010:
+            for _ in range((y - 2009) * 20):
+                emb.append(C[2] + rng.standard_normal(D) * NOISE)
+                rows.append({"year": y, "text": "gamma flood"})
+    return pd.DataFrame(rows), np.vstack(emb)
+
+
+def _obsolescence(seed=6):
+    """A sense that genuinely fades: its absolute count falls over time."""
+    rng = np.random.default_rng(seed)
+    C = _centroids(2, seed)
+    rows, emb = [], []
+    for y in range(2000, 2021):
+        n0 = max(5, 60 - (y - 2000) * 3)  # sense 0 shrinks in absolute count
+        for _ in range(n0):
+            emb.append(C[0] + rng.standard_normal(D) * NOISE)
+            rows.append({"year": y, "text": "fading sense"})
+        for _ in range(60):  # sense 1 constant
+            emb.append(C[1] + rng.standard_normal(D) * NOISE)
+            rows.append({"year": y, "text": "steady sense"})
+    return pd.DataFrame(rows), np.vstack(emb)
+
+
+def test_decline_report_dilution():
+    df, X = _dilution()
+    rep = pcd.sense_drift(df, X, time_col="year",
+                          reference=list(range(2000, 2005)), k=2).decline_report()
+    assert set(rep["verdict"]) == {"dilution"}          # share falls, count holds
+    assert (rep["late_share"] < rep["early_share"]).all()
+    assert (rep["late_count"] > rep["early_count"] * 0.7).all()
+
+
+def test_decline_report_obsolescence():
+    df, X = _obsolescence()
+    rep = pcd.sense_drift(df, X, time_col="year",
+                          reference=list(range(2000, 2005)), k=2).decline_report()
+    assert "obsolescence" in set(rep["verdict"])        # a sense whose count falls
+    row = rep[rep["verdict"] == "obsolescence"].iloc[0]
+    assert row["late_count"] < row["early_count"]
+
+
+def test_sense_trajectories_shape():
+    df, X = _dilution()
+    traj = pcd.sense_drift(df, X, time_col="year",
+                           reference=list(range(2000, 2005)), k=2).sense_trajectories()
+    assert set(traj.columns) == {"period", "sense", "n", "share"}
+    assert set(traj["sense"]) == {0, 1}
+
+
 # ---- validation / edge cases ------------------------------------------------
 def test_reference_too_small_raises():
     df, X = _stable()
