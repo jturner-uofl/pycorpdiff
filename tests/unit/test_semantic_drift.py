@@ -170,6 +170,31 @@ def test_plot_returns_chart():
     assert res.plot(width=300, height=150).__class__.__name__ in {"LayerChart", "Chart"}
 
 
+# ---- permutation / null calibration -----------------------------------------
+def test_permutation_pvalue_significant_for_emergence():
+    df, X = _emergence()
+    res = pcd.sense_drift(df, X, time_col="year", reference=REF, k=3, n_permutations=20)
+    assert res.p_value is not None
+    assert 0.0 < res.p_value <= 1.0
+    assert res.p_value < 0.2  # genuine drift beats the shuffled null
+    assert "Permutation p=" in res.summary()
+    assert res.table["drift"].any()
+
+
+def test_in_sample_default_has_no_pvalue():
+    df, X = _emergence()
+    res = pcd.sense_drift(df, X, time_col="year", reference=REF, k=3)
+    assert res.p_value is None
+
+
+def test_permutation_stable_corpus_high_pvalue():
+    # no real drift -> the real max margin should not dominate the null
+    df, X = _stable()
+    res = pcd.sense_drift(df, X, time_col="year", reference=REF, k=3, n_permutations=20)
+    assert res.p_value is not None
+    assert res.p_value > 0.1
+
+
 # ---- validation / edge cases ------------------------------------------------
 def test_reference_too_small_raises():
     df, X = _stable()
