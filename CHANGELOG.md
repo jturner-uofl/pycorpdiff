@@ -4,6 +4,31 @@ All notable changes to `pycorpdiff` are documented in this file. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.0a32]
+
+Visualization release for `sense_drift`: three attractive, story-carrying
+charts so the drift results are *seen*, not just tabulated.
+
+### Added
+
+- **`SenseDriftResult.plot_composition()`** --- the headline figure: a
+  stacked-area chart of sense share over time, each reference sense a band
+  labelled by its distinctive terms, plus a residual ``novel / emergent``
+  band. A takeover (one band swelling while others shrink), an emergence (a
+  band appearing), and a decline (a band shrinking) are all visible at a
+  glance --- the standard diachronic-sense-change figure of the LSCD
+  literature.
+- **`SenseDriftResult.plot_decline()`** --- a slopegraph of each sense's
+  share from the reference window to the late period, coloured by verdict
+  (obsolescence / dilution / rising / stable): the fall-off, seen.
+
+### Changed
+
+- **`SenseDriftResult.plot()`** enriched: margin density as a filled line
+  with the calibrated flag **threshold** drawn as a dashed rule and the
+  permutation *p*-value in the subtitle, so the significance is visual
+  rather than implicit. Drift-flagged periods remain marked.
+
 ## [0.1.0a31]
 
 Feature release for `sense_drift`: **the fall-off hunt** --- decline /

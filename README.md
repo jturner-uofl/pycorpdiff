@@ -35,7 +35,7 @@ points — one-line adapters, no plugin registry. The base install's
 direct runtime dependencies are `numpy`, `pandas`, `scipy`, and
 `pyarrow`; everything else is opt-in via extras.
 
-> **Status: alpha (0.1.0a31).** Public API is stable for the features
+> **Status: alpha (0.1.0a32).** Public API is stable for the features
 > described below; on PyPI as `pip install pycorpdiff`. Alpha releases
 > are intentionally rapid (audit-driven), each shipping fixes and tests
 > behind the published version; dependency pins will tighten at beta.
@@ -153,6 +153,11 @@ drift.p_value                                              # permutation p (max 
 # obsolescence (absolute count falls) or just dilution (share falls, count holds)?
 drift.decline_report()                                     # per sense: verdict + early/late share & count + terms
 drift.sense_trajectories()                                 # per-period per-sense count + share (plot-ready)
+
+# Three story-carrying charts (the [viz] extra):
+drift.plot()                                               # margin density + calibrated threshold + p-value
+drift.plot_composition()                                   # stacked-area sense share over time — the takeover, seen
+drift.plot_decline()                                       # slopegraph early→late, coloured obsolescence/dilution/rising
 ```
 
 See [`examples/pycorpdiff_showcase.ipynb`](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)

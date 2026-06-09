@@ -332,17 +332,92 @@ class SenseDriftResult:
                 .sort_values("rel_share_change")
                 .reset_index(drop=True))
 
+    def _sense_labels(self, top: int = 2) -> dict[int, str]:
+        return {c: ", ".join(self._cluster_terms(c, top=top)) or f"sense {c}"
+                for c in range(self.k)}
+
     def plot(self, **kw: Any) -> alt.Chart:
-        """Margin density and JSD over time, with drift-flagged periods."""
+        """Margin density over time with the flag threshold and drift markers.
+
+        The dashed rule is the calibrated threshold (a high percentile of the
+        label-shuffle null when ``n_permutations > 0``); periods above it that
+        survive the sustained-run check are flagged in red. Makes the
+        significance visible, not just tabulated."""
         import altair as alt
 
         t = self.table.assign(period_str=lambda d: d["period"].astype(str))
         base = alt.Chart(t).encode(x=alt.X("period_str:O", title="period"))
-        md = base.mark_line(point=True, color="#e76f51").encode(
+        area = base.mark_area(opacity=0.25, color="#e76f51").encode(
             y=alt.Y("margin_density:Q", title="margin density"))
+        line = base.mark_line(color="#e76f51", point=True).encode(y="margin_density:Q")
+        rule = (alt.Chart(pd.DataFrame({"y": [self.threshold]}))
+                .mark_rule(strokeDash=[5, 4], color="#444")
+                .encode(y="y:Q"))
         flags = base.transform_filter(alt.datum.drift).mark_point(
-            size=120, color="#d00", shape="triangle-up").encode(y="margin_density:Q")
-        return (md + flags).properties(**kw)  # type: ignore[no-any-return]
+            size=140, color="#d00", shape="triangle-up", filled=True).encode(
+            y="margin_density:Q")
+        sub = (f"permutation p = {self.p_value:.3f}; " if self.p_value is not None else "")
+        title = alt.TitleParams(
+            "Sense-drift margin density", subtitle=f"{sub}change type: {self.change_type}")
+        return (area + line + rule + flags).properties(title=title, **kw)  # type: ignore[no-any-return]
+
+    def plot_composition(self, **kw: Any) -> alt.Chart:
+        """Stacked-area sense composition over time --- the headline drift
+        figure. Each reference sense is a band labelled by its distinctive
+        terms; the residual ``novel / emergent`` band is the uncertainty
+        region that drives emergence and broadening. The takeover (one band
+        swelling while others shrink) is visible at a glance."""
+        import altair as alt
+
+        traj = self.sense_trajectories()
+        per = traj.groupby("period")["share"].sum().reset_index(name="known")
+        novel = per.assign(sense=self.k, share=(1.0 - per["known"]).clip(lower=0.0))
+        full = pd.concat([traj[["period", "sense", "share"]],
+                          novel[["period", "sense", "share"]]], ignore_index=True)
+        labels = self._sense_labels()
+        labels[self.k] = "novel / emergent"
+        full = full.assign(
+            sense_label=full["sense"].map(labels),
+            period_str=full["period"].astype(str))
+        order = [labels[c] for c in range(self.k)] + [labels[self.k]]
+        chart = alt.Chart(full).mark_area().encode(
+            x=alt.X("period_str:O", title="period"),
+            y=alt.Y("share:Q", stack="normalize", title="sense share"),
+            color=alt.Color("sense_label:N", title="sense (top terms)",
+                            sort=order, scale=alt.Scale(scheme="tableau10")),
+            order=alt.Order("sense:Q"),
+            tooltip=["period_str", "sense_label", alt.Tooltip("share:Q", format=".2f")],
+        ).properties(title="Sense composition over time", **kw)
+        return chart  # type: ignore[no-any-return]
+
+    def plot_decline(self, **kw: Any) -> alt.Chart:
+        """Slopegraph of each reference sense's share from the reference window
+        to the late period, coloured by verdict (obsolescence / dilution /
+        rising / stable). The fall-off, seen: obsolescent senses slope down in
+        red, rising ones up in green."""
+        import altair as alt
+
+        rep = self.decline_report()
+        labels = self._sense_labels()
+        long = pd.concat([
+            rep.assign(when="early", share=rep["early_share"]),
+            rep.assign(when="late", share=rep["late_share"]),
+        ], ignore_index=True)
+        long = long.assign(sense_label=long["sense"].map(labels))
+        scale = alt.Scale(
+            domain=["obsolescence", "dilution", "rising", "stable", "minor"],
+            range=["#d62728", "#ff9896", "#2ca02c", "#999999", "#dddddd"])
+        base = alt.Chart(long).encode(
+            x=alt.X("when:O", sort=["early", "late"], title=None),
+            y=alt.Y("share:Q", title="sense share"),
+            color=alt.Color("verdict:N", scale=scale, title="verdict"),
+            detail="sense:N",
+            tooltip=["sense_label", "verdict",
+                     alt.Tooltip("early_share:Q", format=".2f"),
+                     alt.Tooltip("late_share:Q", format=".2f")])
+        chart = base.mark_line(point=True, strokeWidth=3).properties(
+            title="Sense decline (early to late share)", **kw)
+        return chart  # type: ignore[no-any-return]
 
 
 def sense_drift(
