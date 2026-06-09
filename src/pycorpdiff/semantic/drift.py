@@ -261,6 +261,77 @@ class SenseDriftResult:
             recs = recs[recs["period"].isin(flagged)]
         return recs.reset_index(drop=True)
 
+    def _cluster_terms(self, c: int, top: int = 8) -> list[str]:
+        recs = self._records
+        in_c = recs.loc[(recs["nearest_sense"] == c) & ~recs["novel"], "text"].tolist()
+        out_c = recs.loc[(recs["nearest_sense"] != c) & ~recs["novel"], "text"].tolist()
+        return _distinctive_terms(in_c, out_c, top=top)
+
+    def sense_trajectories(self) -> pd.DataFrame:
+        """Per-reference-sense prevalence over time. For each period and each
+        of the ``k`` reference senses, the count and share of confidently
+        assigned (non-novel) records. This is the data behind *decline*: the
+        mirror of the novelty signal that drives emergence/broadening."""
+        recs = self._records
+        periods = sorted({p for p in recs["period"].tolist() if p == p})
+        rows = []
+        for p in periods:
+            sub = recs[recs["period"] == p]
+            n_total = len(sub)
+            conf = sub[~sub["novel"]]
+            for c in range(self.k):
+                cnt = int((conf["nearest_sense"] == c).sum())
+                rows.append({"period": p, "sense": c, "n": cnt,
+                             "share": cnt / n_total if n_total else 0.0})
+        return pd.DataFrame(rows)
+
+    def decline_report(
+        self, min_share: float = 0.05, rel_change: float = 0.30, late_periods: int = 3,
+    ) -> pd.DataFrame:
+        """Classify each reference sense's trajectory --- the *fall-off* hunt,
+        the mirror of emergence detection.
+
+        A sense whose share drops by at least ``rel_change`` (relative) from
+        the reference window to the last ``late_periods`` is *declining*; the
+        decline is split into **obsolescence** (its absolute count also falls)
+        vs **dilution** (count is stable or rising, share falls only because
+        the rest of the corpus grew). Senses below ``min_share`` early are
+        marked ``minor`` and not judged. Returns one row per sense with
+        early/late share and count, the verdict, and distinctive terms,
+        sorted from steepest decline to steepest rise.
+        """
+        traj = self.sense_trajectories()
+        ref_set = set(self.reference)
+        periods = sorted(traj["period"].unique())
+        ref_periods = [p for p in periods if p in ref_set]
+        late = [p for p in periods if p not in ref_set][-late_periods:]
+        rows = []
+        for c in range(self.k):
+            tc = traj[traj["sense"] == c]
+            early_share = float(tc[tc["period"].isin(ref_periods)]["share"].mean())
+            late_share = float(tc[tc["period"].isin(late)]["share"].mean())
+            early_cnt = float(tc[tc["period"].isin(ref_periods)]["n"].mean())
+            late_cnt = float(tc[tc["period"].isin(late)]["n"].mean())
+            rel = (late_share - early_share) / early_share if early_share > 0 else 0.0
+            if early_share < min_share:
+                verdict = "minor"
+            elif rel <= -rel_change:
+                verdict = ("obsolescence" if late_cnt < early_cnt * (1 - rel_change)
+                           else "dilution")
+            elif rel >= rel_change:
+                verdict = "rising"
+            else:
+                verdict = "stable"
+            rows.append({
+                "sense": c, "early_share": early_share, "late_share": late_share,
+                "early_count": early_cnt, "late_count": late_cnt,
+                "rel_share_change": rel, "verdict": verdict,
+                "terms": ", ".join(self._cluster_terms(c)),
+            })
+        return (pd.DataFrame(rows)
+                .sort_values("rel_share_change")
+                .reset_index(drop=True))
+
     def plot(self, **kw: Any) -> alt.Chart:
         """Margin density and JSD over time, with drift-flagged periods."""
         import altair as alt
@@ -492,6 +563,33 @@ _EXPLAIN_STOP = frozenset(
 _EXPLAIN_WORD = re.compile(r"[a-z][a-z-]{3,}")
 
 
+def _distinctive_terms(
+    target_texts: list[str], other_texts: list[str], top: int = 12, min_df: int = 3,
+) -> list[str]:
+    """Terms most distinctive of ``target_texts`` vs ``other_texts`` by
+    log-ratio of document frequency (a keyness-style score; words common to
+    both wash out because their ratio is ~1)."""
+    def _docfreq(texts: list[str]) -> tuple[dict[str, int], int]:
+        cnt: dict[str, int] = {}
+        for t in texts:
+            for w in set(_EXPLAIN_WORD.findall(str(t).lower())):
+                if w not in _EXPLAIN_STOP:
+                    cnt[w] = cnt.get(w, 0) + 1
+        return cnt, max(len(texts), 1)
+
+    tc, tn = _docfreq(target_texts)
+    oc, on = _docfreq(other_texts)
+    scored = []
+    for w, cn in tc.items():
+        if cn < min_df:
+            continue
+        target_rate = cn / tn
+        other_rate = (oc.get(w, 0) + 0.5) / on
+        scored.append((w, float(np.log2(target_rate / other_rate))))
+    scored.sort(key=lambda kv: kv[1], reverse=True)
+    return [w for w, _ in scored[:top]]
+
+
 def _explain(
     novel_texts: list[str],
     ref_texts: list[str],
@@ -525,25 +623,5 @@ def _explain(
         change_type = "broadening"
 
     # Distinctive terms via log-ratio of novel vs reference document
-    # frequency (a keyness-style score; generic words common to both wash
-    # out because their ratio is ~1).
-    def _docfreq(texts: list[str]) -> tuple[dict[str, int], int]:
-        cnt: dict[str, int] = {}
-        for t in texts:
-            for w in set(_EXPLAIN_WORD.findall(str(t).lower())):
-                if w not in _EXPLAIN_STOP:
-                    cnt[w] = cnt.get(w, 0) + 1
-        return cnt, max(len(texts), 1)
-
-    nc, nn = _docfreq(novel_texts)
-    rc, rn = _docfreq(ref_texts)
-    scored = []
-    for w, cn in nc.items():
-        if cn < 3:
-            continue
-        novel_rate = cn / nn
-        ref_rate = (rc.get(w, 0) + 0.5) / rn
-        scored.append((w, float(np.log2(novel_rate / ref_rate))))
-    scored.sort(key=lambda kv: kv[1], reverse=True)
-    terms = [w for w, _ in scored[:12]]
-    return change_type, terms
+    # frequency (a keyness-style score).
+    return change_type, _distinctive_terms(novel_texts, ref_texts, top=12)

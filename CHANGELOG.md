@@ -4,6 +4,37 @@ All notable changes to `pycorpdiff` are documented in this file. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.0a31]
+
+Feature release for `sense_drift`: **the fall-off hunt** --- decline /
+obsolescence detection, the mirror of emergence. The change-type taxonomy
+was forward-biased (emergence / broadening / frequency_shift all describe
+senses *appearing* or *re-weighting up*); the margin-density signal is
+structurally blind to a sense getting *rarer*, because a declining sense is
+not novel. These methods watch the known-sense share trajectories instead.
+
+### Added
+
+- **`SenseDriftResult.decline_report(min_share=0.05, rel_change=0.30,
+  late_periods=3)`** --- classify each reference sense's trajectory as
+  `rising` / `stable` / `declining`, and split declines into
+  **`obsolescence`** (the sense's *absolute* count also falls) vs
+  **`dilution`** (count stable or rising; share falls only because the rest
+  of the corpus grew). Reports early/late share and count, the verdict, and
+  each sense's distinctive terms. The absolute-vs-relative split matters:
+  on CBD-PubMed both "declining" senses are *dilution* --- bile-duct
+  research more than doubled in absolute output (62.9 -> 143.7 records/yr)
+  while its share fell 35% -> 11%; a share-only detector would falsely
+  report obsolescence of a thriving literature.
+- **`SenseDriftResult.sense_trajectories()`** --- per-period, per-sense
+  count and share (long form), the data behind decline and ready to plot.
+
+### Changed
+
+- Term scoring factored into a shared `_distinctive_terms` helper (used by
+  both the drift explanation and per-sense cluster labelling); no behaviour
+  change to existing outputs.
+
 ## [0.1.0a30]
 
 Correctness release for `sense_drift`: **permutation-null-calibrated flagging**.
