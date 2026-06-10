@@ -11,8 +11,10 @@ from pycorpdiff.lexical.diversity import (
     LexicalDiversityResult,
     LexicalDiversityTrajectory,
     hdd,
+    hill_numbers,
     mattr,
     mtld,
+    rarefaction,
     ttr,
 )
 
@@ -321,3 +323,56 @@ def test_lexical_diversity_runs_on_hansard_sample_temporal() -> None:
     traj = pcd.lexical_diversity(corpus, freq="Y", time_col="date")
     # Synthetic corpus spans 2005-2023 → 19 yearly periods.
     assert traj.table["period"].nunique() == 19
+
+
+# ----------------------------------------------------------------------
+# Hill numbers + rarefaction (ecology diversity, size-fair comparison)
+# ----------------------------------------------------------------------
+def test_hill_numbers_uniform_equals_richness_all_orders() -> None:
+    # a perfectly even community of S types -> Hill_q = S for every q
+    counts = [10] * 50
+    for q in (0.0, 1.0, 2.0):
+        assert hill_numbers(counts, q) == pytest.approx(50.0)
+
+
+def test_hill_numbers_ordering_for_skewed() -> None:
+    # for an uneven community, richness >= exp-Shannon >= inv-Simpson
+    counts = [100, 50, 10, 5, 1, 1, 1]
+    d0, d1, d2 = (hill_numbers(counts, q) for q in (0.0, 1.0, 2.0))
+    assert d0 > d1 > d2
+    assert d0 == pytest.approx(7.0)  # q=0 is plain richness
+
+
+def test_hill_numbers_empty_is_zero() -> None:
+    assert hill_numbers([]) == 0.0
+    assert hill_numbers([0, 0]) == 0.0
+
+
+def test_rarefaction_at_full_size_is_richness() -> None:
+    counts = [5, 3, 2, 1]
+    assert rarefaction(counts, sum(counts)) == pytest.approx(4.0)
+
+
+def test_rarefaction_controls_for_size() -> None:
+    # two samples from the SAME relative community, different totals:
+    # naive richness differs, but rarefied-to-common-size is ~equal.
+    base = np.array([100, 60, 40, 25, 15, 10, 6, 4, 2, 1], dtype=float)
+    small = (base * 3).astype(int)
+    big = (base * 30).astype(int)
+    assert (big > 0).sum() == (small > 0).sum()  # same #types here, but...
+    # richness is identical only because no zeros; the real test is that
+    # rarefying the big one to the small one's size matches small's richness
+    n = int(small.sum())
+    assert rarefaction(big, n) == pytest.approx(rarefaction(small, n), rel=0.02)
+
+
+def test_rarefaction_matches_hdd_at_42() -> None:
+    tokens = (["the"] * 40 + ["cat"] * 20 + ["sat"] * 10
+              + [f"w{i}" for i in range(30)])
+    counts = list(pd.Series(tokens).value_counts())
+    assert rarefaction(counts, 42) == pytest.approx(hdd(tokens, 42), rel=1e-9)
+
+
+def test_rarefaction_invalid_size_raises() -> None:
+    with pytest.raises(ValueError, match="sample_size must be in"):
+        rarefaction([5, 3, 2], 99)

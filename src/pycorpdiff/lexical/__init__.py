@@ -31,9 +31,11 @@ from .diversity import (
     LexicalDiversityResult,
     LexicalDiversityTrajectory,
     hdd,
+    hill_numbers,
     lexical_diversity,
     mattr,
     mtld,
+    rarefaction,
     ttr,
 )
 
@@ -41,8 +43,10 @@ __all__ = [
     "LexicalDiversityResult",
     "LexicalDiversityTrajectory",
     "hdd",
+    "hill_numbers",
     "lexical_diversity",
     "mattr",
     "mtld",
+    "rarefaction",
     "ttr",
 ]

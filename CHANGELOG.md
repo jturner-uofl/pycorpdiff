@@ -4,6 +4,36 @@ All notable changes to `pycorpdiff` are documented in this file. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.0a33]
+
+Diversity release: **Hill numbers + individual-based rarefaction** in the
+lexical module --- the principled, size-fair way to compare the vocabulary
+(or sense) diversity of corpora of *different sizes*. Borrowed straight from
+ecology (Hill 1973; Hurlbert 1971; unified by Chao et al., Ecol. Monographs
+84:45-67, 2014), where a community's species-abundance distribution is the
+exact analogue of a corpus's type-frequency distribution.
+
+### Added
+
+- **`pycorpdiff.lexical.hill_numbers(counts, q=1.0)`** --- diversity of
+  order `q` as an *effective number of types*: `q=0` richness, `q=1`
+  exp(Shannon), `q=2` inverse Simpson. Comparable across `q` and corpora;
+  the `q>=1` orders are far less sample-size-sensitive than raw richness.
+- **`pycorpdiff.lexical.rarefaction(counts, sample_size)`** --- Hurlbert's
+  expected number of distinct types in a random subsample of `sample_size`
+  individuals. Rarefy a larger corpus down to a smaller's token count to
+  compare richness like-for-like (a bigger corpus has more types merely by
+  being bigger). The existing `hdd` is exactly this at `sample_size=42` on
+  token-derived counts; this generalises it to any counts and any size.
+
+### Notes
+
+- Both take an abundance vector (`Counter(tokens).values()`, sense counts,
+  any non-negative counts), live in `pcd.lexical.*` alongside `ttr`/`mtld`/
+  `hdd`. 7 new tests (659 total), incl. a check that `rarefaction(., 42)`
+  matches `hdd` exactly. Motivated by the corpus-size confound behind the
+  dilution/obsolescence problem in `sense_drift`.
+
 ## [0.1.0a32]
 
 Visualization release for `sense_drift`: three attractive, story-carrying
