@@ -35,7 +35,7 @@ points — one-line adapters, no plugin registry. The base install's
 direct runtime dependencies are `numpy`, `pandas`, `scipy`, and
 `pyarrow`; everything else is opt-in via extras.
 
-> **Status: alpha (0.1.0a32).** Public API is stable for the features
+> **Status: alpha (0.1.0a33).** Public API is stable for the features
 > described below; on PyPI as `pip install pycorpdiff`. Alpha releases
 > are intentionally rapid (audit-driven), each shipping fixes and tests
 > behind the published version; dependency pins will tighten at beta.
@@ -103,6 +103,13 @@ pcd.compare(m.a_matched, m.b_matched).keyness()                               # 
 # Lexical diversity (TTR, MATTR, MTLD, HD-D) — pooled and over time
 pcd.lexical_diversity(corpus)                                                 # pooled corpus-level values
 pcd.lexical_diversity(corpus, freq="Y", ci="bootstrap", n_boot=199)           # per-year trajectory + CIs
+
+# Ecology diversity (Hill numbers + rarefaction) — size-fair comparison of
+# corpora of different sizes (a bigger corpus has more types just by being bigger).
+from collections import Counter
+counts = list(Counter(tokens).values())                                       # any abundance vector
+pcd.lexical.hill_numbers(counts, q=1)                                          # effective # types (q=0 richness, 1 exp-Shannon, 2 inv-Simpson)
+pcd.lexical.rarefaction(counts, sample_size=10_000)                           # expected #types in a 10k-token subsample (Hurlbert 1971)
 
 # Track over time (requires [temporal] for the changepoint + ITS + forecast + causal_impact methods).
 # Note: ITS / causal_impact require sufficient pre/post-event periods to fit (min_pre_periods=15,

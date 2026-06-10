@@ -187,6 +187,57 @@ def hdd(tokens: Sequence[str], sample_size: int = 42) -> float:
     return float(total)
 
 
+def hill_numbers(counts: Iterable[float], q: float = 1.0) -> float:
+    """Hill number of order ``q`` (Hill 1973) from type/species abundance
+    ``counts`` --- diversity as an **effective number of types**.
+
+    ``q`` tunes how much weight rare types get: ``q=0`` is plain richness
+    (the number of distinct types), ``q=1`` is the exponential of Shannon
+    entropy (types weighted by frequency), ``q=2`` is the inverse Simpson
+    index (dominated by common types). All three share one intuitive unit
+    --- "how many equally-common types would give this diversity" --- so
+    they are comparable across ``q`` and across corpora, and the ``q>=1``
+    orders are far less sample-size-sensitive than raw richness.
+
+    Pass an abundance vector: ``Counter(tokens).values()``, sense counts,
+    or any non-negative counts.
+    """
+    c = np.asarray([float(x) for x in counts], dtype=float)
+    c = c[c > 0]
+    if c.size == 0:
+        return 0.0
+    p = c / c.sum()
+    if abs(q - 1.0) < 1e-9:
+        return float(np.exp(-(p * np.log(p)).sum()))
+    return float((p**q).sum() ** (1.0 / (1.0 - q)))
+
+
+def rarefaction(counts: Iterable[float], sample_size: int) -> float:
+    """Individual-based rarefaction (Hurlbert 1971): the **expected number
+    of distinct types** in a uniform random subsample of ``sample_size``
+    individuals from a community with the given abundance ``counts``.
+
+    The principled fix for comparing richness across corpora of *different
+    sizes* --- rarefy the larger down to the smaller's token count and
+    compare like-for-like, since a bigger corpus has more types merely by
+    being bigger. :func:`hdd` is exactly this on token-derived counts at
+    ``sample_size=42``; this generalises it to any counts and any size.
+    """
+    c = np.asarray([int(x) for x in counts], dtype=np.int64)
+    c = c[c > 0]
+    total = int(c.sum())
+    if sample_size < 1 or sample_size > total:
+        raise ValueError(f"sample_size must be in [1, {total}]; got {sample_size}")
+    log_total = _log_choose(total, sample_size)
+    present = 0.0
+    for ni in c:
+        if total - int(ni) >= sample_size:
+            present += 1.0 - np.exp(_log_choose(total - int(ni), sample_size) - log_total)
+        else:
+            present += 1.0
+    return float(present)
+
+
 # ----------------------------------------------------------------------
 # Result dataclasses
 # ----------------------------------------------------------------------
