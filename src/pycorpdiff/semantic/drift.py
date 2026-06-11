@@ -434,6 +434,8 @@ def sense_drift(
     n_permutations: int = 0,
     null_pctile: float = 95.0,
     normalize: bool = True,
+    background_embeddings: FloatArray | None = None,
+    background_time: Sequence[Any] | None = None,
     random_state: int = 42,
     text_col: str = "text",
     embedding_meta: dict[str, Any] | None = None,
@@ -457,8 +459,22 @@ def sense_drift(
     k
         Number of senses to fit on the reference period.
     novelty
-        ``"mahalanobis"`` (Lee et al. 2018; recommended) or ``"cosine"``
-        (1 - max centroid cosine similarity).
+        Choose by *regime* (this is a real trade-off, not a strict ranking):
+
+        - ``"mahalanobis"`` (Lee et al. 2018; **default**) — sensitive to
+          genuinely novel senses, which drives emergence/broadening detection.
+          Best for **register-stable diachronic monitoring** (one corpus over
+          time), the typical use case. On CBD-in-PubMed it recovers the
+          broadening and its drivers (dravet, clobazam, legalization).
+        - ``"cosine"`` (1 - max centroid cosine similarity) — a **bounded**
+          alternative for **cross-register / cross-era** corpora where the
+          *whole* embedding distribution shifts (archaic vs modern text, one
+          platform vs another). Mahalanobis is designed to amplify distribution
+          shift, so it **saturates** there (every later record looks novel and
+          margin density pins near 1.0); cosine still ranks. Validated on
+          SemEval-2020 LSCD (cosine recovers signal Mahalanobis saturates on),
+          but on register-stable CBD it under-detects the broadening Mahalanobis
+          catches.
     cutoff_pctile
         A record is *novel* (in the uncertainty region) if its novelty
         score exceeds this percentile of the reference records' scores.
@@ -479,6 +495,14 @@ def sense_drift(
         distribution used as the flag threshold when ``n_permutations > 0``.
     normalize
         L2-normalise embeddings before fitting (default ``True``).
+    background_embeddings, background_time
+        Optional **nuisance-drift correction**. Pass an ``(m, d)`` matrix of
+        control/background records (e.g. a random non-target sample from the
+        same corpus) and their parallel period labels. Each non-reference
+        period's mean background shift from the reference is subtracted from
+        that period's records before scoring, so drift is measured *beyond* the
+        corpus-wide drift. Useful for cross-register/era corpora where the whole
+        embedding cloud shifts; a near no-op on register-stable corpora.
 
     Returns
     -------
@@ -495,9 +519,6 @@ def sense_drift(
         raise ValueError(f"time_col {time_col!r} not in items")
     if novelty not in {"mahalanobis", "cosine"}:
         raise ValueError("novelty must be 'mahalanobis' or 'cosine'")
-    if normalize:
-        x = _l2_normalize(x)
-
     ref_labels_set = list(reference) if isinstance(reference, (list, tuple, set)) else [reference]
     periods_col = frame[time_col].to_numpy()
     ref_mask = frame[time_col].isin(ref_labels_set).to_numpy()
@@ -505,6 +526,37 @@ def sense_drift(
         raise ValueError(
             f"reference period has only {int(ref_mask.sum())} records; "
             f"need >= {k * 5} for k={k} senses")
+
+    if background_embeddings is not None:
+        # M1 nuisance-drift correction: subtract each period's mean shift of a
+        # background/control corpus (e.g. random non-target records over the
+        # same periods) so drift is measured *beyond* the corpus-wide drift.
+        # For cross-register/era data where the whole cloud shifts (see the
+        # ``novelty`` note); a no-op stabiliser on register-stable corpora.
+        if background_time is None:
+            raise ValueError(
+                "background_time is required when background_embeddings is given")
+        bg = np.asarray(background_embeddings, dtype=np.float64)  # raw space, like x
+        bg_periods = np.asarray(list(background_time))
+        if bg.shape[0] != bg_periods.shape[0]:
+            raise ValueError(
+                f"background_embeddings has {bg.shape[0]} rows but "
+                f"background_time has {bg_periods.shape[0]}")
+        bg_ref = bg[np.isin(bg_periods, ref_labels_set)]
+        if bg_ref.shape[0] == 0:
+            raise ValueError("no background records in the reference period(s)")
+        bg_ref_mean = bg_ref.mean(axis=0)
+        x = x.copy()
+        for p in np.unique(periods_col):
+            if p in ref_labels_set:
+                continue
+            bp = bg[bg_periods == p]
+            if bp.shape[0] == 0:
+                continue
+            x[periods_col == p] -= bp.mean(axis=0) - bg_ref_mean
+
+    if normalize:
+        x = _l2_normalize(x)
 
     nearest, nov, is_novel = _score_novelty(
         x, ref_mask, k, novelty, cutoff_pctile, random_state)

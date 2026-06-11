@@ -298,3 +298,43 @@ def test_bad_novelty_raises():
     df, X = _stable()
     with pytest.raises(ValueError, match="mahalanobis.*cosine"):
         pcd.sense_drift(df, X, time_col="year", reference=REF, k=3, novelty="bogus")
+
+
+# --- M1: background / nuisance-drift correction ---------------------------
+
+def _nuisance_with_background(seed=7):
+    """Target = one stable sense + a shared 'era' shift from 2012; background =
+    the same era shift with no sense change."""
+    rng = np.random.default_rng(seed)
+    mu = rng.standard_normal(D) * SCALE
+    era = rng.standard_normal(D) * SCALE
+    tgt, rows, bg, bper = [], [], [], []
+    for y in range(2008, 2016):
+        shift = era if y >= 2012 else 0.0
+        for _ in range(60):
+            tgt.append(mu + shift + rng.standard_normal(D) * NOISE)
+            rows.append({"year": y, "text": "x"})
+            bg.append(shift + rng.standard_normal(D) * NOISE)
+            bper.append(y)
+    return pd.DataFrame(rows), np.asarray(tgt), np.asarray(bg), np.asarray(bper)
+
+
+def test_background_correction_reduces_nuisance_drift():
+    df, X, BG, bper = _nuisance_with_background()
+    ref = [2008, 2009, 2010]
+    base = pcd.sense_drift(df, X, "year", reference=ref, k=3, random_state=0)
+    corr = pcd.sense_drift(df, X, "year", reference=ref, k=3,
+                           background_embeddings=BG, background_time=bper,
+                           random_state=0)
+    late = lambda r: float(r.table[r.table.period >= 2012].margin_density.mean())
+    assert late(corr) < late(base)
+
+
+def test_background_requires_time_and_matching_length():
+    df, X, BG, bper = _nuisance_with_background()
+    ref = [2008, 2009, 2010]
+    with pytest.raises(ValueError):
+        pcd.sense_drift(df, X, "year", reference=ref, background_embeddings=BG)
+    with pytest.raises(ValueError):
+        pcd.sense_drift(df, X, "year", reference=ref,
+                        background_embeddings=BG, background_time=bper[:-5])
