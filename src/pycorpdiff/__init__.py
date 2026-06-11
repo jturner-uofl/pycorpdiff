@@ -22,6 +22,7 @@ from __future__ import annotations
 
 __version__ = "0.1.0a33"
 
+from .annotate import Annotator, EchoAnnotator, OllamaAnnotator, SenseNamingResult
 from .collocation.network import NetworkResult, cooccurrence_network
 from .compare import Comparison, compare
 from .corpus import Corpus, CorpusSlice
@@ -86,6 +87,7 @@ from .viz import (
 )
 
 __all__ = [
+    "Annotator",
     "Baseline",
     "BocpdResult",
     "BurstinessResult",
@@ -95,6 +97,7 @@ __all__ = [
     "ConcordanceResult",
     "Corpus",
     "CorpusSlice",
+    "EchoAnnotator",
     "Embedder",
     "ForecastResult",
     "HashEmbedder",
@@ -104,11 +107,13 @@ __all__ = [
     "MatchResult",
     "NetworkResult",
     "NgramTokenizer",
+    "OllamaAnnotator",
     "RegexTokenizer",
     "SBERTEmbedder",
     "SenseAgreement",
     "SenseDriftResult",
     "SenseInductionResult",
+    "SenseNamingResult",
     "SemanticShiftResult",
     "TemporalCorpus",
     "TemporalTrajectory",

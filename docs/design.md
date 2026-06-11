@@ -70,6 +70,7 @@ to this Result's shape):
 | `NetworkResult`           | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
 | `SenseInductionResult`    | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
 | `SenseDriftResult`        | ✓       | ✓      | ✓         | ✓         | ✓         | —         |
+| `SenseNamingResult`       | ✓       | —      | ✓         | ✓         | ✓         | —         |
 | `ConcordanceResult`       | ✓       | —      | ✓         | ✓         | ✓         | —         |
 
 `.explain()` is meaningful only for term-ranked Results (keyness +
@@ -80,9 +81,9 @@ This is duck-typing rather than inheritance — it keeps Results
 lightweight, lets them be built from a bare DataFrame, and avoids the
 "god-object" trap where one class accretes everything.
 
-## Two plug points, not a plugin system
+## Three plug points, not a plugin system
 
-The package exposes exactly two extension points, both as `typing.Protocol`:
+The package exposes exactly three extension points, all as `typing.Protocol`:
 
 ```python
 class Tokenizer(Protocol):
@@ -90,12 +91,25 @@ class Tokenizer(Protocol):
 
 class Embedder(Protocol):
     def encode(self, terms: Sequence[str]) -> np.ndarray: ...   # (n, d)
+
+class Annotator(Protocol):
+    def __call__(self, prompt: str) -> str: ...                 # the interpretive layer
 ```
 
 That's it. spaCy / Stanza / jieba / fugashi all satisfy `Tokenizer` with
 a one-line adapter. SBERT / gensim / HuggingFace pipelines all satisfy
-`Embedder`. There's no plugin registry, entry-points system, or DI
+`Embedder`. A local Ollama model, a hosted API, or your own function satisfies
+`Annotator`. There's no plugin registry, entry-points system, or DI
 container — Python protocols **are** the plugin system.
+
+`Annotator` was a **deliberate widening from the original two**, not a default
+slide: an LLM may *name and gloss* a fitted sense, but the protocol is fenced by
+an invariant. It consumes only the package's own *cited, measured* exemplars and
+returns text, which lands in a **separate** `SenseNamingResult` and never in a
+number, a flag, or a veracity verdict. Vectors and counts quantify; the LLM
+interprets; never the reverse. The boundary is enforced by a unit test
+(`test_annotator_output_never_enters_numeric_fields`). See
+`SenseDriftResult.name_senses`.
 
 ## Optional extras
 

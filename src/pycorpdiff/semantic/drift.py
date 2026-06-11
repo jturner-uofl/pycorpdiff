@@ -65,6 +65,8 @@ from ..results import _table_to_html, _table_to_json
 if TYPE_CHECKING:
     import altair as alt
 
+    from ..annotate import Annotator, SenseNamingResult
+
 FloatArray = npt.NDArray[np.float64]
 
 
@@ -331,6 +333,50 @@ class SenseDriftResult:
         return (pd.DataFrame(rows)
                 .sort_values("rel_share_change")
                 .reset_index(drop=True))
+
+    def name_senses(
+        self,
+        annotator: Annotator,
+        *,
+        n_examples: int = 8,
+        include_novel: bool = True,
+        cache: dict[str, str] | None = None,
+    ) -> SenseNamingResult:
+        """Attach human-readable labels + glosses to each fitted sense (and the
+        emergent bin) with an LLM :class:`~pycorpdiff.Annotator`, grounded in
+        *cited* exemplars.
+
+        The annotator only **names**: it is handed this result's own most-central
+        exemplars per sense (lowest-novelty non-novel records) plus their
+        distinctive terms, and returns a label and a one-line gloss. Output comes
+        back in a *separate* :class:`~pycorpdiff.SenseNamingResult` and never flows
+        into this result's numeric table --- the honest division of labour
+        (vectors and counts quantify; the LLM interprets; never the reverse). The
+        veracity of any sense is not asked or answered here.
+
+        Parameters
+        ----------
+        annotator
+            Anything satisfying the :class:`~pycorpdiff.Annotator` protocol
+            (e.g. :class:`~pycorpdiff.OllamaAnnotator`, or
+            :class:`~pycorpdiff.EchoAnnotator` for offline use).
+        n_examples
+            Number of cited exemplars shown to the model per sense.
+        include_novel
+            Also name the residual *novel / emergent* bin (the material driving
+            emergence/broadening), using :attr:`drift_terms`.
+        cache
+            Optional dict reused across calls to avoid re-querying identical
+            prompts (keyed by ``model_id`` + prompt hash). Updated in place.
+
+        Returns
+        -------
+        SenseNamingResult
+        """
+        from ..annotate import _name_senses
+
+        return _name_senses(self, annotator, n_examples=n_examples,
+                            include_novel=include_novel, cache=cache)
 
     def _sense_labels(self, top: int = 2) -> dict[int, str]:
         return {c: ", ".join(self._cluster_terms(c, top=top)) or f"sense {c}"
