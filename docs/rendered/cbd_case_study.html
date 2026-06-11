@@ -16496,6 +16496,492 @@ turns the spot-check from serendipity into a method.</strong></p>
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d059670cb98a">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="12d.-Sense-drift-over-time-%E2%80%94-when-did-CBD-discourse-change,-and-how?">12d. Sense drift over time — when did CBD discourse change, and <em>how</em>?<a class="anchor-link" href="#12d.-Sense-drift-over-time-%E2%80%94-when-did-CBD-discourse-change,-and-how?">¶</a></h3><p>§12c-ii audited the senses <strong>cross-sectionally</strong> with <code>induce_senses</code>: fit clusters on the
+whole corpus, confirm they reproduce the hand-built buckets. <code>sense_drift</code> extends the <em>same
+embedding geometry along the time axis</em>. It fits the senses on an early <strong>reference window</strong>
+(2000–2009), then asks, for every later year: has the sense distribution drifted away from
+that baseline — and if so, <em>what kind</em> of change is it?</p>
+<p>The method fuses two literatures: <strong>concept-drift detection</strong> (watch the density of a model's
+uncertainty region over time; Sethi &amp; Kantardzic 2017) and <strong>lexical semantic change
+detection</strong> (cluster contextual embeddings, track the distribution; Giulianelli et al. 2020;
+Montariol et al. 2021; Schlechtweg et al. 2020). Each record gets a Mahalanobis novelty score
+to its nearest known sense (Lee et al. 2018); a year is flagged when its <strong>margin density</strong>
+(fraction outside every known sense) <em>or</em> <strong>Jensen–Shannon divergence</strong> from the reference
+exceeds a control-chart threshold, confirmed over a sustained run.</p>
+<p>This is the <em>temporal</em> complement to the §12c-ii blind-spot check: that one catches a sense the
+classifier always missed (e.g. corticobasal, present since 2000); this one catches a sense
+distribution that <em>moves</em>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=0cbf27628162">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Fit the senses on an early reference window (2000-2009), monitor drift forward.</span>
+<span class="c1"># n_permutations calibrates the flag threshold against a label-shuffle null and</span>
+<span class="c1"># reports a permutation p-value -- the in-sample chart over-flags out-of-sample</span>
+<span class="c1"># years (records scored by a model fit on themselves look artificially un-novel).</span>
+<span class="n">_pm_yr</span> <span class="o">=</span> <span class="n">_pubmed_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">_pubmed_df</span><span class="p">[</span><span class="s1">'year'</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s1">'coerce'</span><span class="p">))</span>
+<span class="n">_keep</span> <span class="o">=</span> <span class="n">_pm_yr</span><span class="p">[</span><span class="s1">'year'</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">_pm_yr</span><span class="p">[</span><span class="s1">'year'</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">2024</span><span class="p">)</span>
+<span class="n">_pm_yr</span> <span class="o">=</span> <span class="n">_pm_yr</span><span class="p">[</span><span class="n">_keep</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">_X_yr</span> <span class="o">=</span> <span class="n">_X_cbd</span><span class="p">[</span><span class="n">_keep</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()]</span>
+<span class="n">_pm_yr</span><span class="p">[</span><span class="s1">'year'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pm_yr</span><span class="p">[</span><span class="s1">'year'</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+<span class="n">drift_cbd</span> <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">sense_drift</span><span class="p">(</span>
+    <span class="n">_pm_yr</span><span class="p">,</span> <span class="n">_X_yr</span><span class="p">,</span> <span class="n">time_col</span><span class="o">=</span><span class="s1">'year'</span><span class="p">,</span>
+    <span class="n">reference</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">2010</span><span class="p">)),</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_permutations</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+    <span class="n">embedding_meta</span><span class="o">=</span><span class="p">{</span><span class="s1">'model'</span><span class="p">:</span> <span class="s1">'all-MiniLM-L6-v2'</span><span class="p">,</span> <span class="s1">'unit'</span><span class="p">:</span> <span class="s1">'document'</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">drift_cbd</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+
+<span class="n">_flagged</span> <span class="o">=</span> <span class="n">drift_cbd</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="n">drift_cbd</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="s1">'drift'</span><span class="p">]]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">onset </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">_flagged</span><span class="p">[</span><span class="s1">'period'</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span><span class="si">}</span><span class="s2">  |  change type: </span><span class="si">{</span><span class="n">drift_cbd</span><span class="o">.</span><span class="n">change_type</span><span class="si">}</span><span class="s2">"</span>
+      <span class="sa">f</span><span class="s2">"  |  permutation p = </span><span class="si">{</span><span class="n">drift_cbd</span><span class="o">.</span><span class="n">p_value</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span>
+      <span class="sa">f</span><span class="s2">"  |  </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">_flagged</span><span class="p">)</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">drift_cbd</span><span class="o">.</span><span class="n">table</span><span class="p">)</span><span class="si">}</span><span class="s2"> periods flagged"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'distinctive terms:'</span><span class="p">,</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">drift_cbd</span><span class="o">.</span><span class="n">drift_terms</span><span class="p">))</span>
+
+<span class="n">drift_cbd</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="n">drift_cbd</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="s1">'period'</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">][</span>
+    <span class="p">[</span><span class="s1">'period'</span><span class="p">,</span> <span class="s1">'n'</span><span class="p">,</span> <span class="s1">'margin_density'</span><span class="p">,</span> <span class="s1">'jsd'</span><span class="p">,</span> <span class="s1">'drift'</span><span class="p">]</span>
+<span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Sense drift detected from 2012 (13 period(s) flagged); change type: broadening (margin density 0.278, JSD 0.088). Permutation p=0.024. Distinctive terms: dravet, impacts, nanoparticles, lennox-gastaut, covid-, legalization, vaping, clobazam.
+
+onset 2012  |  change type: broadening  |  permutation p = 0.024  |  13/25 periods flagged
+distinctive terms: dravet, impacts, nanoparticles, lennox-gastaut, covid-, legalization, vaping, clobazam, self-reported, consumers, inform, flower
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[1]:</div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>period</th>
+<th>n</th>
+<th>margin_density</th>
+<th>jsd</th>
+<th>drift</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>0</th>
+<td>2000</td>
+<td>149</td>
+<td>0.026846</td>
+<td>0.013602</td>
+<td>False</td>
+</tr>
+<tr>
+<th>1</th>
+<td>2002</td>
+<td>154</td>
+<td>0.045455</td>
+<td>0.004678</td>
+<td>False</td>
+</tr>
+<tr>
+<th>2</th>
+<td>2004</td>
+<td>194</td>
+<td>0.061856</td>
+<td>0.005332</td>
+<td>False</td>
+</tr>
+<tr>
+<th>3</th>
+<td>2006</td>
+<td>189</td>
+<td>0.063492</td>
+<td>0.007903</td>
+<td>False</td>
+</tr>
+<tr>
+<th>4</th>
+<td>2008</td>
+<td>186</td>
+<td>0.064516</td>
+<td>0.006247</td>
+<td>False</td>
+</tr>
+<tr>
+<th>5</th>
+<td>2010</td>
+<td>255</td>
+<td>0.266667</td>
+<td>0.077534</td>
+<td>False</td>
+</tr>
+<tr>
+<th>6</th>
+<td>2012</td>
+<td>338</td>
+<td>0.278107</td>
+<td>0.087538</td>
+<td>True</td>
+</tr>
+<tr>
+<th>7</th>
+<td>2014</td>
+<td>373</td>
+<td>0.308311</td>
+<td>0.100992</td>
+<td>True</td>
+</tr>
+<tr>
+<th>8</th>
+<td>2016</td>
+<td>448</td>
+<td>0.325893</td>
+<td>0.109682</td>
+<td>True</td>
+</tr>
+<tr>
+<th>9</th>
+<td>2018</td>
+<td>615</td>
+<td>0.362602</td>
+<td>0.147005</td>
+<td>True</td>
+</tr>
+<tr>
+<th>10</th>
+<td>2020</td>
+<td>1140</td>
+<td>0.403509</td>
+<td>0.191618</td>
+<td>True</td>
+</tr>
+<tr>
+<th>11</th>
+<td>2022</td>
+<td>1369</td>
+<td>0.409058</td>
+<td>0.195124</td>
+<td>True</td>
+</tr>
+<tr>
+<th>12</th>
+<td>2024</td>
+<td>1364</td>
+<td>0.426686</td>
+<td>0.211458</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f7834310eedf">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Sense composition over time -- the takeover/emergence/decline, seen at a glance.</span>
+<span class="n">drift_cbd</span><span class="o">.</span><span class="n">plot_composition</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">680</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">320</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
+<style>
+  #altair-viz-a9b29c90ab554e9ca8260dcc6f2f79ec.vega-embed {
+    width: 100%;
+    display: flex;
+  }
+
+  #altair-viz-a9b29c90ab554e9ca8260dcc6f2f79ec.vega-embed details,
+  #altair-viz-a9b29c90ab554e9ca8260dcc6f2f79ec.vega-embed details summary {
+    position: relative;
+  }
+</style>
+<div id="altair-viz-a9b29c90ab554e9ca8260dcc6f2f79ec"></div>
+<script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-a9b29c90ab554e9ca8260dcc6f2f79ec") {
+      outputDiv = document.getElementById("altair-viz-a9b29c90ab554e9ca8260dcc6f2f79ec");
+    }
+
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm/vega@6?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm/vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm/vega-lite@6.4.1?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm/vega-embed@7?noext",
+    };
+
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      let deps = ["vega-embed"];
+      require(deps, displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else {
+      maybeLoadScript("vega", "6")
+        .then(() => maybeLoadScript("vega-lite", "6.4.1"))
+        .then(() => maybeLoadScript("vega-embed", "7"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "data": {"name": "data-6f05e13459beb74839dd6f0ae271c233"}, "mark": {"type": "area"}, "encoding": {"color": {"field": "sense_label", "scale": {"scheme": "tableau10"}, "sort": ["cholangiopancreatography, ercp", "tetrahydrocannabinol, plant", "tauopathies, supranuclear", "novel / emergent"], "title": "sense (top terms)", "type": "nominal"}, "order": {"field": "sense", "type": "quantitative"}, "tooltip": [{"field": "period_str", "type": "nominal"}, {"field": "sense_label", "type": "nominal"}, {"field": "share", "format": ".2f", "type": "quantitative"}], "x": {"field": "period_str", "title": "period", "type": "ordinal"}, "y": {"field": "share", "stack": "normalize", "title": "sense share", "type": "quantitative"}}, "height": 320, "title": "Sense composition over time", "width": 680, "$schema": "https://vega.github.io/schema/vega-lite/v6.4.1.json", "datasets": {"data-6f05e13459beb74839dd6f0ae271c233": [{"period": 2000, "sense": 0, "share": 0.40268456375838924, "sense_label": "cholangiopancreatography, ercp", "period_str": "2000"}, {"period": 2000, "sense": 1, "share": 0.3288590604026846, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2000"}, {"period": 2000, "sense": 2, "share": 0.24161073825503357, "sense_label": "tauopathies, supranuclear", "period_str": "2000"}, {"period": 2001, "sense": 0, "share": 0.3669064748201439, "sense_label": "cholangiopancreatography, ercp", "period_str": "2001"}, {"period": 2001, "sense": 1, "share": 0.43884892086330934, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2001"}, {"period": 2001, "sense": 2, "share": 0.17266187050359713, "sense_label": "tauopathies, supranuclear", "period_str": "2001"}, {"period": 2002, "sense": 0, "share": 0.3961038961038961, "sense_label": "cholangiopancreatography, ercp", "period_str": "2002"}, {"period": 2002, "sense": 1, "share": 0.35714285714285715, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2002"}, {"period": 2002, "sense": 2, "share": 0.2012987012987013, "sense_label": "tauopathies, supranuclear", "period_str": "2002"}, {"period": 2003, "sense": 0, "share": 0.33125, "sense_label": "cholangiopancreatography, ercp", "period_str": "2003"}, {"period": 2003, "sense": 1, "share": 0.40625, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2003"}, {"period": 2003, "sense": 2, "share": 0.2125, "sense_label": "tauopathies, supranuclear", "period_str": "2003"}, {"period": 2004, "sense": 0, "share": 0.3247422680412371, "sense_label": "cholangiopancreatography, ercp", "period_str": "2004"}, {"period": 2004, "sense": 1, "share": 0.38144329896907214, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2004"}, {"period": 2004, "sense": 2, "share": 0.23195876288659795, "sense_label": "tauopathies, supranuclear", "period_str": "2004"}, {"period": 2005, "sense": 0, "share": 0.33157894736842103, "sense_label": "cholangiopancreatography, ercp", "period_str": "2005"}, {"period": 2005, "sense": 1, "share": 0.4631578947368421, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2005"}, {"period": 2005, "sense": 2, "share": 0.1736842105263158, "sense_label": "tauopathies, supranuclear", "period_str": "2005"}, {"period": 2006, "sense": 0, "share": 0.25925925925925924, "sense_label": "cholangiopancreatography, ercp", "period_str": "2006"}, {"period": 2006, "sense": 1, "share": 0.5132275132275133, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2006"}, {"period": 2006, "sense": 2, "share": 0.164021164021164, "sense_label": "tauopathies, supranuclear", "period_str": "2006"}, {"period": 2007, "sense": 0, "share": 0.3177570093457944, "sense_label": "cholangiopancreatography, ercp", "period_str": "2007"}, {"period": 2007, "sense": 1, "share": 0.5046728971962616, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2007"}, {"period": 2007, "sense": 2, "share": 0.1261682242990654, "sense_label": "tauopathies, supranuclear", "period_str": "2007"}, {"period": 2008, "sense": 0, "share": 0.4032258064516129, "sense_label": "cholangiopancreatography, ercp", "period_str": "2008"}, {"period": 2008, "sense": 1, "share": 0.41935483870967744, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2008"}, {"period": 2008, "sense": 2, "share": 0.11290322580645161, "sense_label": "tauopathies, supranuclear", "period_str": "2008"}, {"period": 2009, "sense": 0, "share": 0.37554585152838427, "sense_label": "cholangiopancreatography, ercp", "period_str": "2009"}, {"period": 2009, "sense": 1, "share": 0.4497816593886463, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2009"}, {"period": 2009, "sense": 2, "share": 0.10480349344978165, "sense_label": "tauopathies, supranuclear", "period_str": "2009"}, {"period": 2010, "sense": 0, "share": 0.3333333333333333, "sense_label": "cholangiopancreatography, ercp", "period_str": "2010"}, {"period": 2010, "sense": 1, "share": 0.3254901960784314, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2010"}, {"period": 2010, "sense": 2, "share": 0.07450980392156863, "sense_label": "tauopathies, supranuclear", "period_str": "2010"}, {"period": 2011, "sense": 0, "share": 0.2901023890784983, "sense_label": "cholangiopancreatography, ercp", "period_str": "2011"}, {"period": 2011, "sense": 1, "share": 0.36177474402730375, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2011"}, {"period": 2011, "sense": 2, "share": 0.08532423208191127, "sense_label": "tauopathies, supranuclear", "period_str": "2011"}, {"period": 2012, "sense": 0, "share": 0.3076923076923077, "sense_label": "cholangiopancreatography, ercp", "period_str": "2012"}, {"period": 2012, "sense": 1, "share": 0.35798816568047337, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2012"}, {"period": 2012, "sense": 2, "share": 0.05621301775147929, "sense_label": "tauopathies, supranuclear", "period_str": "2012"}, {"period": 2013, "sense": 0, "share": 0.3448275862068966, "sense_label": "cholangiopancreatography, ercp", "period_str": "2013"}, {"period": 2013, "sense": 1, "share": 0.30238726790450926, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2013"}, {"period": 2013, "sense": 2, "share": 0.06896551724137931, "sense_label": "tauopathies, supranuclear", "period_str": "2013"}, {"period": 2014, "sense": 0, "share": 0.32171581769436997, "sense_label": "cholangiopancreatography, ercp", "period_str": "2014"}, {"period": 2014, "sense": 1, "share": 0.30831099195710454, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2014"}, {"period": 2014, "sense": 2, "share": 0.06166219839142091, "sense_label": "tauopathies, supranuclear", "period_str": "2014"}, {"period": 2015, "sense": 0, "share": 0.29210526315789476, "sense_label": "cholangiopancreatography, ercp", "period_str": "2015"}, {"period": 2015, "sense": 1, "share": 0.3447368421052632, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2015"}, {"period": 2015, "sense": 2, "share": 0.042105263157894736, "sense_label": "tauopathies, supranuclear", "period_str": "2015"}, {"period": 2016, "sense": 0, "share": 0.27455357142857145, "sense_label": "cholangiopancreatography, ercp", "period_str": "2016"}, {"period": 2016, "sense": 1, "share": 0.34375, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2016"}, {"period": 2016, "sense": 2, "share": 0.05580357142857143, "sense_label": "tauopathies, supranuclear", "period_str": "2016"}, {"period": 2017, "sense": 0, "share": 0.25630252100840334, "sense_label": "cholangiopancreatography, ercp", "period_str": "2017"}, {"period": 2017, "sense": 1, "share": 0.39705882352941174, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2017"}, {"period": 2017, "sense": 2, "share": 0.04201680672268908, "sense_label": "tauopathies, supranuclear", "period_str": "2017"}, {"period": 2018, "sense": 0, "share": 0.1821138211382114, "sense_label": "cholangiopancreatography, ercp", "period_str": "2018"}, {"period": 2018, "sense": 1, "share": 0.416260162601626, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2018"}, {"period": 2018, "sense": 2, "share": 0.03902439024390244, "sense_label": "tauopathies, supranuclear", "period_str": "2018"}, {"period": 2019, "sense": 0, "share": 0.1293833131801693, "sense_label": "cholangiopancreatography, ercp", "period_str": "2019"}, {"period": 2019, "sense": 1, "share": 0.4147521160822249, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2019"}, {"period": 2019, "sense": 2, "share": 0.04232164449818621, "sense_label": "tauopathies, supranuclear", "period_str": "2019"}, {"period": 2020, "sense": 0, "share": 0.1280701754385965, "sense_label": "cholangiopancreatography, ercp", "period_str": "2020"}, {"period": 2020, "sense": 1, "share": 0.44035087719298244, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2020"}, {"period": 2020, "sense": 2, "share": 0.028070175438596492, "sense_label": "tauopathies, supranuclear", "period_str": "2020"}, {"period": 2021, "sense": 0, "share": 0.12091254752851711, "sense_label": "cholangiopancreatography, ercp", "period_str": "2021"}, {"period": 2021, "sense": 1, "share": 0.41825095057034223, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2021"}, {"period": 2021, "sense": 2, "share": 0.028136882129277566, "sense_label": "tauopathies, supranuclear", "period_str": "2021"}, {"period": 2022, "sense": 0, "share": 0.12052593133674215, "sense_label": "cholangiopancreatography, ercp", "period_str": "2022"}, {"period": 2022, "sense": 1, "share": 0.4397370343316289, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2022"}, {"period": 2022, "sense": 2, "share": 0.030679327976625273, "sense_label": "tauopathies, supranuclear", "period_str": "2022"}, {"period": 2023, "sense": 0, "share": 0.10053722179585571, "sense_label": "cholangiopancreatography, ercp", "period_str": "2023"}, {"period": 2023, "sense": 1, "share": 0.44896392939370683, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2023"}, {"period": 2023, "sense": 2, "share": 0.02532617037605526, "sense_label": "tauopathies, supranuclear", "period_str": "2023"}, {"period": 2024, "sense": 0, "share": 0.09897360703812316, "sense_label": "cholangiopancreatography, ercp", "period_str": "2024"}, {"period": 2024, "sense": 1, "share": 0.4406158357771261, "sense_label": "tetrahydrocannabinol, plant", "period_str": "2024"}, {"period": 2024, "sense": 2, "share": 0.03372434017595308, "sense_label": "tauopathies, supranuclear", "period_str": "2024"}, {"period": 2000, "sense": 3, "share": 0.02684563758389258, "sense_label": "novel / emergent", "period_str": "2000"}, {"period": 2001, "sense": 3, "share": 0.021582733812949617, "sense_label": "novel / emergent", "period_str": "2001"}, {"period": 2002, "sense": 3, "share": 0.045454545454545414, "sense_label": "novel / emergent", "period_str": "2002"}, {"period": 2003, "sense": 3, "share": 0.050000000000000044, "sense_label": "novel / emergent", "period_str": "2003"}, {"period": 2004, "sense": 3, "share": 0.061855670103092786, "sense_label": "novel / emergent", "period_str": "2004"}, {"period": 2005, "sense": 3, "share": 0.03157894736842104, "sense_label": "novel / emergent", "period_str": "2005"}, {"period": 2006, "sense": 3, "share": 0.06349206349206349, "sense_label": "novel / emergent", "period_str": "2006"}, {"period": 2007, "sense": 3, "share": 0.051401869158878566, "sense_label": "novel / emergent", "period_str": "2007"}, {"period": 2008, "sense": 3, "share": 0.06451612903225812, "sense_label": "novel / emergent", "period_str": "2008"}, {"period": 2009, "sense": 3, "share": 0.06986899563318782, "sense_label": "novel / emergent", "period_str": "2009"}, {"period": 2010, "sense": 3, "share": 0.2666666666666667, "sense_label": "novel / emergent", "period_str": "2010"}, {"period": 2011, "sense": 3, "share": 0.2627986348122867, "sense_label": "novel / emergent", "period_str": "2011"}, {"period": 2012, "sense": 3, "share": 0.2781065088757396, "sense_label": "novel / emergent", "period_str": "2012"}, {"period": 2013, "sense": 3, "share": 0.2838196286472149, "sense_label": "novel / emergent", "period_str": "2013"}, {"period": 2014, "sense": 3, "share": 0.30831099195710454, "sense_label": "novel / emergent", "period_str": "2014"}, {"period": 2015, "sense": 3, "share": 0.32105263157894737, "sense_label": "novel / emergent", "period_str": "2015"}, {"period": 2016, "sense": 3, "share": 0.3258928571428571, "sense_label": "novel / emergent", "period_str": "2016"}, {"period": 2017, "sense": 3, "share": 0.3046218487394958, "sense_label": "novel / emergent", "period_str": "2017"}, {"period": 2018, "sense": 3, "share": 0.3626016260162601, "sense_label": "novel / emergent", "period_str": "2018"}, {"period": 2019, "sense": 3, "share": 0.4135429262394196, "sense_label": "novel / emergent", "period_str": "2019"}, {"period": 2020, "sense": 3, "share": 0.4035087719298246, "sense_label": "novel / emergent", "period_str": "2020"}, {"period": 2021, "sense": 3, "share": 0.4326996197718631, "sense_label": "novel / emergent", "period_str": "2021"}, {"period": 2022, "sense": 3, "share": 0.4090577063550036, "sense_label": "novel / emergent", "period_str": "2022"}, {"period": 2023, "sense": 3, "share": 0.4251726784343822, "sense_label": "novel / emergent", "period_str": "2023"}, {"period": 2024, "sense": 3, "share": 0.4266862170087976, "sense_label": "novel / emergent", "period_str": "2024"}]}}, {"mode": "vega-lite"});
+</script>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9c39193794f3">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="12d-ii.-The-fall-off-%E2%80%94-which-senses-fade,-and-is-it-obsolescence-or-dilution?">12d-ii. The fall-off — which senses <em>fade</em>, and is it obsolescence or dilution?<a class="anchor-link" href="#12d-ii.-The-fall-off-%E2%80%94-which-senses-fade,-and-is-it-obsolescence-or-dilution?">¶</a></h4><p>Drift detection is forward-looking; its mirror is a sense <em>fading</em>. <code>decline_report()</code> reads the known-sense share <strong>and</strong> absolute-count trajectories and splits a decline into <strong>obsolescence</strong> (absolute count falls) vs <strong>dilution</strong> (share falls only because the rest of the corpus grew). The distinction matters: share ≠ count.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5a9d3d7174a9">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">drift_cbd</span><span class="o">.</span><span class="n">decline_report</span><span class="p">()[</span>
+    <span class="p">[</span><span class="s1">'sense'</span><span class="p">,</span> <span class="s1">'early_share'</span><span class="p">,</span> <span class="s1">'late_share'</span><span class="p">,</span> <span class="s1">'early_count'</span><span class="p">,</span> <span class="s1">'late_count'</span><span class="p">,</span> <span class="s1">'verdict'</span><span class="p">,</span> <span class="s1">'terms'</span><span class="p">]</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[2]:</div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>sense</th>
+<th>early_share</th>
+<th>late_share</th>
+<th>early_count</th>
+<th>late_count</th>
+<th>verdict</th>
+<th>terms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>0</th>
+<td>2</td>
+<td>0.174161</td>
+<td>0.029910</td>
+<td>30.6</td>
+<td>40.333333</td>
+<td>dilution</td>
+<td>tauopathies, supranuclear, corticobasal, lewy, apraxia, aphasia, mapt, ftld</td>
+</tr>
+<tr>
+<th>1</th>
+<td>0</td>
+<td>0.350905</td>
+<td>0.106679</td>
+<td>62.9</td>
+<td>143.666667</td>
+<td>dilution</td>
+<td>cholangiopancreatography, ercp, stone, laparoscopic, gallbladder, stones, sphincterotomy, cholangiography</td>
+</tr>
+<tr>
+<th>2</th>
+<td>1</td>
+<td>0.426274</td>
+<td>0.443106</td>
+<td>77.8</td>
+<td>596.000000</td>
+<td>stable</td>
+<td>tetrahydrocannabinol, plant, cannabinoids, endocannabinoid, cannabinoid, phytocannabinoids, cannabis, phytocannabinoid</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6cf7f4fd2a4e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># The fall-off, seen: dilution (share down, count holds) vs obsolescence.</span>
+<span class="n">drift_cbd</span><span class="o">.</span><span class="n">plot_decline</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">460</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
+<style>
+  #altair-viz-2dcf6201b3e94e368868ceffe6fe7c8c.vega-embed {
+    width: 100%;
+    display: flex;
+  }
+
+  #altair-viz-2dcf6201b3e94e368868ceffe6fe7c8c.vega-embed details,
+  #altair-viz-2dcf6201b3e94e368868ceffe6fe7c8c.vega-embed details summary {
+    position: relative;
+  }
+</style>
+<div id="altair-viz-2dcf6201b3e94e368868ceffe6fe7c8c"></div>
+<script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-2dcf6201b3e94e368868ceffe6fe7c8c") {
+      outputDiv = document.getElementById("altair-viz-2dcf6201b3e94e368868ceffe6fe7c8c");
+    }
+
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm/vega@6?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm/vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm/vega-lite@6.4.1?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm/vega-embed@7?noext",
+    };
+
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      let deps = ["vega-embed"];
+      require(deps, displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else {
+      maybeLoadScript("vega", "6")
+        .then(() => maybeLoadScript("vega-lite", "6.4.1"))
+        .then(() => maybeLoadScript("vega-embed", "7"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "data": {"name": "data-fed5542835073100cc6e37fd06b4a63f"}, "mark": {"type": "line", "point": true, "strokeWidth": 3}, "encoding": {"color": {"field": "verdict", "scale": {"domain": ["obsolescence", "dilution", "rising", "stable", "minor"], "range": ["#d62728", "#ff9896", "#2ca02c", "#999999", "#dddddd"]}, "title": "verdict", "type": "nominal"}, "detail": {"field": "sense", "type": "nominal"}, "tooltip": [{"field": "sense_label", "type": "nominal"}, {"field": "verdict", "type": "nominal"}, {"field": "early_share", "format": ".2f", "type": "quantitative"}, {"field": "late_share", "format": ".2f", "type": "quantitative"}], "x": {"field": "when", "sort": ["early", "late"], "title": null, "type": "ordinal"}, "y": {"field": "share", "title": "sense share", "type": "quantitative"}}, "height": 300, "title": "Sense decline (early to late share)", "width": 460, "$schema": "https://vega.github.io/schema/vega-lite/v6.4.1.json", "datasets": {"data-fed5542835073100cc6e37fd06b4a63f": [{"sense": 2, "early_share": 0.17416103910467085, "late_share": 0.029909946176211205, "early_count": 30.6, "late_count": 40.333333333333336, "rel_share_change": -0.8282627025540694, "verdict": "dilution", "terms": "tauopathies, supranuclear, corticobasal, lewy, apraxia, aphasia, mapt, ftld", "when": "early", "share": 0.17416103910467085, "sense_label": "tauopathies, supranuclear"}, {"sense": 0, "early_share": 0.35090540766771383, "late_share": 0.106678920056907, "early_count": 62.9, "late_count": 143.66666666666666, "rel_share_change": -0.6959895238835263, "verdict": "dilution", "terms": "cholangiopancreatography, ercp, stone, laparoscopic, gallbladder, stones, sphincterotomy, cholangiography", "when": "early", "share": 0.35090540766771383, "sense_label": "cholangiopancreatography, ercp"}, {"sense": 1, "early_share": 0.42627389406368643, "late_share": 0.443105599834154, "early_count": 77.8, "late_count": 596.0, "rel_share_change": 0.03948565934922783, "verdict": "stable", "terms": "tetrahydrocannabinol, plant, cannabinoids, endocannabinoid, cannabinoid, phytocannabinoids, cannabis, phytocannabinoid", "when": "early", "share": 0.42627389406368643, "sense_label": "tetrahydrocannabinol, plant"}, {"sense": 2, "early_share": 0.17416103910467085, "late_share": 0.029909946176211205, "early_count": 30.6, "late_count": 40.333333333333336, "rel_share_change": -0.8282627025540694, "verdict": "dilution", "terms": "tauopathies, supranuclear, corticobasal, lewy, apraxia, aphasia, mapt, ftld", "when": "late", "share": 0.029909946176211205, "sense_label": "tauopathies, supranuclear"}, {"sense": 0, "early_share": 0.35090540766771383, "late_share": 0.106678920056907, "early_count": 62.9, "late_count": 143.66666666666666, "rel_share_change": -0.6959895238835263, "verdict": "dilution", "terms": "cholangiopancreatography, ercp, stone, laparoscopic, gallbladder, stones, sphincterotomy, cholangiography", "when": "late", "share": 0.106678920056907, "sense_label": "cholangiopancreatography, ercp"}, {"sense": 1, "early_share": 0.42627389406368643, "late_share": 0.443105599834154, "early_count": 77.8, "late_count": 596.0, "rel_share_change": 0.03948565934922783, "verdict": "stable", "terms": "tetrahydrocannabinol, plant, cannabinoids, endocannabinoid, cannabinoid, phytocannabinoids, cannabis, phytocannabinoid", "when": "late", "share": 0.443105599834154, "sense_label": "tetrahydrocannabinol, plant"}]}}, {"mode": "vega-lite"});
+</script>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6d0f62a00cde">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Verdict.</strong> Calibrated against a label-shuffle null (which the in-sample chart fails, flagging shuffled years too), <code>sense_drift</code> flags a <em>genuine</em> drift over <strong>2012–2024 at permutation p ≈ 0.024</strong>: margin density climbs from below 0.07 to 0.43, JSD from 0.006 to 0.21. The signal survives subsampling every year to equal size, and the verdict holds as the reference window is varied. The change type is <strong>broadening</strong>, not emergence — the CBD literature <em>diversified</em> — and the explanation layer names what diversified with no labels: <strong>dravet, lennox-gastaut, clobazam</strong> (paediatric-epilepsy / Epidiolex), <strong>nanoparticles</strong>, <strong>vaping, legalization</strong>. Restricting to cannabidiol records alone reclassifies the change to a clean <strong>emergence at 2014</strong> (terms <em>epidiolex, antiseizure, clobazam, dravet</em>) — the discrimination keyness cannot make.</p>
+<p>The fall-off (12d-ii) tells the mirror story: the bile-duct and corticobasal senses lose share sharply, yet both are <strong>dilution, not obsolescence</strong> — bile-duct's absolute output <em>more than doubled</em> (≈63 → ≈144 records/yr) even as its share fell 35% → 11%. A share-only detector would have reported the death of a thriving literature. (Cross-register check, in the paper: on a decade of consumer tweets the same instrument finds genuine <em>obsolescence</em> — "CBD" as <em>central business district</em> is displaced by <em>cannabidiol</em>, its absolute volume collapsing.)</p>
+<p>And the boundary stands: this is a <strong>different</strong> instrument from the §12c-ii blind-spot audit. Corticobasal degeneration is <em>not</em> a drift — present from 2000 at a steady count — so <code>sense_drift</code> neither flags it nor should. Detecting a <em>missed</em> sense, a <em>moving</em> one, and a <em>fading</em> one are distinct jobs.</p>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=dd667bf3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">

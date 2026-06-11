@@ -21,9 +21,9 @@ causal inference — unified behind three notebook-native verbs, every
 result carrying its own evidence.
 
 [Get started](getting-started.md){ .md-button .md-button--primary }
+[Walkthrough](rendered/methods_highlight_reel.html){ .md-button }
+[CBD case study](rendered/cbd_case_study.html){ .md-button }
 [GitHub](https://github.com/jturner-uofl/pycorpdiff){ .md-button }
-[PyPI](https://pypi.org/project/pycorpdiff/){ .md-button }
-[Tutorial](rendered/pycorpdiff_tutorial.html){ .md-button }
 
 </div>
 
