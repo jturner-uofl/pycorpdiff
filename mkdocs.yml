@@ -1,0 +1,107 @@
+site_name: pycorpdiff
+site_description: >-
+  pycorpdiff is comparative corpus analysis for Python — keyness,
+  collocations, dispersion, embedding-based semantic change, and temporal
+  trajectories with changepoints, interrupted time series, and
+  causal-impact analysis, unified behind three notebook-native verbs, with
+  every result carrying its own KWIC evidence.
+site_author: Jason S. Turner
+site_url: https://jturner-uofl.github.io/pycorpdiff/
+repo_url: https://github.com/jturner-uofl/pycorpdiff
+repo_name: jturner-uofl/pycorpdiff
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  custom_dir: overrides
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - navigation.footer
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - search.highlight
+    - search.suggest
+    - search.share
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+  logo: null
+  favicon: null
+
+extra_css:
+  - stylesheets/pycorpdiff.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jturner-uofl/pycorpdiff
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/pycorpdiff/
+  generator: false
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+      permalink_title: Anchor link
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Statistical methods: statistical-methods.md
+  - Multilingual: multilingual.md
+  - Design: design.md
