@@ -1,12 +1,11 @@
 ---
 title: pycorpdiff — Comparative Corpus Analysis for Python
 description: >-
-  pycorpdiff is the missing comparative layer for Python text analysis.
-  Keyness, collocations, dispersion, embedding-based semantic change, and
-  temporal trajectories — with changepoints, interrupted time series, and
-  causal-impact analysis — unified behind three notebook-native verbs,
-  every result carrying its own KWIC evidence. MIT-licensed; small
-  numpy/pandas/scipy/pyarrow core with opt-in extras.
+  Comparative corpus analysis for Python: keyness, collocations, KWIC
+  concordances, semantic change, and temporal trajectories with changepoints
+  and causal impact. The quanteda / SketchEngine comparative layer for
+  Python — notebook-native, every result carrying its own evidence.
+  MIT-licensed, with a small numpy / pandas / scipy / pyarrow core.
 hide:
   - navigation
   - toc
