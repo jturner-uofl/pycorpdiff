@@ -1,80 +1,224 @@
-# pycorpdiff
+---
+title: pycorpdiff — Comparative Corpus Analysis for Python
+description: >-
+  pycorpdiff is the missing comparative layer for Python text analysis.
+  Keyness, collocations, dispersion, embedding-based semantic change, and
+  temporal trajectories — with changepoints, interrupted time series, and
+  causal-impact analysis — unified behind three notebook-native verbs,
+  every result carrying its own KWIC evidence. MIT-licensed; small
+  numpy/pandas/scipy/pyarrow core with opt-in extras.
+hide:
+  - navigation
+  - toc
+---
 
-**Comparative corpus analysis for modern Python workflows.**
+<div class="hero" markdown>
 
-`pycorpdiff` is a Python package for *comparing* text corpora — across groups,
-across time, and across discourse contexts. It unifies classical corpus
-linguistics methods (keyness, collocations, dispersion) with modern
-embedding-based semantic-shift analysis under a single composable API.
+# pycorpdiff { .hero-title }
 
-## What it's for
+**Comparative corpus analysis for Python.** Keyness, collocations,
+semantic change, and temporal trajectories — with changepoints and
+causal inference — unified behind three notebook-native verbs, every
+result carrying its own evidence.
 
-Researchers in corpus linguistics, digital humanities, and computational
-social science routinely need to answer questions like:
+[Get started](getting-started.md){ .md-button .md-button--primary }
+[GitHub](https://github.com/jturner-uofl/pycorpdiff){ .md-button }
+[PyPI](https://pypi.org/project/pycorpdiff/){ .md-button }
+[Tutorial](rendered/pycorpdiff_tutorial.html){ .md-button }
 
-- How does corpus A differ from corpus B?
-- How has discourse around *X* changed between 1990 and 2020?
-- What semantic shifts occurred around a specific event?
-- Which collocations gained or lost ground?
+</div>
 
-`pycorpdiff` provides a coherent comparative layer over the existing
-PyData and NLP stacks (`pandas`, `polars`, `pyarrow`, `scipy`,
-`statsmodels`, `sentence-transformers`, `spacy`) without reinventing
-tokenisation, embeddings, or topic modelling.
+---
 
-## What it is not
+## At a glance
 
-- Not a general NLP framework. It does not replace `nltk`, `spaCy`, or `gensim`.
-- Not a SketchEngine clone. It is comparative-first and notebook-native.
-- Not a deep learning framework. Embeddings are treated as a pluggable
-  interface, not a training substrate.
-- Not a standalone time-series forecasting library. `tr.forecast()` exists
-  for short-horizon trajectory continuation alongside changepoints and
-  ITS — for serious forecasting reach for `sktime` / `prophet` / `Darts`.
+<div class="grid cards" markdown>
+
+-   :material-vector-difference: __Three verbs, one API__
+
+    ---
+
+    `compare(a, b)`, `track(c, "x")`, and `compare.before_after(c, event)`
+    consolidate keyness, collocations, dispersion, trajectories,
+    changepoints, ITS, causal impact, and semantic shift.
+
+    [Getting started →](getting-started.md)
+
+-   :material-text-search: __Evidence by default__
+
+    ---
+
+    Every keyness and collocation term carries its KWIC concordances:
+    `.explain(term)` returns the source-text evidence behind any ranked
+    result. No bare *p*-values.
+
+    [Design →](design.md)
+
+-   :material-chart-timeline-variant: __Temporal as first-class__
+
+    ---
+
+    Changepoints, interrupted time series, online changepoint detection
+    (BOCPD), causal-impact analysis, and short-horizon forecasting — on
+    any time-stamped corpus.
+
+    [Statistical methods →](statistical-methods.md)
+
+-   :material-brain: __Semantic change, pluggable__
+
+    ---
+
+    `semantic_trajectory`, `neighborhood_drift`, `induce_senses`, and
+    `sense_drift` over any SBERT-compatible embedder via a one-line
+    adapter — no plugin registry.
+
+    [Statistical methods →](statistical-methods.md)
+
+-   :material-translate: __Multilingual by adapter__
+
+    ---
+
+    Tokenizers (`spaCy`, `Stanza`, `jieba`, `fugashi`) plug in through a
+    single `Protocol`. The lexical-comparative core is language-agnostic.
+
+    [Multilingual →](multilingual.md)
+
+-   :material-language-python: __Small MIT core__
+
+    ---
+
+    Base install depends only on `numpy`, `pandas`, `scipy`, `pyarrow`.
+    Visualisation, embeddings, temporal models, and big-data backends are
+    opt-in extras. 735 tests.
+
+    [Install ↓](#installation)
+
+</div>
+
+---
+
+## Installation
+
+```bash
+pip install pycorpdiff
+```
+
+Optional extras (compose them — e.g. `pycorpdiff[viz,temporal,semantic]`):
+
+```bash
+pip install "pycorpdiff[viz]"        # altair + matplotlib + networkx
+pip install "pycorpdiff[semantic]"   # sentence-transformers + scikit-learn
+pip install "pycorpdiff[temporal]"   # ruptures + statsmodels
+pip install "pycorpdiff[duckdb]"     # out-of-core querying for large corpora
+```
+
+Python 3.11 or later required.
+
+---
+
+## Usage
+
+=== "Keyness + evidence"
+
+    ```python
+    import pycorpdiff as pcd
+
+    k = pcd.compare(
+        corpus.slice(outlet=["Guardian", "Mirror"]),
+        corpus.slice(outlet=["Mail", "Telegraph"]),
+    ).keyness()
+    k.plot()
+    k.explain("migrant", n=5)        # the KWIC concordances behind the term
+    ```
+
+=== "Over time"
+
+    ```python
+    pcd.track(corpus, "sovereignty").over_time(freq="Q").plot()
+    ```
+
+=== "Before vs after an event"
+
+    ```python
+    pcd.compare.before_after(corpus, event_date="2016-06-23").keyness()
+    ```
+
+=== "Semantic shift"
+
+    ```python
+    from pycorpdiff.semantic import SBERTEmbedder
+
+    pcd.compare(corpus_2005, corpus_2023).semantic_shift(
+        "migrant", embedder=SBERTEmbedder()
+    )
+    ```
+
+=== "Causal impact"
+
+    ```python
+    pcd.track(corpus, "lockdown").causal_impact(event_date="2020-03-23")
+    ```
+
+Every Result is a frozen dataclass implementing the relevant subset of
+`.to_df() / .plot() / .explain() / .summary() / .to_html() / .to_json()`.
+
+---
+
+## What pycorpdiff unifies
+
+It is the **missing comparative layer** between R's `quanteda`, the
+closed-source SketchEngine platform, and the fragmented Python NLP stack
+(`nltk` / `spaCy` / `gensim` / `sentence-transformers`) — orchestration,
+not reinvention.
+
+| Question | Typical tooling | pycorpdiff |
+|---|---|---|
+| How does corpus A differ from B?        | `quanteda` (R), hand-rolled scipy | `compare(a, b).keyness()` |
+| Which collocations gained/lost ground?  | AntConc, custom scripts           | `compare(a, b).collocations()` |
+| How did *X*'s meaning shift over time?  | `gensim` + manual alignment       | `.semantic_shift(...)`, `sense_drift` |
+| Did this event move the discourse?      | `CausalImpact` (R)                | `track(...).causal_impact(...)` |
+| Where is the discourse heading?         | `statsmodels` + glue              | `track(...).forecast(horizon=4)` |
+| Show me the evidence behind a term      | SketchEngine KWIC                 | `.explain(term)` |
+
+---
 
 ## Design principles
 
-- **Interoperability over reinvention** — adapters around existing libraries.
-- **Comparative abstractions** — `compare(a, b)`, `track(c, "x")` as first-class verbs.
-- **Temporal as first-class** — `before_after`, `over_time`, trajectories.
+- **Interoperability over reinvention** — thin adapters around existing
+  libraries; tokenizers and embedders plug in via two `typing.Protocol`
+  extension points.
+- **Comparative abstractions** — `compare(a, b)` and `track(c, "x")` as
+  first-class verbs; temporal comparison (`before_after`, `over_time`) is
+  built in, not bolted on.
 - **Explainability by default** — every result carries its evidence.
-- **Statistically grounded defaults** — log-likelihood + effect sizes,
-  Wilson CIs, dispersion sanity checks. No bare *p*-values.
-- **Dataframe-first I/O** — `pandas` by default, `polars` opt-in.
-- **Notebook-native** — `altair` plots, idiomatic Jupyter ergonomics.
+- **Statistically grounded defaults** — log-likelihood with effect sizes,
+  Wilson confidence intervals, dispersion sanity checks.
+- **Dataframe-first, notebook-native** — `pandas` by default, `polars`
+  and `duckdb` opt-in; `altair` plots.
 
-## A quick taste
+It is *not* a general NLP framework, a SketchEngine clone, or a
+deep-learning substrate — embeddings are a pluggable interface, not a
+training target.
 
-```python
-import pycorpdiff as pcd
-import pandas as pd
+---
 
-corpus = pcd.from_dataframe(
-    pd.read_parquet("uk_news.parquet"),
-    text_col="body",
-    meta_cols=("outlet", "date"),
-)
+## Cite this work
 
-# Lexical contrast
-k = pcd.compare(
-    corpus.slice(outlet=["Guardian", "Mirror"]),
-    corpus.slice(outlet=["Mail", "Telegraph"]),
-).keyness()
-k.plot()
-k.explain("migrant", n=5)
-
-# Diachronic trajectory
-pcd.track(corpus, "sovereignty").over_time(freq="Q").plot()
-
-# Around an event
-pcd.compare.before_after(corpus, event_date="2016-06-23").keyness()
+```bibtex
+@software{pycorpdiff,
+  author  = {Turner, Jason S.},
+  title   = {pycorpdiff: Comparative Corpus Analysis for Python},
+  version = {0.1.0a33},
+  year    = {2026},
+  url     = {https://github.com/jturner-uofl/pycorpdiff},
+}
 ```
 
-## Where next?
+---
 
-- **[Getting started](getting-started.md)** — install and first analysis.
-- **[Design](design.md)** — the three-layer architecture and why.
-- **[Statistical methods](statistical-methods.md)** — what each metric is
-  computing and why we chose these defaults.
-- **[Multilingual support](multilingual.md)** — plug in spaCy, Stanza,
-  jieba, fugashi, or your own.
+<small>
+`pycorpdiff` is released under the MIT licence and is on PyPI as
+`pip install pycorpdiff` (alpha). See the
+[GitHub repository](https://github.com/jturner-uofl/pycorpdiff) for
+source, releases, the issue tracker, and contribution guidelines.
+</small>

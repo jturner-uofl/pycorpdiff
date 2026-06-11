@@ -1,0 +1,204 @@
+/* ============================================================
+ *  pycorpdiff — custom landing-page polish (mkdocs-material)
+ *  Indigo palette (sibling to the red pymmeans / pysofra sites).
+ *    indigo-900  #312e81   header bar, primary accents
+ *    indigo-950  #1e1b4b   tabs bar, gradient terminus
+ *    indigo-700  #4338ca   hover / mid-gradient accent
+ *    indigo-400  #818cf8   dark-mode accent
+ * ============================================================ */
+
+/* Header + tabs: deep-indigo bar ----------------------------- */
+
+.md-header {
+  background-color: #312e81;
+}
+
+.md-tabs {
+  background-color: #1e1b4b;
+}
+
+/* Hero section ----------------------------------------------- */
+
+.hero {
+  text-align: center;
+  padding: 4rem 1.5rem 3rem 1.5rem;
+  margin-top: -1.5rem;
+  margin-bottom: 2.5rem;
+  background:
+    radial-gradient(ellipse at top, rgba(49, 46, 129, 0.10), transparent 70%);
+  border-radius: 0 0 1rem 1rem;
+}
+
+[data-md-color-scheme="slate"] .hero {
+  background:
+    radial-gradient(ellipse at top, rgba(99, 102, 241, 0.28), transparent 70%);
+}
+
+.hero-title,
+.hero h1 {
+  font-size: 4.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #312e81 0%, #4338ca 50%, #1e1b4b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+}
+
+[data-md-color-scheme="slate"] .hero-title,
+[data-md-color-scheme="slate"] .hero h1 {
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 50%, #4338ca 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  max-width: 42rem;
+  margin: 1rem auto 2rem auto;
+  color: var(--md-default-fg-color--light);
+  line-height: 1.6;
+}
+
+.hero p strong {
+  color: var(--md-default-fg-color);
+}
+
+.hero .md-button {
+  margin: 0.25rem;
+  min-width: 8rem;
+}
+
+/* Grid cards spacing ----------------------------------------- */
+
+.md-typeset .grid.cards {
+  gap: 1.25rem;
+}
+
+.md-typeset .grid.cards > :is(ul, ol) > li,
+.md-typeset .grid.cards > ul > li {
+  border-radius: 0.6rem;
+  padding: 1.25rem 1.3rem 1rem 1.3rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: var(--md-default-bg-color);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-2px);
+  border-color: rgba(49, 46, 129, 0.5);
+  box-shadow: 0 8px 24px -12px rgba(49, 46, 129, 0.4);
+}
+
+.md-typeset .grid.cards > ul > li > p:first-child {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 0.2rem;
+}
+
+.md-typeset .grid.cards > ul > li > p:first-child .twemoji,
+.md-typeset .grid.cards > ul > li > p:first-child :is(svg, img) {
+  height: 1.4em;
+  width: 1.4em;
+  margin-right: 0.35em;
+  vertical-align: -0.32em;
+  color: #312e81;
+}
+
+[data-md-color-scheme="slate"]
+  .md-typeset .grid.cards > ul > li > p:first-child :is(svg, img) {
+  color: #818cf8;
+}
+
+.md-typeset .grid.cards > ul > li > hr {
+  border: none;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  margin: 0.6rem 0 0.7rem 0;
+}
+
+/* Tabbed code blocks ---------------------------------------- */
+
+.md-typeset .tabbed-set {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.md-typeset .tabbed-labels > label {
+  font-weight: 600;
+}
+
+/* Table polish ---------------------------------------------- */
+
+.md-typeset__table {
+  margin: 1.5rem 0;
+}
+
+.md-typeset table:not([class]) {
+  font-size: 0.85rem;
+}
+
+.md-typeset table:not([class]) th {
+  font-weight: 700;
+  background: var(--md-default-fg-color--lightest);
+}
+
+/* Buttons --------------------------------------------------- */
+
+.md-button {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.md-button--primary {
+  background: linear-gradient(135deg, #312e81, #1e1b4b);
+  border-color: transparent;
+  color: white;
+}
+
+.md-button--primary:hover,
+.md-button--primary:focus {
+  background: linear-gradient(135deg, #3730a3, #312e81);
+  border-color: transparent;
+  color: white;
+}
+
+/* Tighter top spacing on the home page ---------------------- */
+
+.md-main__inner {
+  margin-top: 1rem;
+}
+
+/* Code blocks: a touch more prominent ----------------------- */
+
+.md-typeset pre > code {
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+/* Footer ---------------------------------------------------- */
+
+.md-footer-meta {
+  background: var(--md-default-bg-color);
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Mobile hero scaling --------------------------------------- */
+
+@media (max-width: 600px) {
+  .hero-title,
+  .hero h1 {
+    font-size: 2.8rem;
+  }
+  .hero p {
+    font-size: 1rem;
+  }
+  .hero {
+    padding: 2.5rem 1rem 2rem 1rem;
+  }
+}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+<!--
+  Theme override: inject Open Graph + Twitter Card meta tags and a
+  JSON-LD SoftwareSourceCode block into every page head, for richer
+  link previews and search-engine structured data.
+-->
+
+{% block extrahead %}
+  {#- Resolve the per-page title and description, guarding against the
+      404 page where `page` is None. -#}
+  {% set page_title = (page and (page.meta.title or page.title)) or config.site_name %}
+  {% set page_desc = (page and page.meta.description) or config.site_description %}
+  {% set page_url = (page and page.canonical_url) or config.site_url %}
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  <meta property="og:title" content="{{ page_title }}">
+  <meta property="og:description" content="{{ page_desc }}">
+  <meta property="og:url" content="{{ page_url }}">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ page_title }}">
+  <meta name="twitter:description" content="{{ page_desc }}">
+
+  <!-- Generic SEO -->
+  <meta name="keywords" content="comparative corpus analysis, corpus linguistics, keyness, log-likelihood, collocations, KWIC, dispersion, semantic change, diachronic NLP, word sense induction, sense drift, changepoint detection, interrupted time series, causal impact, digital humanities, computational social science, discourse analysis, Python, quanteda alternative, SketchEngine alternative">
+  <link rel="canonical" href="{{ page_url }}">
+
+  {#- Structured data: only on the home page, describing the package. -#}
+  {% if page and page.is_homepage %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "pycorpdiff",
+    "description": "{{ config.site_description | trim }}",
+    "codeRepository": "{{ config.repo_url }}",
+    "url": "{{ config.site_url }}",
+    "programmingLanguage": "Python",
+    "license": "https://opensource.org/licenses/MIT",
+    "author": {
+      "@type": "Person",
+      "name": "{{ config.site_author }}"
+    },
+    "keywords": "comparative corpus analysis, keyness, collocations, semantic change, changepoint detection, causal impact, digital humanities, Python"
+  }
+  </script>
+  {% endif %}
+{% endblock %}
