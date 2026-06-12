@@ -4,6 +4,39 @@ All notable changes to `pycorpdiff` are documented in this file. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+LLM annotation layer --- the **interpretive surface, kept honest by
+construction**. Adds the package's *third* extension point alongside `Tokenizer`
+and `Embedder`, a deliberate widening fenced by a strict invariant: the LLM only
+*names* the package's own cited, measured exemplars; its output never reaches a
+number, a flag, or a veracity verdict (vectors and counts quantify; the LLM
+interprets; never the reverse).
+
+### Added
+
+- **`pycorpdiff.Annotator`** (Protocol) --- anything callable `str -> str`
+  (a local LLM, a hosted API, your own function) is an annotator. `@runtime_checkable`.
+- **`pycorpdiff.OllamaAnnotator`** --- default annotator backed by a local Ollama
+  server; standard-library `urllib` only, no added dependency. **`EchoAnnotator`**
+  --- deterministic, network-free stub for tests and offline demos.
+- **`SenseDriftResult.name_senses(annotator, ...)`** --- labels + glosses each
+  fitted sense (and the emergent bin) from its most-central *cited* exemplars,
+  returning a separate **`SenseNamingResult`** (six-method contract). Provenance
+  records the model id, per-sense prompt hashes, and call/cache counts; an
+  optional `cache` dict avoids re-querying identical prompts.
+- On real CBD-in-PubMed, `name_senses` via a local `qwen3.6:35b` recovers all
+  three *"CBD"* homonyms unprompted (chronic beryllium disease, common bile duct,
+  cannabidiol) plus the emergent wellness sense --- folded into the tutorial §8d.
+
+### Notes
+
+- **Honest-division-of-labour invariant** is structural, not aspirational: the
+  source result is frozen, `name_senses` returns a new object, annotation columns
+  are held as string dtype while measured columns stay integer, and a unit test
+  (`test_annotator_output_never_enters_numeric_fields`) asserts no annotator
+  output can land in a numeric field. Documented in `docs/design.md`.
+
 ## [0.1.0a33]
 
 Diversity release: **Hill numbers + individual-based rarefaction** in the
