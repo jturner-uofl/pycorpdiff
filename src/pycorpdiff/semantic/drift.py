@@ -209,6 +209,12 @@ class SenseDriftResult:
         The margin-density flag threshold --- null-calibrated (a high
         percentile of the label-shuffle null) when ``n_permutations > 0``,
         otherwise the in-sample control chart.
+    threshold_method
+        How ``threshold`` was derived: ``"permutation_null"`` when
+        ``n_permutations > 0``, else ``"control_chart"``. **The two methods
+        can flag different periods**, so ``change_type`` and ``drift_terms``
+        depend on it --- enabling permutations is not merely "add a p-value"
+        (see the ``n_permutations`` note on :func:`sense_drift`).
     p_value
         Permutation p-value for the overall drift (real max margin density
         vs the label-shuffle null max); ``None`` unless
@@ -222,6 +228,7 @@ class SenseDriftResult:
     reference: list[Any]
     k: int
     threshold: float
+    threshold_method: str
     p_value: float | None
     embedding_meta: dict[str, Any]
     _records: pd.DataFrame = field(repr=False)
@@ -536,6 +543,12 @@ def sense_drift(
         to a reference fitted on themselves; the shuffle null removes that
         bias. Costs one model re-fit per permutation. ``0`` (default) uses
         the fast in-sample chart, fine for exploration.
+
+        **This switches the *thresholding method*, not just the p-value.**
+        The null-calibrated threshold can flag a *different* set of periods
+        than the control chart, so ``change_type`` and ``drift_terms`` may
+        change too. Inspect :attr:`SenseDriftResult.threshold_method` to see
+        which regime produced the flags.
     null_pctile
         Percentile of the label-shuffle null margin-density (and JSD)
         distribution used as the flag threshold when ``n_permutations > 0``.
@@ -655,6 +668,7 @@ def sense_drift(
             float(np.mean(jsd_ref)) + k_sigma * float(np.std(jsd_ref, ddof=1))
             if len(jsd_ref) >= 2 else np.inf)
     threshold = md_threshold
+    threshold_method = "permutation_null" if n_permutations > 0 else "control_chart"
 
     table = pd.DataFrame({
         "period": periods,
@@ -719,6 +733,7 @@ def sense_drift(
         reference=ref_labels_set,
         k=k,
         threshold=threshold,
+        threshold_method=threshold_method,
         p_value=p_value,
         embedding_meta=dict(embedding_meta or {}),
         _records=recs,
