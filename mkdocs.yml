@@ -1,10 +1,9 @@
 site_name: pycorpdiff
 site_description: >-
-  pycorpdiff is comparative corpus analysis for Python — keyness,
-  collocations, dispersion, embedding-based semantic change, and temporal
-  trajectories with changepoints, interrupted time series, and
-  causal-impact analysis, unified behind three notebook-native verbs, with
-  every result carrying its own KWIC evidence.
+  Comparative corpus analysis for Python: keyness, collocations, KWIC
+  concordances, dispersion, semantic change, and temporal trajectories with
+  changepoints and causal impact — the quanteda / SketchEngine comparative
+  layer, notebook-native, with every result carrying its own evidence.
 site_author: Jason S. Turner
 site_url: https://jturner-uofl.github.io/pycorpdiff/
 repo_url: https://github.com/jturner-uofl/pycorpdiff
@@ -32,15 +31,15 @@ theme:
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: indigo
+      primary: red
+      accent: red
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: red
+      accent: red
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode

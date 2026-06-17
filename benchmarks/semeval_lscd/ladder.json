@@ -1,0 +1,7 @@
+{
+  "margin density (OLD threshold)": 0.333,
+  "MMD continuous (raw)": 0.228,
+  "MMD + background-correction": 0.274,
+  "mean-shift (raw / cosine)": 0.26,
+  "mean-shift + background-correction (M1)": 0.327
+}

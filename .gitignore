@@ -55,3 +55,7 @@ examples/*.patched.ipynb
 
 # Static site build output
 site/
+
+# Benchmark corpora — downloaded reference data, not work product (keep scripts/results, not the dumps)
+benchmarks/**/data/
+*.zip

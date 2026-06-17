@@ -1,0 +1,14 @@
+condition,status,n_mentions,eff_hard,eff_any,eff_hard_frac,peak_year,note
+Chronic pain,Emerging evidence,101636,22134,62431,0.218,2018,mixed trial evidence; not approved
+Cancer,FDA-warned (unproven),47507,20193,27355,0.425,2015,numerous FDA warning letters 2015-2019 re: 'CBD cures cancer'
+Epilepsy / seizures,FDA-approved,56036,15942,27313,0.284,2015,"Epidiolex approved 2018 (Dravet, Lennox-Gastaut) — was called unproven pre-2018"
+Anxiety,Emerging evidence,60976,15491,36572,0.254,2020,preclinical + small trials; not an approved indication
+Inflammation,Emerging evidence,18796,5608,13305,0.298,2020,preclinical; not an approved indication
+Addiction / opioid,Under study,14491,4636,8212,0.32,2018,early trials for craving/withdrawal
+Alzheimer's / dementia,Unproven,6810,4044,5541,0.594,2015,no clinical support for claims
+Depression,Limited evidence,16493,3997,10605,0.242,2015,preclinical signals; no approval
+COVID-19,FDA-warned (unproven),17445,3716,6197,0.213,2020,FDA/FTC warning letters Mar 2020 — no evidence CBD treats COVID
+PTSD,Under study,13798,2970,10284,0.215,2015,early trials
+Autism,Unproven / under study,5627,2406,3423,0.428,2015,anecdotal; trials ongoing
+Sleep / insomnia,Emerging evidence,9153,1764,4984,0.193,2021,limited trial evidence
+Diabetes,Unproven,4251,1513,2152,0.356,2015,no clinical support for cure claims

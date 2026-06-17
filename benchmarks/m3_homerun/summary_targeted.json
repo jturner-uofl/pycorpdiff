@@ -1,0 +1,31 @@
+{
+  "n_cannabidiol_covid": 7934,
+  "first_detectable": {
+    "week": "2019-W25",
+    "date": "2019-06-17",
+    "share": 0.0004,
+    "lead_days": 285
+  },
+  "take_off": {
+    "week": "2020-W09",
+    "date": "2020-02-24",
+    "share": 0.0077,
+    "lead_days": 33
+  },
+  "peak": {
+    "week": "2020-W14",
+    "date": "2020-03-30",
+    "share": 0.0693
+  },
+  "fda_date": "2020-03-28",
+  "fda_first_signal": "2020-03-09",
+  "efficacy_claim_tweets": 5117,
+  "efficacy_claim_frac": 0.645,
+  "top_efficacy_clusters": [
+    4,
+    3,
+    1,
+    5,
+    6
+  ]
+}

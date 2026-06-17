@@ -1,0 +1,5 @@
+{
+  "margin, MAHALANOBIS novelty (pcd default)": NaN,
+  "margin, EUCLIDEAN novelty (the fix)": 0.333,
+  "mean-shift + background-correction (M1)": 0.327
+}

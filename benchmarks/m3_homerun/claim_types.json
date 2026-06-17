@@ -1,0 +1,142 @@
+[
+  {
+    "label":"Cannabis Industry Operations During Early Pandemic",
+    "is_efficacy_claim":false,
+    "gist":"The tweets focus on cannabis supply chain safety and continued legal sales across states during early 2020 lockdowns.",
+    "cluster":2,
+    "n":1921,
+    "pct":24.2,
+    "efficacy_term_frac":0.087,
+    "peak_week":"2020-W17",
+    "terms":[
+      "cannabis",
+      "marijuana",
+      "cannabiscommunity",
+      "coronavirus",
+      "weed",
+      "thc",
+      "cbd",
+      "cbd thc"
+    ]
+  },
+  {
+    "label":"Promotional CBD Tweets About COVID",
+    "is_efficacy_claim":true,
+    "gist":"Early 2020 tweets promoting CBD products as essential wellness and immune-support solutions during the initial pandemic lockdowns.",
+    "cluster":4,
+    "n":1116,
+    "pct":14.1,
+    "efficacy_term_frac":0.073,
+    "peak_week":"2020-W13",
+    "terms":[
+      "cbd",
+      "covid",
+      "free",
+      "corona",
+      "hemp",
+      "cbdoil",
+      "coronavirus",
+      "trihealthy"
+    ]
+  },
+  {
+    "label":"Optimistic CBD Claims During Early Pandemic",
+    "is_efficacy_claim":true,
+    "gist":"Early 2020 tweets express strong optimism that CBD will effectively combat or alleviate symptoms of the coronavirus pandemic.",
+    "cluster":3,
+    "n":1107,
+    "pct":14.0,
+    "efficacy_term_frac":0.148,
+    "peak_week":"2020-W14",
+    "terms":[
+      "covid",
+      "cbd",
+      "people",
+      "pandemic",
+      "coronavirus",
+      "cbd covid",
+      "cbdoil",
+      "covid cbd"
+    ]
+  },
+  {
+    "label":"Early 2020 CBD COVID Treatment Claims",
+    "is_efficacy_claim":true,
+    "gist":"Early 2020 tweets discuss research and speculation regarding CBD's potential to treat or prevent COVID-19.",
+    "cluster":1,
+    "n":1073,
+    "pct":13.5,
+    "efficacy_term_frac":0.472,
+    "peak_week":"2020-W21",
+    "terms":[
+      "covid",
+      "cbd",
+      "cannabis",
+      "cbd covid",
+      "researchers",
+      "help",
+      "treatment",
+      "cannabis cbd"
+    ]
+  },
+  {
+    "label":"Misleading CBD Cures Coronavirus Claims",
+    "is_efficacy_claim":true,
+    "gist":"This cluster consists of early 2020 tweets falsely asserting that CBD oil cures or prevents the coronavirus.",
+    "cluster":5,
+    "n":1028,
+    "pct":13.0,
+    "efficacy_term_frac":0.441,
+    "peak_week":"2020-W12",
+    "terms":[
+      "coronavirus",
+      "cbd",
+      "cure",
+      "corona",
+      "virus",
+      "cure coronavirus",
+      "cbd oil",
+      "oil"
+    ]
+  },
+  {
+    "label":"CBD Market Trends During Early Pandemic",
+    "is_efficacy_claim":false,
+    "gist":"These tweets discuss the economic impact of the early COVID-19 pandemic on the CBD and hemp industries, highlighting shifting consumer demand, market growth, and business strategies.",
+    "cluster":0,
+    "n":896,
+    "pct":11.3,
+    "efficacy_term_frac":0.086,
+    "peak_week":"2020-W14",
+    "terms":[
+      "cbd",
+      "covid",
+      "market",
+      "hemp",
+      "pandemic",
+      "impact",
+      "industry",
+      "oil"
+    ]
+  },
+  {
+    "label":"CBD for Pandemic Anxiety and Stress Relief",
+    "is_efficacy_claim":true,
+    "gist":"Early 2020 tweets promote CBD as a wellness remedy for pandemic-related anxiety, stress, and sleep, while some make unverified claims about boosting immunity or preventing coronavirus.",
+    "cluster":6,
+    "n":793,
+    "pct":10.0,
+    "efficacy_term_frac":0.183,
+    "peak_week":"2020-W13",
+    "terms":[
+      "anxiety",
+      "cbd",
+      "stress",
+      "help",
+      "covid",
+      "pandemic",
+      "oil",
+      "cbd help"
+    ]
+  }
+]

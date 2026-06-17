@@ -1,0 +1,7 @@
+{
+  "cosine-of-means (continuous baseline)": 0.399,
+  "JSD-clustering (Montariol/Giulianelli) \u2014 FOIL": 0.305,
+  "margin-density MAHALANOBIS (pcd default)": NaN,
+  "margin-density BOUNDED (cosine/Euclidean)": 0.29,
+  "COMBINED margin-bounded + JSD": 0.315
+}

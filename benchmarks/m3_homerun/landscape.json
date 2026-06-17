@@ -1,0 +1,132 @@
+[
+  {
+    "condition": "Epilepsy / seizures",
+    "status": "FDA-approved",
+    "n_mentions": 56036,
+    "eff_hard": 15942,
+    "eff_any": 27313,
+    "eff_hard_frac": 0.284,
+    "peak_year": 2015,
+    "note": "Epidiolex approved 2018 (Dravet, Lennox-Gastaut) \u2014 was called unproven pre-2018"
+  },
+  {
+    "condition": "Anxiety",
+    "status": "Emerging evidence",
+    "n_mentions": 60976,
+    "eff_hard": 15491,
+    "eff_any": 36572,
+    "eff_hard_frac": 0.254,
+    "peak_year": 2020,
+    "note": "preclinical + small trials; not an approved indication"
+  },
+  {
+    "condition": "Chronic pain",
+    "status": "Emerging evidence",
+    "n_mentions": 101636,
+    "eff_hard": 22134,
+    "eff_any": 62431,
+    "eff_hard_frac": 0.218,
+    "peak_year": 2018,
+    "note": "mixed trial evidence; not approved"
+  },
+  {
+    "condition": "Sleep / insomnia",
+    "status": "Emerging evidence",
+    "n_mentions": 9153,
+    "eff_hard": 1764,
+    "eff_any": 4984,
+    "eff_hard_frac": 0.193,
+    "peak_year": 2021,
+    "note": "limited trial evidence"
+  },
+  {
+    "condition": "Inflammation",
+    "status": "Emerging evidence",
+    "n_mentions": 18796,
+    "eff_hard": 5608,
+    "eff_any": 13305,
+    "eff_hard_frac": 0.298,
+    "peak_year": 2020,
+    "note": "preclinical; not an approved indication"
+  },
+  {
+    "condition": "Depression",
+    "status": "Limited evidence",
+    "n_mentions": 16493,
+    "eff_hard": 3997,
+    "eff_any": 10605,
+    "eff_hard_frac": 0.242,
+    "peak_year": 2015,
+    "note": "preclinical signals; no approval"
+  },
+  {
+    "condition": "PTSD",
+    "status": "Under study",
+    "n_mentions": 13798,
+    "eff_hard": 2970,
+    "eff_any": 10284,
+    "eff_hard_frac": 0.215,
+    "peak_year": 2015,
+    "note": "early trials"
+  },
+  {
+    "condition": "Addiction / opioid",
+    "status": "Under study",
+    "n_mentions": 14491,
+    "eff_hard": 4636,
+    "eff_any": 8212,
+    "eff_hard_frac": 0.32,
+    "peak_year": 2018,
+    "note": "early trials for craving/withdrawal"
+  },
+  {
+    "condition": "COVID-19",
+    "status": "FDA-warned (unproven)",
+    "n_mentions": 17445,
+    "eff_hard": 3716,
+    "eff_any": 6197,
+    "eff_hard_frac": 0.213,
+    "peak_year": 2020,
+    "note": "FDA/FTC warning letters Mar 2020 \u2014 no evidence CBD treats COVID"
+  },
+  {
+    "condition": "Cancer",
+    "status": "FDA-warned (unproven)",
+    "n_mentions": 47507,
+    "eff_hard": 20193,
+    "eff_any": 27355,
+    "eff_hard_frac": 0.425,
+    "peak_year": 2015,
+    "note": "numerous FDA warning letters 2015-2019 re: 'CBD cures cancer'"
+  },
+  {
+    "condition": "Alzheimer's / dementia",
+    "status": "Unproven",
+    "n_mentions": 6810,
+    "eff_hard": 4044,
+    "eff_any": 5541,
+    "eff_hard_frac": 0.594,
+    "peak_year": 2015,
+    "note": "no clinical support for claims"
+  },
+  {
+    "condition": "Autism",
+    "status": "Unproven / under study",
+    "n_mentions": 5627,
+    "eff_hard": 2406,
+    "eff_any": 3423,
+    "eff_hard_frac": 0.428,
+    "peak_year": 2015,
+    "note": "anecdotal; trials ongoing"
+  },
+  {
+    "condition": "Diabetes",
+    "status": "Unproven",
+    "n_mentions": 4251,
+    "eff_hard": 1513,
+    "eff_any": 2152,
+    "eff_hard_frac": 0.356,
+    "peak_year": 2015,
+    "note": "no clinical support for cure claims"
+  }
+]

@@ -1,20 +1,20 @@
 /* ============================================================
  *  pycorpdiff — custom landing-page polish (mkdocs-material)
- *  Indigo palette (sibling to the red pymmeans / pysofra sites).
- *    indigo-900  #312e81   header bar, primary accents
- *    indigo-950  #1e1b4b   tabs bar, gradient terminus
- *    indigo-700  #4338ca   hover / mid-gradient accent
- *    indigo-400  #818cf8   dark-mode accent
+ *  Deep-red palette (matching the pymmeans / pysofra docs sites).
+ *    red-900   #7f1d1d   header bar, primary accents
+ *    red-950   #6b1818   tabs bar
+ *    maroon    #2d0000   hero gradient terminus
+ *    red-700   #b91c1c   hover / mid-gradient accent
  * ============================================================ */
 
-/* Header + tabs: deep-indigo bar ----------------------------- */
+/* Header + tabs: deep-red bar -------------------------------- */
 
 .md-header {
-  background-color: #312e81;
+  background-color: #7f1d1d;
 }
 
 .md-tabs {
-  background-color: #1e1b4b;
+  background-color: #6b1818;
 }
 
 /* Hero section ----------------------------------------------- */
@@ -25,13 +25,13 @@
   margin-top: -1.5rem;
   margin-bottom: 2.5rem;
   background:
-    radial-gradient(ellipse at top, rgba(49, 46, 129, 0.10), transparent 70%);
+    radial-gradient(ellipse at top, rgba(127, 29, 29, 0.10), transparent 70%);
   border-radius: 0 0 1rem 1rem;
 }
 
 [data-md-color-scheme="slate"] .hero {
   background:
-    radial-gradient(ellipse at top, rgba(99, 102, 241, 0.28), transparent 70%);
+    radial-gradient(ellipse at top, rgba(127, 29, 29, 0.28), transparent 70%);
 }
 
 .hero-title,
@@ -40,7 +40,7 @@
   font-weight: 800;
   margin: 0 0 0.5rem 0;
   letter-spacing: -0.04em;
-  background: linear-gradient(135deg, #312e81 0%, #4338ca 50%, #1e1b4b 100%);
+  background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 50%, #2d0000 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -49,7 +49,7 @@
 
 [data-md-color-scheme="slate"] .hero-title,
 [data-md-color-scheme="slate"] .hero h1 {
-  background: linear-gradient(135deg, #818cf8 0%, #6366f1 50%, #4338ca 100%);
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #b91c1c 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -92,8 +92,8 @@
 
 .md-typeset .grid.cards > ul > li:hover {
   transform: translateY(-2px);
-  border-color: rgba(49, 46, 129, 0.5);
-  box-shadow: 0 8px 24px -12px rgba(49, 46, 129, 0.4);
+  border-color: rgba(127, 29, 29, 0.5);
+  box-shadow: 0 8px 24px -12px rgba(127, 29, 29, 0.4);
 }
 
 .md-typeset .grid.cards > ul > li > p:first-child {
@@ -108,12 +108,12 @@
   width: 1.4em;
   margin-right: 0.35em;
   vertical-align: -0.32em;
-  color: #312e81;
+  color: #7f1d1d;
 }
 
 [data-md-color-scheme="slate"]
   .md-typeset .grid.cards > ul > li > p:first-child :is(svg, img) {
-  color: #818cf8;
+  color: #f87171;
 }
 
 .md-typeset .grid.cards > ul > li > hr {
@@ -156,14 +156,14 @@
 }
 
 .md-button--primary {
-  background: linear-gradient(135deg, #312e81, #1e1b4b);
+  background: linear-gradient(135deg, #7f1d1d, #2d0000);
   border-color: transparent;
   color: white;
 }
 
 .md-button--primary:hover,
 .md-button--primary:focus {
-  background: linear-gradient(135deg, #3730a3, #312e81);
+  background: linear-gradient(135deg, #991b1b, #7f1d1d);
   border-color: transparent;
   color: white;
 }

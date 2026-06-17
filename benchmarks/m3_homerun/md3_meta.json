@@ -1,0 +1,27 @@
+{
+  "reference": "early COVID-CBD discourse (Jan-Feb 2020)",
+  "ref_n": 286,
+  "ref_margin": 0.052,
+  "null_threshold": 0.433,
+  "p_value": 0.005,
+  "change_type": "broadening",
+  "drift_terms": [
+    "during",
+    "businesses",
+    "cannabiscommunity",
+    "relief",
+    "online",
+    "dispensaries",
+    "hand",
+    "researchers",
+    "stores",
+    "state"
+  ],
+  "onset_week": "2020-W12",
+  "onset_date": "2020-03-16",
+  "fda_week": "2020-W13",
+  "fda_date": "2020-03-28",
+  "peak_margin": 0.911,
+  "peak_week": "2020-W18",
+  "caveat": "MD3 detects the regime shift (when/that); magnitude is inflated by a thin early reference (sensitivity: late margin 0.84->0.20 once the reference sees March) and the drift terms are commerce-led, not misinfo. The misinfo 'what' belongs to the targeted+LLM layer (\u00a713a)."
+}
