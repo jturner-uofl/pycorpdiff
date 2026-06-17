@@ -298,3 +298,37 @@ def test_bad_novelty_raises():
     df, X = _stable()
     with pytest.raises(ValueError, match="mahalanobis.*cosine"):
         pcd.sense_drift(df, X, time_col="year", reference=REF, k=3, novelty="bogus")
+
+
+def test_threshold_method_is_surfaced():
+    """``n_permutations`` switches the thresholding regime, and the result
+    labels which regime produced the flags (so the change is not silent)."""
+    df, X = _broadening()
+    canon = pcd.sense_drift(df, X, time_col="year", reference=REF, k=3)
+    perm = pcd.sense_drift(df, X, time_col="year", reference=REF, k=3,
+                           n_permutations=50)
+    assert canon.threshold_method == "control_chart"
+    assert canon.p_value is None
+    assert perm.threshold_method == "permutation_null"
+    assert perm.p_value is not None
+
+
+def test_permutation_switches_threshold_not_just_pvalue():
+    """The two regimes use *different* thresholds (the documented behavior):
+    enabling permutations is not merely 'add a p-value'."""
+    df, X = _broadening()
+    canon = pcd.sense_drift(df, X, time_col="year", reference=REF, k=3)
+    perm = pcd.sense_drift(df, X, time_col="year", reference=REF, k=3,
+                           n_permutations=50)
+    assert canon.threshold != perm.threshold
+
+
+def test_permutation_mode_is_deterministic():
+    """Both regimes are reproducible run-to-run under a fixed random_state."""
+    df, X = _broadening()
+    a = pcd.sense_drift(df, X, time_col="year", reference=REF, k=3, n_permutations=50)
+    b = pcd.sense_drift(df, X, time_col="year", reference=REF, k=3, n_permutations=50)
+    pd.testing.assert_frame_equal(a.table, b.table)
+    assert a.threshold == b.threshold
+    assert a.change_type == b.change_type
+    assert a.p_value == b.p_value
