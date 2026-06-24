@@ -578,7 +578,11 @@ def sense_drift(
         raise ValueError(f"time_col {time_col!r} not in items")
     if novelty not in {"mahalanobis", "cosine"}:
         raise ValueError("novelty must be 'mahalanobis' or 'cosine'")
-    ref_labels_set = list(reference) if isinstance(reference, (list, tuple, set)) else [reference]
+    ref_labels_set = (
+        [reference]
+        if isinstance(reference, str) or not hasattr(reference, "__iter__")
+        else list(reference)
+    )
     periods_col = frame[time_col].to_numpy()
     ref_mask = frame[time_col].isin(ref_labels_set).to_numpy()
     if ref_mask.sum() < k * 5:
@@ -1047,7 +1051,11 @@ def knn_density_drift(
         raise ValueError("mode must be 'reference' or 'cumulative'")
     if mode == "cumulative" and n_permutations > 0:
         raise ValueError("permutation null is only defined for mode='reference'")
-    ref_labels_set = list(reference) if isinstance(reference, (list, tuple, set)) else [reference]
+    ref_labels_set = (
+        [reference]
+        if isinstance(reference, str) or not hasattr(reference, "__iter__")
+        else list(reference)
+    )
     periods_col = frame[time_col].to_numpy()
     ref_mask = frame[time_col].isin(ref_labels_set).to_numpy()
     need = max(k + 1, 5)

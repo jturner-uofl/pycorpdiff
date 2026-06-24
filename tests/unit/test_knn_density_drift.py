@@ -201,3 +201,21 @@ def test_bad_mode_raises():
     df, X = _stable()
     with pytest.raises(ValueError, match="mode must be"):
         pcd.knn_density_drift(df, X, time_col="year", reference=REF, k=10, mode="bogus")
+
+
+def test_range_reference_equivalent_to_list():
+    """Regression: a bare ``range`` reference must work (the README uses it) and
+    match the equivalent list --- not collapse to a one-element ``[range(...)]``
+    that matches zero rows and raises ``reference period has only 0 records``.
+    Both detectors shared the normalization, so cover sense_drift too."""
+    df, X = _emergence()
+    list_ref = list(range(2000, 2010))
+
+    k_rng = pcd.knn_density_drift(df, X, time_col="year", reference=range(2000, 2010), k=5)
+    k_lst = pcd.knn_density_drift(df, X, time_col="year", reference=list_ref, k=5)
+    assert k_rng.reference == list_ref
+    pd.testing.assert_frame_equal(k_rng.table, k_lst.table)
+
+    s_rng = pcd.sense_drift(df, X, time_col="year", reference=range(2000, 2010), k=3)
+    s_lst = pcd.sense_drift(df, X, time_col="year", reference=list_ref, k=3)
+    pd.testing.assert_frame_equal(s_rng.table, s_lst.table)

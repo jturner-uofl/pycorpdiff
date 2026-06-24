@@ -20,7 +20,7 @@ True
 
 from __future__ import annotations
 
-__version__ = "0.1.0a34"
+__version__ = "0.1.0a35"
 
 from .annotate import Annotator, EchoAnnotator, OllamaAnnotator, SenseNamingResult
 from .collocation.network import NetworkResult, cooccurrence_network

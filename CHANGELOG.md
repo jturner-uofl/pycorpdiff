@@ -37,6 +37,18 @@ interprets; never the reverse).
   (`test_annotator_output_never_enters_numeric_fields`) asserts no annotator
   output can land in a numeric field. Documented in `docs/design.md`.
 
+## [0.1.0a35]
+
+### Fixed
+
+- **`reference` now accepts a `range` (and any non-string iterable)** in both
+  `sense_drift` and `knn_density_drift`. Previously only `list`/`tuple`/`set`
+  were treated as a collection of period labels; a bare `range` fell through to
+  the single-label branch, became `[range(...)]`, matched zero rows, and raised
+  `reference period has only 0 records`. This broke the documented README
+  examples (`reference=range(2000, 2010)`) for both detectors. Strings and
+  scalars are still treated as a single period label. Regression test added.
+
 ## [0.1.0a34]
 
 ### Added
