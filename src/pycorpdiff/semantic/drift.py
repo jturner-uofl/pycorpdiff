@@ -813,3 +813,323 @@ def _explain(
     # Distinctive terms via log-ratio of novel vs reference document
     # frequency (a keyness-style score).
     return change_type, _distinctive_terms(novel_texts, ref_texts, top=12)
+
+
+# =====================================================================
+# k-NN-density drift --- a sense-free, streaming-capable sibling detector
+# =====================================================================
+# Where :func:`sense_drift` fits *k* reference senses and watches the density of
+# the region *outside* them (margin density, after Sethi & Kantardzic 2017),
+# :func:`knn_density_drift` drops the sense model entirely: a record is novel if
+# it sits far from its nearest neighbours *in the past*. Identical control-chart
+# flagging and sustained-run logic, so the two are directly comparable (running
+# both and checking they agree is a robustness test). Crucially this is the
+# formulation a vector store serves natively (time-filtered nearest-neighbour),
+# so ``mode="cumulative"`` is incremental/streaming-ready for an online monitor.
+
+
+def _knn_density_novelty(
+    x_query: FloatArray, x_prior: FloatArray, k: int,
+    self_cols: npt.NDArray[np.intp] | None = None,
+) -> FloatArray:
+    """``1 - mean cosine`` to the ``k`` nearest *prior* embeddings (rows are
+    L2-normalised, so dot == cosine). A record in empty space --- no close prior
+    neighbour --- scores high. If the query rows are a subset of the prior, pass
+    ``self_cols`` (each query row's column within the prior) to drop the
+    self-match. This is exactly the retrieval-density a vector DB returns."""
+    n_prior = x_prior.shape[0]
+    if n_prior == 0:
+        return np.zeros(x_query.shape[0], dtype=np.float64)
+    sims = x_query @ x_prior.T
+    if self_cols is not None:
+        sims[np.arange(x_query.shape[0]), self_cols] = -np.inf
+    prior_eff = n_prior - (1 if self_cols is not None else 0)
+    kk = max(1, min(k, prior_eff))
+    idx = np.argpartition(sims, -kk, axis=1)[:, -kk:]
+    topk = np.take_along_axis(sims, idx, axis=1)
+    return np.asarray(1.0 - topk.mean(axis=1), dtype=np.float64)
+
+
+def _knn_novelty_all(
+    x: FloatArray, periods_col: npt.NDArray[Any], ref_mask: npt.NDArray[np.bool_],
+    k: int, mode: str,
+) -> tuple[FloatArray, FloatArray]:
+    """Per-record k-NN novelty + the reference-internal novelty (the calibration
+    baseline). ``reference`` mode scores every record against the fixed reference
+    set; ``cumulative`` mode scores each record against all *strictly earlier*
+    periods --- the streaming / emergence formulation."""
+    nov = np.zeros(x.shape[0], dtype=np.float64)
+    n_ref = int(ref_mask.sum())
+    nov_ref = _knn_density_novelty(
+        x[ref_mask], x[ref_mask], k,
+        self_cols=np.arange(n_ref, dtype=np.intp))
+    if mode == "reference":
+        nov[ref_mask] = nov_ref
+        rest = ~ref_mask
+        if rest.any():
+            nov[rest] = _knn_density_novelty(x[rest], x[ref_mask], k)
+    else:  # cumulative: novelty vs all strictly-earlier periods
+        order = sorted({p for p in periods_col.tolist() if p == p})
+        for p in order:
+            qm = periods_col == p
+            earlier = [q for q in order if q < p]
+            prior = x[np.isin(periods_col, earlier)] if earlier else x[:0]
+            nov[qm] = _knn_density_novelty(x[qm], prior, k)
+    return nov, nov_ref
+
+
+def _density_by_period(
+    periods_col: npt.NDArray[Any], is_novel: npt.NDArray[np.bool_],
+) -> tuple[list[Any], dict[Any, float]]:
+    uniq = sorted({p for p in periods_col.tolist() if p == p})
+    return uniq, {p: (float(is_novel[periods_col == p].mean())
+                      if (periods_col == p).any() else 0.0) for p in uniq}
+
+
+@dataclass(frozen=True)
+class KNNDensityDriftResult:
+    """Per-period k-NN-density drift detection (sense-free, streaming-capable).
+
+    Attributes
+    ----------
+    table
+        Per-period: ``period``, ``n``, ``novelty_density`` (fraction of records
+        whose distance to their nearest prior neighbours exceeds the
+        reference-calibrated cutoff), and ``drift`` (bool, control-chart flag).
+    mode
+        ``"reference"`` (novelty vs the fixed reference window) or
+        ``"cumulative"`` (novelty vs all strictly-earlier periods --- the
+        streaming / emergence formulation).
+    reference, k
+        Reference period label(s) and the number of nearest neighbours.
+    threshold
+        Novelty-density flag threshold (null-calibrated when
+        ``n_permutations > 0``, else the in-sample control chart).
+    p_value
+        Permutation p-value (``None`` unless ``n_permutations > 0``;
+        ``reference`` mode only).
+    """
+
+    table: pd.DataFrame
+    mode: str
+    reference: list[Any]
+    k: int
+    threshold: float
+    p_value: float | None
+    embedding_meta: dict[str, Any]
+    _records: pd.DataFrame = field(repr=False)
+
+    def to_df(self) -> pd.DataFrame:
+        return self.table.copy()
+
+    def to_html(self, path: str | Path | None = None, **kw: Any) -> str:
+        return _table_to_html(self.table, path, **kw)
+
+    def to_json(self, path: str | Path | None = None, **kw: Any) -> str:
+        return _table_to_json(self.table, path, **kw)
+
+    def summary(self) -> str:
+        flagged = self.table[self.table["drift"]]
+        if not len(flagged):
+            return (f"No k-NN-density drift detected across {len(self.table)} "
+                    f"periods (reference {self.reference}, k={self.k}, mode={self.mode}).")
+        first = flagged.iloc[0]
+        msg = (f"k-NN-density drift detected from {first['period']} "
+               f"({len(flagged)} period(s) flagged; novelty density "
+               f"{first['novelty_density']:.3f}, mode={self.mode}).")
+        if self.p_value is not None:
+            msg += f" Permutation p={self.p_value:.3f}."
+        return msg
+
+    def flagged_records(self, period: Any | None = None) -> pd.DataFrame:
+        """Novel records in the flagged periods (or one ``period``), for
+        inspection --- the emergent material driving the drift."""
+        recs = self._records[self._records["novel"]]
+        if period is not None:
+            recs = recs[recs["period"] == period]
+        elif self.table["drift"].any():
+            flagged = set(self.table.loc[self.table["drift"], "period"])
+            recs = recs[recs["period"].isin(flagged)]
+        return recs.reset_index(drop=True)
+
+    def exemplars(self, period: Any | None = None, top: int = 8) -> pd.DataFrame:
+        """The ``top`` *most novel* records (highest distance from their prior
+        neighbours) --- cited exemplars of what newly entered the space."""
+        recs = self.flagged_records(period)
+        return recs.sort_values("novelty", ascending=False).head(top).reset_index(drop=True)
+
+    def plot(self, **kw: Any) -> alt.Chart:
+        """Novelty density over time with the flag threshold and drift markers."""
+        import altair as alt
+
+        t = self.table.assign(period_str=lambda d: d["period"].astype(str))
+        base = alt.Chart(t).encode(x=alt.X("period_str:O", title="period"))
+        area = base.mark_area(opacity=0.25, color="#b91c1c").encode(
+            y=alt.Y("novelty_density:Q", title="novelty density"))
+        line = base.mark_line(color="#b91c1c", point=True).encode(y="novelty_density:Q")
+        rule = (alt.Chart(pd.DataFrame({"y": [self.threshold]}))
+                .mark_rule(strokeDash=[5, 4], color="#444").encode(y="y:Q"))
+        flags = base.transform_filter(alt.datum.drift).mark_point(
+            size=140, color="#d00", shape="triangle-up", filled=True).encode(
+            y="novelty_density:Q")
+        sub = (f"permutation p = {self.p_value:.3f}; " if self.p_value is not None else "")
+        title = alt.TitleParams("k-NN-density drift", subtitle=f"{sub}mode: {self.mode}")
+        return (area + line + rule + flags).properties(title=title, **kw)  # type: ignore[no-any-return]
+
+
+def knn_density_drift(
+    items: pd.DataFrame,
+    embeddings: FloatArray,
+    time_col: str,
+    *,
+    reference: Any | Sequence[Any],
+    k: int = 10,
+    cutoff_pctile: float = 95.0,
+    k_sigma: float = 3.0,
+    min_run: int = 2,
+    mode: str = "reference",
+    n_permutations: int = 0,
+    null_pctile: float = 95.0,
+    normalize: bool = True,
+    random_state: int = 42,
+    text_col: str = "text",
+    embedding_meta: dict[str, Any] | None = None,
+) -> KNNDensityDriftResult:
+    """Detect drift as a rise in **k-nearest-neighbour novelty density** --- the
+    sense-free, streaming-capable sibling of :func:`sense_drift`.
+
+    A record is *novel* when it sits far (``1 - mean cosine`` to its ``k`` nearest
+    prior neighbours) from what came before; a period drifts when its fraction of
+    novel records clears a reference-calibrated control-chart threshold. No sense
+    model is fit, so it is robust to the cross-era saturation that pins
+    Mahalanobis margin density near 1.0, and it maps one-to-one onto a vector
+    store's time-filtered nearest-neighbour query (so ``mode="cumulative"`` is an
+    online/streaming monitor). Sharing :func:`sense_drift`'s flagging means the
+    two can be cross-checked: agreement across both formulations is a robustness
+    result, not a coincidence.
+
+    Parameters
+    ----------
+    items, embeddings, time_col, reference
+        As in :func:`sense_drift`. Row order of ``items`` aligns with
+        ``embeddings``; ``reference`` defines the known/baseline period(s).
+    k
+        Number of nearest neighbours for the novelty score (default 10).
+    cutoff_pctile
+        A record is novel if its novelty exceeds this percentile of the
+        reference records' *internal* novelty.
+    k_sigma, min_run
+        In-sample control-chart sensitivity and the sustained-run length a
+        flag must persist for (false-alarm control), as in :func:`sense_drift`.
+    mode
+        ``"reference"`` (novelty vs the fixed reference window; **default**) or
+        ``"cumulative"`` (novelty vs all strictly-earlier periods --- the
+        streaming / emergence formulation; a vector-DB serves this incrementally).
+    n_permutations, null_pctile
+        Optional label-shuffle null and its threshold percentile, reporting a
+        permutation ``p_value`` (``reference`` mode only).
+    normalize, random_state, text_col, embedding_meta
+        As in :func:`sense_drift`.
+
+    Returns
+    -------
+    KNNDensityDriftResult
+    """
+    frame = items.reset_index(drop=True)
+    x = np.asarray(embeddings, dtype=np.float64)
+    if x.shape[0] != len(frame):
+        raise ValueError(f"embeddings has {x.shape[0]} rows but items has {len(frame)}")
+    if not np.isfinite(x).all():
+        raise ValueError("embeddings contain NaN or inf")
+    if time_col not in frame.columns:
+        raise ValueError(f"time_col {time_col!r} not in items")
+    if mode not in {"reference", "cumulative"}:
+        raise ValueError("mode must be 'reference' or 'cumulative'")
+    if mode == "cumulative" and n_permutations > 0:
+        raise ValueError("permutation null is only defined for mode='reference'")
+    ref_labels_set = list(reference) if isinstance(reference, (list, tuple, set)) else [reference]
+    periods_col = frame[time_col].to_numpy()
+    ref_mask = frame[time_col].isin(ref_labels_set).to_numpy()
+    need = max(k + 1, 5)
+    if ref_mask.sum() < need:
+        raise ValueError(
+            f"reference period has only {int(ref_mask.sum())} records; "
+            f"need >= {need} for k={k} neighbours")
+
+    if normalize:
+        x = _l2_normalize(x)
+
+    nov, nov_ref = _knn_novelty_all(x, periods_col, ref_mask, k, mode)
+    cutoff = float(np.percentile(nov_ref, cutoff_pctile))
+    is_novel = nov > cutoff
+    periods, dens = _density_by_period(periods_col, is_novel)
+    not_ref_periods = [p for p in periods if p not in ref_labels_set]
+
+    p_value: float | None = None
+    if n_permutations > 0:
+        rng = np.random.default_rng(random_state)
+        pool: list[float] = []
+        maxes: list[float] = []
+        for _ in range(n_permutations):
+            perm = rng.permutation(periods_col)
+            pm = np.isin(perm, ref_labels_set)
+            if pm.sum() < need:
+                continue
+            nov_b, nov_ref_b = _knn_novelty_all(x, perm, pm, k, "reference")
+            isn_b = nov_b > float(np.percentile(nov_ref_b, cutoff_pctile))
+            _, dens_b = _density_by_period(perm, isn_b)
+            vals = [dens_b[p] for p in dens_b if p not in ref_labels_set]
+            pool.extend(vals)
+            if vals:
+                maxes.append(max(vals))
+        threshold = float(np.percentile(pool, null_pctile)) if pool else np.inf
+        real_max = max((dens[p] for p in not_ref_periods), default=0.0)
+        if maxes:
+            p_value = (int(np.sum(np.asarray(maxes) >= real_max)) + 1) / (len(maxes) + 1)
+    else:
+        dens_ref = [dens[p] for p in periods if p in ref_labels_set]
+        threshold = _control_threshold(
+            dens_ref, k_sigma, single_n=int(ref_mask.sum()),
+            single_p=float(is_novel[ref_mask].mean()))
+
+    table = pd.DataFrame({
+        "period": periods,
+        "n": [int((periods_col == p).sum()) for p in periods],
+        "novelty_density": [dens[p] for p in periods],
+    })
+    not_ref = ~table["period"].isin(ref_labels_set)
+    raw = ((table["novelty_density"] > threshold) & not_ref).to_numpy()
+
+    confirmed = np.zeros(len(raw), dtype=bool)
+    i = 0
+    while i < len(raw):
+        if raw[i]:
+            j = i
+            while j < len(raw) and raw[j]:
+                j += 1
+            if j - i >= min_run:
+                confirmed[i:j] = True
+            i = j
+        else:
+            i += 1
+    table["drift"] = confirmed
+
+    texts = ([str(v) for v in frame[text_col]] if text_col in frame.columns
+             else [""] * len(frame))
+    recs = pd.DataFrame({
+        "period": periods_col,
+        "novelty": nov,
+        "novel": is_novel,
+        "text": texts,
+    })
+
+    return KNNDensityDriftResult(
+        table=table,
+        mode=mode,
+        reference=ref_labels_set,
+        k=k,
+        threshold=float(threshold),
+        p_value=p_value,
+        embedding_meta=dict(embedding_meta or {}),
+        _records=recs,
+    )

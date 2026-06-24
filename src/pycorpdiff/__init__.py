@@ -20,7 +20,7 @@ True
 
 from __future__ import annotations
 
-__version__ = "0.1.0a33"
+__version__ = "0.1.0a34"
 
 from .annotate import Annotator, EchoAnnotator, OllamaAnnotator, SenseNamingResult
 from .collocation.network import NetworkResult, cooccurrence_network
@@ -52,7 +52,12 @@ from .results import (
     SemanticShiftResult,
     TemporalTrajectory,
 )
-from .semantic.drift import SenseDriftResult, sense_drift
+from .semantic.drift import (
+    KNNDensityDriftResult,
+    SenseDriftResult,
+    knn_density_drift,
+    sense_drift,
+)
 from .semantic.embed import Embedder, HashEmbedder, SBERTEmbedder
 from .semantic.senses import SenseAgreement, SenseInductionResult, induce_senses
 from .semantic.shift import neighborhood_drift
@@ -101,6 +106,7 @@ __all__ = [
     "Embedder",
     "ForecastResult",
     "HashEmbedder",
+    "KNNDensityDriftResult",
     "KeynessResult",
     "LexicalDiversityResult",
     "LexicalDiversityTrajectory",
@@ -140,6 +146,7 @@ __all__ = [
     "induce_senses",
     "keyness_multi",
     "kleinberg_bursts",
+    "knn_density_drift",
     "lexical_diversity",
     "kwic",
     "list_baselines",

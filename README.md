@@ -14,8 +14,9 @@ platform, and the fragmented Python NLP stack
 — `compare(a, b)`, `track(c, term)`, `compare.before_after(c, event)` —
 consolidate keyness, collocations, dispersion, temporal trajectories,
 changepoint detection, interrupted time series, causal-impact analysis,
-forecasting, online changepoint detection, and embedding-based semantic
-shift under a single notebook-native API. Keyness and collocation
+forecasting, online changepoint detection, embedding-based semantic
+shift, and label-free drift & novelty detection under a single
+notebook-native API. Keyness and collocation
 results carry their own KWIC evidence: `.explain(term)` returns the
 source-text concordances behind any ranked term.
 
@@ -27,6 +28,7 @@ and computational social science routinely have:
 - *What did "migrant" mean in 2005 vs 2023?* — `compare(...).semantic_shift("migrant", embedder=...)`
 - *Did this event actually shift the conversation?* — `track(...).causal_impact(event_date=...)`
 - *Where is the discourse heading?* — `track(...).forecast(horizon=4)`
+- *What's emerging that no keyword list anticipated — and what is it?* — `pcd.knn_density_drift(...)` catches it label-free, `pcd.sense_drift(...)` names and types it
 
 `pycorpdiff` is positioned as **orchestration**, not reinvention.
 Tokenizers (`spaCy`, `Stanza`, `jieba`, `fugashi`) and embedders (any
@@ -35,7 +37,7 @@ points — one-line adapters, no plugin registry. The base install's
 direct runtime dependencies are `numpy`, `pandas`, `scipy`, and
 `pyarrow`; everything else is opt-in via extras.
 
-> **Status: alpha (0.1.0a33).** Public API is stable for the features
+> **Status: alpha (0.1.0a34).** Public API is stable for the features
 > described below; on PyPI as `pip install pycorpdiff`. Alpha releases
 > are intentionally rapid (audit-driven), each shipping fixes and tests
 > behind the published version; dependency pins will tighten at beta.
@@ -45,7 +47,7 @@ direct runtime dependencies are `numpy`, `pandas`, `scipy`, and
 | Layer | Purpose | Key surface |
 |---|---|---|
 | **1 — Ingestion + `Corpus`** | get text in, slice it, hash it | `from_dataframe`, `read_csv`, `read_parquet`, `read_txt`, `read_duckdb`, `from_huggingface`, `fetch_hansard`, `Corpus.slice/by_time/__hash__/doc_term_counts(_sparse)/to_polars` |
-| **2 — Pure math** | statistics with no I/O | `keyness.{log_likelihood,chi_squared,log_ratio,percent_diff,bayes_factor,permutation_pvalues,keyness_multi,juilland_d,benjamini_hochberg}`; `collocation.{logdice,pmi,t_score,mi_three,collocation_shift,cooccurrence_network}`; `semantic.{HashEmbedder,SBERTEmbedder,semantic_trajectory,neighborhood_drift,induce_senses,sense_drift}`; `temporal.{changepoints,interrupted_time_series,forecast,causal_impact,bocpd}` |
+| **2 — Pure math** | statistics with no I/O | `keyness.{log_likelihood,chi_squared,log_ratio,percent_diff,bayes_factor,permutation_pvalues,keyness_multi,juilland_d,benjamini_hochberg}`; `collocation.{logdice,pmi,t_score,mi_three,collocation_shift,cooccurrence_network}`; `semantic.{HashEmbedder,SBERTEmbedder,semantic_trajectory,neighborhood_drift,induce_senses,sense_drift,knn_density_drift}`; `temporal.{changepoints,interrupted_time_series,forecast,causal_impact,bocpd}` |
 | **3 — Verbs + Results** | public API | `compare`, `track`, `compare.before_after`, `keyness_multi`, plus 9 frozen-dataclass Result types each implementing the relevant subset of `.to_df() / .plot() / .explain() / .summary() / .to_html() / .to_json()` |
 
 ## Quick start
@@ -165,6 +167,16 @@ drift.sense_trajectories()                                 # per-period per-sens
 drift.plot()                                               # margin density + calibrated threshold + p-value
 drift.plot_composition()                                   # stacked-area sense share over time — the takeover, seen
 drift.plot_decline()                                       # slopegraph early→late, coloured obsolescence/dilution/rising
+
+# The sense-free, streaming sibling of sense_drift: flag *new* content with no
+# sense model — one time-filtered nearest-neighbour query (scales to a vector
+# store; mode="cumulative" makes it an online monitor).
+nov = pcd.knn_density_drift(df, X, time_col="year", reference=range(2000, 2010), k=10)
+nov.summary()                                              # which periods drifted + novelty density
+nov.exemplars(period=2023, top=8)                          # the most-novel records driving a flag
+nov.plot()                                                 # novelty density + reference-calibrated threshold
+# sense_drift *explains*, knn_density_drift *catches*; agreement across the two
+# mechanically different views is a robustness check, not a coincidence.
 ```
 
 See [`examples/pycorpdiff_showcase.ipynb`](https://github.com/jturner-uofl/pycorpdiff/blob/main/examples/pycorpdiff_showcase.ipynb)

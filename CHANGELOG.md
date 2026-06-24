@@ -37,6 +37,25 @@ interprets; never the reverse).
   (`test_annotator_output_never_enters_numeric_fields`) asserts no annotator
   output can land in a numeric field. Documented in `docs/design.md`.
 
+## [0.1.0a34]
+
+### Added
+
+- **`pycorpdiff.knn_density_drift`** + **`KNNDensityDriftResult`** --- a
+  sense-free, streaming-capable change detector and the sibling of
+  `sense_drift`. Novelty is a record's distance to its `k` nearest neighbours in
+  the *past* (`1 - mean cosine`); a period drifts when its fraction of novel
+  records clears a reference-calibrated control-chart threshold. No sense model
+  is fit, so it is robust to the cross-era saturation that pins margin density
+  near 1.0, and it maps onto a vector store's time-filtered nearest-neighbour
+  query (`mode="cumulative"` is an online monitor). Where `sense_drift`
+  *explains* drift, `knn_density_drift` *catches* it; sharing the control-chart
+  flagging lets the two cross-check, so agreement across the independent
+  formulations is a robustness result. Exposed in the public API (`__all__`),
+  with `.summary()` / `.exemplars()` / `.plot()` / `.to_df()` / `.to_html()` /
+  `.to_json()` on `KNNDensityDriftResult`; 17 tests including cross-detector
+  agreement.
+
 ## [0.1.0a33]
 
 Diversity release: **Hill numbers + individual-based rarefaction** in the
